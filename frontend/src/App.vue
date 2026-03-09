@@ -1,15 +1,16 @@
 <template>
-  <router-view></router-view>
+  <router-view />
 </template>
 
-<script>
-export default {
-  name: "AppRoot"
-}
+<script setup>
 </script>
 
 <style>
-body{
-  margin:0;
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 </style>

@@ -19,6 +19,9 @@ public class Counselor {
   @Column(name = "college")
   private String college;
 
+  @Column(name = "phone")
+  private String phone;
+
   public Counselor() {
   }
 
@@ -44,5 +47,13 @@ public class Counselor {
 
   public void setCollege(String college) {
     this.college = college;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
   }
 }

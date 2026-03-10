@@ -24,13 +24,22 @@
           <el-input v-model="form.password" type="password" show-password />
         </el-form-item>
 
-        <!-- 按钮专属的form-item，清除默认内边距 -->
         <el-form-item class="btn-form-item">
           <div class="btn-group">
-            <el-button type="primary" class="full-btn" @click="reset">
+            <el-button
+                type="primary"
+                class="full-btn"
+                :loading="loading"
+                @click="reset"
+            >
               重置密码
             </el-button>
-            <el-button class="full-btn" @click="backLogin">
+
+            <el-button
+                class="full-btn"
+                :disabled="loading"
+                @click="backLogin"
+            >
               返回登录
             </el-button>
           </div>
@@ -41,11 +50,13 @@
 </template>
 
 <script setup>
-import { reactive } from "vue"
+import { reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 import { ElMessage } from "element-plus"
+import axios from "axios"
 
 const router = useRouter()
+const loading = ref(false)
 
 const form = reactive({
   role: "",
@@ -54,12 +65,43 @@ const form = reactive({
   password: ""
 })
 
-const reset = () => {
+const reset = async () => {
   if (!form.role || !form.username || !form.phone || !form.password) {
     ElMessage.error("请填写完整信息")
     return
   }
-  ElMessage.success("页面校验通过，后端接口暂未接入")
+
+  loading.value = true
+
+  try {
+    const res = await axios.post("http://localhost:8080/api/password/reset", {
+      role: form.role,
+      username: form.username,
+      phone: form.phone,
+      password: form.password
+    })
+
+    if (res.data && res.data.success) {
+      ElMessage.success(res.data.message || "密码重置成功")
+
+      form.role = ""
+      form.username = ""
+      form.phone = ""
+      form.password = ""
+
+      router.push("/")
+    } else {
+      ElMessage.error((res.data && res.data.message) || "密码重置失败")
+    }
+  } catch (error) {
+    ElMessage.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "密码重置失败"
+    )
+  } finally {
+    loading.value = false
+  }
 }
 
 const backLogin = () => {
@@ -78,12 +120,16 @@ const backLogin = () => {
 
 .forget-card {
   width: 450px;
-  padding: 20px !important; /* 统一卡片内边距 */
+  padding: 20px !important;
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.reset-form {
+  width: 100%;
 }
 
 .role-group {
@@ -99,31 +145,23 @@ h2 {
   margin: 0 !important;
 }
 
-/* 表单整体样式，统一输入框和按钮的基准 */
-.reset-form {
-  width: 100%;
-}
-
-/* 清除按钮所在form-item的默认内边距 */
 .btn-form-item {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* 按钮容器：垂直排列，间距10px，宽度100% */
 .btn-group {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  margin-top: 10px; /* 与上一个表单项保持间距 */
+  margin-top: 10px;
 }
 
-/* 强制按钮盒模型，清除默认margin，宽度100% */
 .full-btn {
   width: 100% !important;
   box-sizing: border-box !important;
-  margin: 0 !important; /* 清除按钮默认margin */
-  padding: 12px 0 !important; /* 可选：统一按钮内边距，视觉更协调 */
+  margin: 0 !important;
+  padding: 12px 0 !important;
 }
 </style>

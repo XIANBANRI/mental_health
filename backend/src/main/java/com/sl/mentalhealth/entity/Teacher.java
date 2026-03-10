@@ -19,6 +19,9 @@ public class Teacher {
   @Column(name = "office_location")
   private String officeLocation;
 
+  @Column(name = "phone")
+  private String phone;
+
   public Teacher() {
   }
 
@@ -44,5 +47,13 @@ public class Teacher {
 
   public void setOfficeLocation(String officeLocation) {
     this.officeLocation = officeLocation;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
   }
 }

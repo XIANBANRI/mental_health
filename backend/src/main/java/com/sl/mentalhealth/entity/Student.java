@@ -15,6 +15,9 @@ public class Student {
   @Column(name = "student_id")
   private String studentId;
 
+  @Column(name = "name")
+  private String name;
+
   @Column(name = "college")
   private String college;
 
@@ -80,4 +83,6 @@ public class Student {
   public void setScore(BigDecimal score) {
     this.score = score;
   }
+
+  public String getName(){ return name;}
 }

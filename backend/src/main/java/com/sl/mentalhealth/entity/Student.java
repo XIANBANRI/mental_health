@@ -30,8 +30,6 @@ public class Student {
   @Column(name = "phone")
   private String phone;
 
-  @Column(name = "score")
-  private BigDecimal score;
 
   public Student() {
   }
@@ -76,13 +74,6 @@ public class Student {
     this.phone = phone;
   }
 
-  public BigDecimal getScore() {
-    return score;
-  }
-
-  public void setScore(BigDecimal score) {
-    this.score = score;
-  }
 
   public String getName(){ return name;}
 }

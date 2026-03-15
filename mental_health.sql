@@ -363,7 +363,6 @@ CREATE TABLE `student` (
   `class_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
-  `score` decimal(5,2) DEFAULT '0.00' COMMENT '分数',
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `uk_student_phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生表';
@@ -375,7 +374,7 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES ('2023010101','张三','计算机科学与技术学院','软件工程2301班','123456','13800138001',85.50),('2023010102','李四','计算机科学与技术学院','软件工程2301班','123456aA!','13800138002',78.00),('2023020201','王五','文学院','汉语言文学2302班','123456aA!','13800138003',92.75),('2023020202','赵六','文学院','汉语言文学2302班','123456aA!','13800138004',65.20),('2023030301','孙七','医学院','临床医学2303班','123456aA!','13800138005',88.90),('2023030302','周八','医学院','临床医学2303班','123456aA!','13800138006',72.30),('2023040401','吴九','商学院','财务管理2304班','123456aA!','13800138007',90.10),('2023040402','郑十','商学院','财务管理2304班','123456aA!','13800138008',68.40),('2023050501','钱一','外国语学院','英语2305班','123456aA!','13800138009',81.60),('2023050502','冯二','外国语学院','英语2305班','123456aA!','13800138010',79.80);
+INSERT INTO `student` VALUES ('2023010101','张三','计算机科学与技术学院','软件工程2301班','123456','13800138001'),('2023010102','李四','计算机科学与技术学院','软件工程2301班','123456aA!','13800138002'),('2023020201','王五','文学院','汉语言文学2302班','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','123456aA!','13800138010');
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -392,9 +391,6 @@ CREATE TABLE `teacher` (
   `teacher_name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师姓名',
   `office_location` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '办公地点',
   `phone` varchar(20) COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1启用 0停用',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='教师表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -405,7 +401,7 @@ CREATE TABLE `teacher` (
 
 LOCK TABLES `teacher` WRITE;
 /*!40000 ALTER TABLE `teacher` DISABLE KEYS */;
-INSERT INTO `teacher` VALUES ('teacher01','teacher@01','张老师','计算机学院2号楼301室','13900139001',1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),('teacher02','teacher@02','李老师','文学院1号楼405室','13900139002',1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),('teacher03','teacher@03','王老师','医学院3号楼208室','13900139003',1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),('teacher04','teacher@04','赵老师','商学院4号楼102室','13900139004',1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),('teacher05','teacher@05','陈老师','外国语学院5号楼503室','13900139005',1,'2026-03-15 02:29:57','2026-03-15 02:29:57');
+INSERT INTO `teacher` VALUES ('teacher01','teacher@01','张老师','计算机学院2号楼301室','13900139001'),('teacher02','teacher@02','李老师','文学院1号楼405室','13900139002'),('teacher03','teacher@03','王老师','医学院3号楼208室','13900139003'),('teacher04','teacher@04','赵老师','商学院4号楼102室','13900139004'),('teacher05','teacher@05','陈老师','外国语学院5号楼503室','13900139005');
 /*!40000 ALTER TABLE `teacher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -423,7 +419,6 @@ CREATE TABLE `teacher_schedule` (
   `start_time` time NOT NULL COMMENT '开始时间',
   `end_time` time NOT NULL COMMENT '结束时间',
   `max_appointments` int NOT NULL DEFAULT '1' COMMENT '该时段最大可预约人数',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1启用 0停用',
   `remark` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -441,7 +436,7 @@ CREATE TABLE `teacher_schedule` (
 
 LOCK TABLES `teacher_schedule` WRITE;
 /*!40000 ALTER TABLE `teacher_schedule` DISABLE KEYS */;
-INSERT INTO `teacher_schedule` VALUES (1,'teacher01',1,'14:00:00','17:00:00',3,1,'周一下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(2,'teacher01',3,'09:00:00','11:00:00',2,1,'周三上午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(3,'teacher02',2,'15:00:00','17:00:00',2,1,'周二下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(4,'teacher02',4,'09:00:00','12:00:00',3,1,'周四上午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(5,'teacher03',5,'14:30:00','17:30:00',2,1,'周五下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57');
+INSERT INTO `teacher_schedule` VALUES (1,'teacher01',1,'14:00:00','17:00:00',3,'周一下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(2,'teacher01',3,'09:00:00','11:00:00',2,'周三上午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(3,'teacher02',2,'15:00:00','17:00:00',2,'周二下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(4,'teacher02',4,'09:00:00','12:00:00',3,'周四上午接待','2026-03-15 02:29:57','2026-03-15 02:29:57'),(5,'teacher03',5,'14:30:00','17:30:00',2,'周五下午接待','2026-03-15 02:29:57','2026-03-15 02:29:57');
 /*!40000 ALTER TABLE `teacher_schedule` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -462,4 +457,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-15 11:04:37
+-- Dump completed on 2026-03-15 14:58:45

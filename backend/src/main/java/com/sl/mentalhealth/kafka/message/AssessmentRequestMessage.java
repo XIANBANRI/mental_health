@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.kafka.message;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitAnswerDTO;
+import com.sl.mentalhealth.dto.AssessmentSubmitAnswer;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public class AssessmentRequestMessage {
   private String studentId;
   private String semester;
   private Long scaleId;
-  private List<AssessmentSubmitAnswerDTO> answers;
+  private List<AssessmentSubmitAnswer> answers;
 
   public String getRequestId() {
     return requestId;
@@ -53,11 +53,11 @@ public class AssessmentRequestMessage {
     this.scaleId = scaleId;
   }
 
-  public List<AssessmentSubmitAnswerDTO> getAnswers() {
+  public List<AssessmentSubmitAnswer> getAnswers() {
     return answers;
   }
 
-  public void setAnswers(List<AssessmentSubmitAnswerDTO> answers) {
+  public void setAnswers(List<AssessmentSubmitAnswer> answers) {
     this.answers = answers;
   }
 }

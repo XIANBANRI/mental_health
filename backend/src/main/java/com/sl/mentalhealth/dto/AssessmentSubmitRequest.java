@@ -7,7 +7,7 @@ public class AssessmentSubmitRequest {
   private String studentId;
   private String semester;
   private Long scaleId;
-  private List<AssessmentSubmitAnswerDTO> answers;
+  private List<AssessmentSubmitAnswer> answers;
 
   public String getStudentId() {
     return studentId;
@@ -33,11 +33,11 @@ public class AssessmentSubmitRequest {
     this.scaleId = scaleId;
   }
 
-  public List<AssessmentSubmitAnswerDTO> getAnswers() {
+  public List<AssessmentSubmitAnswer> getAnswers() {
     return answers;
   }
 
-  public void setAnswers(List<AssessmentSubmitAnswerDTO> answers) {
+  public void setAnswers(List<AssessmentSubmitAnswer> answers) {
     this.answers = answers;
   }
 }

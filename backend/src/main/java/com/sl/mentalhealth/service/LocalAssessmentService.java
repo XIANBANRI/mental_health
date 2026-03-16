@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.service;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitAnswerDTO;
+import com.sl.mentalhealth.dto.AssessmentSubmitAnswer;
 import com.sl.mentalhealth.entity.AssessmentAnswer;
 import com.sl.mentalhealth.entity.AssessmentOption;
 import com.sl.mentalhealth.entity.AssessmentQuestion;
@@ -162,7 +162,7 @@ public class LocalAssessmentService {
     String studentId = trimToNull(request.getStudentId());
     String semester = trimToNull(request.getSemester());
     Long scaleId = request.getScaleId();
-    List<AssessmentSubmitAnswerDTO> answers = request.getAnswers();
+    List<AssessmentSubmitAnswer> answers = request.getAnswers();
 
     if (studentId == null) {
       return fail(requestId, "学号不能为空");
@@ -196,8 +196,8 @@ public class LocalAssessmentService {
     Map<Long, AssessmentQuestion> questionMap = questions.stream()
         .collect(Collectors.toMap(AssessmentQuestion::getId, q -> q));
 
-    Map<Long, AssessmentSubmitAnswerDTO> submitAnswerMap = new HashMap<>();
-    for (AssessmentSubmitAnswerDTO item : answers) {
+    Map<Long, AssessmentSubmitAnswer> submitAnswerMap = new HashMap<>();
+    for (AssessmentSubmitAnswer item : answers) {
       if (item.getQuestionId() == null || item.getOptionId() == null) {
         return fail(requestId, "答案数据不完整");
       }
@@ -220,7 +220,7 @@ public class LocalAssessmentService {
     List<AssessmentAnswer> answerEntities = new ArrayList<>();
 
     for (AssessmentQuestion question : questions) {
-      AssessmentSubmitAnswerDTO item = submitAnswerMap.get(question.getId());
+      AssessmentSubmitAnswer item = submitAnswerMap.get(question.getId());
       if (item == null) {
         return fail(requestId, "题目未全部完成");
       }

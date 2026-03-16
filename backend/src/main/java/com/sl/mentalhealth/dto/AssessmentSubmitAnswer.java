@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.dto;
 
-public class AssessmentSubmitAnswerDTO {
+public class AssessmentSubmitAnswer {
 
   private Long questionId;
   private Long optionId;

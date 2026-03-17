@@ -16,14 +16,14 @@ public class Teacher {
   @Column(name = "password")
   private String password;
 
+  @Column(name = "teacher_name")
+  private String teacherName;
+
   @Column(name = "office_location")
   private String officeLocation;
 
   @Column(name = "phone")
   private String phone;
-
-  public Teacher() {
-  }
 
   public String getAccount() {
     return account;
@@ -39,6 +39,14 @@ public class Teacher {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public String getTeacherName() {
+    return teacherName;
+  }
+
+  public void setTeacherName(String teacherName) {
+    this.teacherName = teacherName;
   }
 
   public String getOfficeLocation() {

@@ -20,4 +20,7 @@ public final class KafkaTopics {
   public static final String APPOINTMENT_REQUEST = "appointment-request";
   public static final String APPOINTMENT_RESPONSE = "appointment-response";
 
+  public static final String TEACHER_PROFILE_REQUEST = "mh.teacher.profile.request";
+  public static final String TEACHER_PROFILE_RESPONSE = "mh.teacher.profile.response";
+
 }

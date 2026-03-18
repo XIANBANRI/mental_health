@@ -12,6 +12,13 @@ import AppointmentRecord from "@/views/student/appointment/AppointmentRecord.vue
 import StudentProfile from "@/views/student/profile/StudentProfile.vue"
 
 import TeacherHome from "@/views/teacher/TeacherHome.vue"
+import TeacherWelcome from "@/views/teacher/TeacherWelcome.vue"
+import ScheduleQuery from "@/views/teacher/schedule/ScheduleQuery.vue"
+import ScheduleManage from "@/views/teacher/schedule/ScheduleManage.vue"
+import TeacherAppointmentQuery from "@/views/teacher/appointment/AppointmentQuery.vue"
+import TeacherAppointmentRecord from "@/views/teacher/appointment/AppointmentRecord.vue"
+import TeacherProfile from "@/views/teacher/profile/TeacherProfile.vue"
+
 import CounselorHome from "@/views/counselor/CounselorHome.vue"
 import AdminHome from "@/views/admin/AdminHome.vue"
 
@@ -64,8 +71,39 @@ const routes = [
   },
   {
     path: "/teacher",
-    name: "TeacherHome",
-    component: TeacherHome
+    component: TeacherHome,
+    children: [
+      {
+        path: "",
+        name: "TeacherWelcome",
+        component: TeacherWelcome
+      },
+      {
+        path: "schedule/query",
+        name: "ScheduleQuery",
+        component: ScheduleQuery
+      },
+      {
+        path: "schedule/manage",
+        name: "ScheduleManage",
+        component: ScheduleManage
+      },
+      {
+        path: "appointment/query",
+        name: "TeacherAppointmentQuery",
+        component: TeacherAppointmentQuery
+      },
+      {
+        path: "appointment/record",
+        name: "TeacherAppointmentRecord",
+        component: TeacherAppointmentRecord
+      },
+      {
+        path: "profile",
+        name: "TeacherProfile",
+        component: TeacherProfile
+      }
+    ]
   },
   {
     path: "/counselor",

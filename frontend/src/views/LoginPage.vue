@@ -71,6 +71,11 @@ const clearLoginCache = () => {
   localStorage.removeItem("className")
   localStorage.removeItem("college")
   localStorage.removeItem("phone")
+
+  localStorage.removeItem("teacherAccount")
+  localStorage.removeItem("teacherName")
+  localStorage.removeItem("teacherPhone")
+  localStorage.removeItem("officeLocation")
 }
 
 const login = async () => {
@@ -110,9 +115,8 @@ const login = async () => {
           })
       )
 
-      // 只有学生登录时，才保存 studentId
       if (role === "student") {
-        localStorage.setItem("studentId", username)
+        localStorage.setItem("studentId", data.studentId || username)
 
         if (data.name) {
           localStorage.setItem("studentName", data.name)
@@ -125,6 +129,20 @@ const login = async () => {
         }
         if (data.phone) {
           localStorage.setItem("phone", data.phone)
+        }
+      }
+
+      if (role === "teacher") {
+        localStorage.setItem("teacherAccount", data.teacherAccount || username)
+
+        if (data.teacherName) {
+          localStorage.setItem("teacherName", data.teacherName)
+        }
+        if (data.phone) {
+          localStorage.setItem("teacherPhone", data.phone)
+        }
+        if (data.officeLocation) {
+          localStorage.setItem("officeLocation", data.officeLocation)
         }
       }
 

@@ -24,7 +24,7 @@
           </template>
 
           <el-alert
-              title="请选择日期后查看当天有排班的心理老师，并根据剩余名额提交预约。今天之前的日期不可预约。"
+              title="请选择日期后查看当天有排班的心理老师，并根据剩余名额提交预约。今天之前的日期不可预约；同一天同一时间段只能预约一个老师。"
               type="info"
               :closable="false"
               show-icon
@@ -61,15 +61,15 @@
               </template>
             </el-table-column>
             <el-table-column prop="remark" label="备注" min-width="180" />
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column label="操作" width="150" fixed="right">
               <template #default="scope">
                 <el-button
                     type="primary"
                     size="small"
-                    :disabled="scope.row.remainingAppointments <= 0"
+                    :disabled="scope.row.remainingAppointments <= 0 || hasSameTimeAppointment(scope.row)"
                     @click="openApplyDialog(scope.row)"
                 >
-                  预约
+                  {{ hasSameTimeAppointment(scope.row) ? "该时段已预约" : "预约" }}
                 </el-button>
               </template>
             </el-table-column>
@@ -77,7 +77,7 @@
 
           <div class="tips-area" v-if="availableList.length > 0">
             <el-text type="info">
-              温馨提示：每个时段请勿重复预约，同一老师同一时段名额满后将无法继续提交。
+              温馨提示：每个时段请勿重复预约，同一天同一时间段只能预约一个老师。
             </el-text>
           </div>
         </el-card>
@@ -156,6 +156,7 @@ export default {
       submitLoading: false,
       queryDate: this.formatDate(new Date()),
       availableList: [],
+      myAppointmentList: [],
       dialogVisible: false,
       currentRow: {},
       applyForm: {
@@ -178,8 +179,9 @@ export default {
       return `${this.currentRow.startTime} - ${this.currentRow.endTime}`;
     }
   },
-  mounted() {
-    this.loadAvailableList();
+  async mounted() {
+    await this.loadMyAppointments();
+    await this.loadAvailableList();
   },
   methods: {
     normalizeResult(res) {
@@ -251,6 +253,40 @@ export default {
       return map[weekDay] || "-";
     },
 
+    async loadMyAppointments() {
+      const studentId = this.getStudentId();
+      if (!studentId) {
+        this.myAppointmentList = [];
+        return;
+      }
+
+      try {
+        const res = await request.get("/appointment/my", {
+          params: { studentId }
+        });
+        const result = this.normalizeResult(res);
+        if (result.code === 200) {
+          this.myAppointmentList = result.data || [];
+        } else {
+          this.myAppointmentList = [];
+        }
+      } catch (e) {
+        this.myAppointmentList = [];
+      }
+    },
+
+    hasSameTimeAppointment(row) {
+      const list = this.myAppointmentList || [];
+      return list.some(item => {
+        return (
+            item.appointmentDate === this.queryDate &&
+            item.startTime === row.startTime &&
+            item.endTime === row.endTime &&
+            (item.status === "PENDING" || item.status === "APPROVED")
+        );
+      });
+    },
+
     async loadAvailableList() {
       if (!this.queryDate) {
         this.$message.warning("请选择预约日期");
@@ -265,6 +301,8 @@ export default {
 
       this.loading = true;
       try {
+        await this.loadMyAppointments();
+
         const res = await request.get("/appointment/available", {
           params: {
             date: this.queryDate
@@ -297,6 +335,11 @@ export default {
         return;
       }
 
+      if (this.hasSameTimeAppointment(row)) {
+        this.$message.warning("同一天同一时间段只能预约一个老师");
+        return;
+      }
+
       this.currentRow = { ...row };
       this.applyForm = {
         studentId,
@@ -326,6 +369,11 @@ export default {
           return;
         }
 
+        if (this.hasSameTimeAppointment(this.currentRow)) {
+          this.$message.warning("同一天同一时间段只能预约一个老师");
+          return;
+        }
+
         this.submitLoading = true;
         try {
           const res = await request.post("/appointment/create", this.applyForm);
@@ -334,6 +382,7 @@ export default {
           if (result.code === 200) {
             this.$message.success(result.message || "预约提交成功");
             this.dialogVisible = false;
+            await this.loadMyAppointments();
             await this.loadAvailableList();
           } else {
             this.$message.error(result.message || "预约提交失败");

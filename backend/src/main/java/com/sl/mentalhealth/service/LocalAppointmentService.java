@@ -108,6 +108,7 @@ public class LocalAppointmentService {
       throw new RuntimeException("预约日期与老师排班星期不匹配");
     }
 
+    // 1. 防止同一个排班重复预约
     boolean duplicated = appointmentRepository.existsByStudentAccountAndScheduleIdAndAppointmentDateAndStatusIn(
         studentId, scheduleId, appointmentDate, DUPLICATE_STATUS
     );
@@ -115,6 +116,20 @@ public class LocalAppointmentService {
       throw new RuntimeException("你已预约过该时段");
     }
 
+    // 2. 防止同一天同一时间段预约多个老师
+    boolean sameTimeDuplicated =
+        appointmentRepository.existsByStudentAccountAndAppointmentDateAndStartTimeAndEndTimeAndStatusIn(
+            studentId,
+            appointmentDate,
+            schedule.getStartTime(),
+            schedule.getEndTime(),
+            DUPLICATE_STATUS
+        );
+    if (sameTimeDuplicated) {
+      throw new RuntimeException("同一天同一时间段只能预约一个老师");
+    }
+
+    // 3. 校验该排班剩余名额
     long used = appointmentRepository.countByScheduleIdAndAppointmentDateAndStatusIn(
         scheduleId, appointmentDate, OCCUPIED_STATUS
     );

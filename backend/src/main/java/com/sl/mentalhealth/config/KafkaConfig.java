@@ -5,6 +5,8 @@ import com.sl.mentalhealth.kafka.message.AppointmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AppointmentResponseMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentResponseMessage;
+import com.sl.mentalhealth.kafka.message.CounselorProfileRequestMessage;
+import com.sl.mentalhealth.kafka.message.CounselorProfileResponseMessage;
 import com.sl.mentalhealth.kafka.message.LoginRequestMessage;
 import com.sl.mentalhealth.kafka.message.LoginResponseMessage;
 import com.sl.mentalhealth.kafka.message.ResetPasswordRequestMessage;
@@ -118,6 +120,16 @@ public class KafkaConfig {
   @Bean
   public NewTopic teacherAppointmentResponseTopic() {
     return new NewTopic(KafkaTopics.TEACHER_APPOINTMENT_RESPONSE, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic counselorProfileRequestTopic() {
+    return new NewTopic(KafkaTopics.COUNSELOR_PROFILE_REQUEST, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic counselorProfileResponseTopic() {
+    return new NewTopic(KafkaTopics.COUNSELOR_PROFILE_RESPONSE, 1, (short) 1);
   }
 
   @Bean
@@ -359,6 +371,60 @@ public class KafkaConfig {
   }
 
   @Bean
+  public ProducerFactory<String, CounselorProfileRequestMessage> counselorProfileRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, CounselorProfileRequestMessage> counselorProfileRequestKafkaTemplate() {
+    return new KafkaTemplate<>(counselorProfileRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, CounselorProfileResponseMessage> counselorProfileResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, CounselorProfileResponseMessage> counselorProfileResponseKafkaTemplate() {
+    return new KafkaTemplate<>(counselorProfileResponseProducerFactory());
+  }
+
+  @Bean(name = "kafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-default-listener-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<Object> deserializer = new JacksonJsonDeserializer<>(Object.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    ConsumerFactory<String, Object> consumerFactory =
+        new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+
+    ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(consumerFactory);
+    return factory;
+  }
+
+  @Bean
   public ConsumerFactory<String, LoginRequestMessage> loginRequestConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -572,7 +638,10 @@ public class KafkaConfig {
 
     JacksonJsonDeserializer<AssessmentRequestMessage> deserializer =
         new JacksonJsonDeserializer<>(AssessmentRequestMessage.class);
-    deserializer.addTrustedPackages("com.sl.mentalhealth.kafka.message", "com.sl.mentalhealth.dto");
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto"
+    );
 
     return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
   }
@@ -780,6 +849,59 @@ public class KafkaConfig {
     ConcurrentKafkaListenerContainerFactory<String, TeacherAppointmentResponseMessage> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(teacherAppointmentResponseConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, CounselorProfileRequestMessage> counselorProfileRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-counselor-profile-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<CounselorProfileRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(CounselorProfileRequestMessage.class);
+    deserializer.addTrustedPackages("com.sl.mentalhealth.kafka.message");
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, CounselorProfileRequestMessage>
+  counselorProfileRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, CounselorProfileRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(counselorProfileRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, CounselorProfileResponseMessage> counselorProfileResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-counselor-profile-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<CounselorProfileResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(CounselorProfileResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, CounselorProfileResponseMessage>
+  counselorProfileResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, CounselorProfileResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(counselorProfileResponseConsumerFactory());
     return factory;
   }
 }

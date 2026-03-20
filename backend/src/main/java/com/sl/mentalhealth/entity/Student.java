@@ -5,8 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.math.BigDecimal;
-
 @Entity
 @Table(name = "student")
 public class Student {
@@ -30,6 +28,8 @@ public class Student {
   @Column(name = "phone")
   private String phone;
 
+  @Column(name = "grade")
+  private String grade;
 
   public Student() {
   }
@@ -40,6 +40,14 @@ public class Student {
 
   public void setStudentId(String studentId) {
     this.studentId = studentId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getCollege() {
@@ -74,6 +82,11 @@ public class Student {
     this.phone = phone;
   }
 
+  public String getGrade() {
+    return grade;
+  }
 
-  public String getName(){ return name;}
+  public void setGrade(String grade) {
+    this.grade = grade;
+  }
 }

@@ -7,7 +7,12 @@
 
       <el-form :inline="true" class="search-form">
         <el-form-item label="学生学号">
-          <el-input v-model="queryForm.studentId" placeholder="请输入学生学号" clearable style="width: 180px" />
+          <el-input
+              v-model="queryForm.studentId"
+              placeholder="请输入学生学号"
+              clearable
+              style="width: 180px"
+          />
         </el-form-item>
 
         <el-form-item label="预约日期">
@@ -30,17 +35,28 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button type="primary" @click="loadRecordList">查询</el-button>
           <el-button @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
 
-      <el-table :data="filteredList" border style="width: 100%">
+      <el-table :data="recordList" border style="width: 100%" v-loading="loading">
+        <el-table-column prop="appointmentNo" label="预约单号" width="160" />
         <el-table-column prop="studentId" label="学生学号" width="130" />
         <el-table-column prop="studentName" label="学生姓名" width="120" />
         <el-table-column prop="appointmentDate" label="预约日期" width="140" />
-        <el-table-column prop="startTime" label="开始时间" width="120" />
-        <el-table-column prop="endTime" label="结束时间" width="120" />
+        <el-table-column prop="startTime" label="开始时间" width="120">
+          <template #default="scope">
+            {{ formatTime(scope.row.startTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="endTime" label="结束时间" width="120">
+          <template #default="scope">
+            {{ formatTime(scope.row.endTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="purpose" label="预约原因" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="teacherReply" label="老师回复" min-width="180" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="120">
           <template #default="scope">
             <el-tag :type="getStatusTag(scope.row.status)">
@@ -48,16 +64,72 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="180" />
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="createdAt" label="创建时间" min-width="180" />
+        <el-table-column label="操作" width="120" fixed="right" align="center">
+          <template #default="scope">
+            <el-button
+                size="small"
+                @click="loadAssessmentRecord(scope.row)"
+            >
+              测试记录
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog
+        v-model="assessmentDialogVisible"
+        title="学生心理测试记录"
+        width="1000px"
+    >
+      <div class="student-info" v-if="assessmentRecords.length > 0">
+        <span>学号：{{ assessmentRecords[0].studentId }}</span>
+        <span>姓名：{{ assessmentRecords[0].studentName }}</span>
+        <span>学院：{{ assessmentRecords[0].college || '暂无' }}</span>
+        <span>班级：{{ assessmentRecords[0].className || '暂无' }}</span>
+      </div>
+
+      <el-empty
+          v-if="assessmentRecords.length === 0"
+          description="暂无心理测试记录"
+      />
+
+      <el-table
+          v-else
+          :data="assessmentRecords"
+          border
+          style="width: 100%"
+          v-loading="assessmentLoading"
+      >
+        <el-table-column prop="semester" label="学期" width="110" />
+        <el-table-column prop="k10Score" label="K10分数" width="100" />
+        <el-table-column prop="k10Status" label="K10状态" width="120" />
+        <el-table-column prop="who5Score" label="WHO-5分数" width="110" />
+        <el-table-column prop="who5Status" label="WHO-5状态" width="130" />
+        <el-table-column prop="phq9Score" label="PHQ-9分数" width="110" />
+        <el-table-column prop="phq9Status" label="PHQ-9状态" width="130" />
+        <el-table-column prop="gad7Score" label="GAD-7分数" width="110" />
+        <el-table-column prop="gad7Status" label="GAD-7状态" width="130" />
+        <el-table-column prop="healthTotalScore" label="总分" width="90" />
+        <el-table-column prop="healthStatus" label="健康状态" width="140" />
+        <el-table-column prop="submittedAt" label="提交时间" min-width="180" />
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed } from "vue"
+import { reactive, ref, onMounted } from "vue"
 import { ElMessage } from "element-plus"
+import request from "@/utils/request"
+
+const loading = ref(false)
+const recordList = ref([])
+
+const assessmentLoading = ref(false)
+const assessmentDialogVisible = ref(false)
+const assessmentRecords = ref([])
 
 const queryForm = reactive({
   studentId: "",
@@ -65,39 +137,13 @@ const queryForm = reactive({
   status: ""
 })
 
-const recordList = ref([
-  {
-    id: 1,
-    studentId: "20230002",
-    studentName: "王芳",
-    appointmentDate: "2026-03-21",
-    startTime: "14:00",
-    endTime: "15:00",
-    status: "COMPLETED",
-    remark: "情绪疏导",
-    createdAt: "2026-03-18 10:30:00"
-  },
-  {
-    id: 2,
-    studentId: "20230003",
-    studentName: "赵强",
-    appointmentDate: "2026-03-22",
-    startTime: "10:00",
-    endTime: "11:00",
-    status: "REJECTED",
-    remark: "时间冲突",
-    createdAt: "2026-03-18 14:20:00"
-  }
-])
+const teacherAccount = () =>
+    localStorage.getItem("teacherAccount") || localStorage.getItem("username")
 
-const filteredList = computed(() => {
-  return recordList.value.filter(item => {
-    const matchStudentId = !queryForm.studentId || item.studentId.includes(queryForm.studentId)
-    const matchDate = !queryForm.appointmentDate || item.appointmentDate === queryForm.appointmentDate
-    const matchStatus = !queryForm.status || item.status === queryForm.status
-    return matchStudentId && matchDate && matchStatus
-  })
-})
+const formatTime = (time) => {
+  if (!time) return ""
+  return String(time).slice(0, 5)
+}
 
 const getStatusText = (status) => {
   const map = {
@@ -106,7 +152,7 @@ const getStatusText = (status) => {
     COMPLETED: "已完成",
     CANCELLED: "已取消"
   }
-  return map[status] || status
+  return map[status] || status || "未知"
 }
 
 const getStatusTag = (status) => {
@@ -119,15 +165,72 @@ const getStatusTag = (status) => {
   return map[status] || "info"
 }
 
-const handleSearch = () => {
-  ElMessage.success("查询成功")
+const loadRecordList = async () => {
+  if (!teacherAccount()) {
+    ElMessage.error("未获取到老师账号")
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await request.post("/api/teacher/appointment/record", {
+      teacherAccount: teacherAccount(),
+      studentId: queryForm.studentId,
+      appointmentDate: queryForm.appointmentDate,
+      status: queryForm.status
+    })
+
+    const result = res.data || {}
+    const success = result.code === 200 || result.success === true
+
+    if (success) {
+      recordList.value = result.data || []
+    } else {
+      ElMessage.error(result.message || "查询失败")
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || "查询失败")
+  } finally {
+    loading.value = false
+  }
 }
 
 const resetQuery = () => {
   queryForm.studentId = ""
   queryForm.appointmentDate = ""
   queryForm.status = ""
+  loadRecordList()
 }
+
+const loadAssessmentRecord = async (row) => {
+  assessmentDialogVisible.value = true
+  assessmentLoading.value = true
+  assessmentRecords.value = []
+
+  try {
+    const res = await request.post("/api/teacher/appointment/assessmentRecord", {
+      teacherAccount: teacherAccount(),
+      studentId: row.studentId
+    })
+
+    const result = res.data || {}
+    const success = result.code === 200 || result.success === true
+
+    if (success) {
+      assessmentRecords.value = result.data || []
+    } else {
+      ElMessage.error(result.message || "查询心理测试记录失败")
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || "查询心理测试记录失败")
+  } finally {
+    assessmentLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadRecordList()
+})
 </script>
 
 <style scoped>
@@ -141,5 +244,14 @@ const resetQuery = () => {
 
 .search-form {
   margin-bottom: 18px;
+}
+
+.student-info {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  color: #606266;
+  font-size: 14px;
 }
 </style>

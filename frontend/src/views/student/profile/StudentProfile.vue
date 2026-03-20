@@ -21,8 +21,20 @@
         {{ profile.college || "暂无" }}
       </el-descriptions-item>
 
+      <el-descriptions-item label="年级">
+        {{ profile.grade || "暂无" }}
+      </el-descriptions-item>
+
       <el-descriptions-item label="联系电话">
         {{ profile.phone || "暂无" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item label="辅导员">
+        {{ profile.counselorName || "暂无" }}
+      </el-descriptions-item>
+
+      <el-descriptions-item label="辅导员电话">
+        {{ profile.counselorPhone || "暂无" }}
       </el-descriptions-item>
     </el-descriptions>
   </el-card>
@@ -40,7 +52,10 @@ const profile = reactive({
   name: "",
   className: "",
   college: "",
-  phone: ""
+  grade: "",
+  phone: "",
+  counselorName: "",
+  counselorPhone: ""
 })
 
 const loadProfile = async () => {
@@ -73,7 +88,10 @@ const loadProfile = async () => {
       profile.name = data.name || ""
       profile.className = data.className || ""
       profile.college = data.college || ""
+      profile.grade = data.grade || ""
       profile.phone = data.phone || ""
+      profile.counselorName = data.counselorName || ""
+      profile.counselorPhone = data.counselorPhone || ""
     } else {
       ElMessage.error(result.message || "档案查询失败")
     }

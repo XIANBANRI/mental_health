@@ -13,11 +13,17 @@ public class Counselor {
   @Column(name = "account")
   private String account;
 
+  @Column(name = "name")
+  private String name;
+
   @Column(name = "password")
   private String password;
 
   @Column(name = "college")
   private String college;
+
+  @Column(name = "grade")
+  private String grade;
 
   @Column(name = "phone")
   private String phone;
@@ -31,6 +37,14 @@ public class Counselor {
 
   public void setAccount(String account) {
     this.account = account;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getPassword() {
@@ -47,6 +61,14 @@ public class Counselor {
 
   public void setCollege(String college) {
     this.college = college;
+  }
+
+  public String getGrade() {
+    return grade;
+  }
+
+  public void setGrade(String grade) {
+    this.grade = grade;
   }
 
   public String getPhone() {

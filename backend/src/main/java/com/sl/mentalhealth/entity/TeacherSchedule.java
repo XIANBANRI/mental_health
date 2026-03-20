@@ -1,10 +1,14 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.Data;
 
 @Data
 @Entity
@@ -30,12 +34,12 @@ public class TeacherSchedule {
   @Column(name = "max_appointments", nullable = false)
   private Integer maxAppointments;
 
-  @Column(name = "remark", length = 255)
+  @Column(name = "remark")
   private String remark;
 
-  @Column(name = "created_at")
+  @Column(name = "created_at", insertable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
+  @Column(name = "updated_at", insertable = false, updatable = false)
   private LocalDateTime updatedAt;
 }

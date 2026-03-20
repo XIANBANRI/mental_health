@@ -28,7 +28,7 @@
       </el-col>
 
       <el-col :span="10">
-        <el-card class="page-card">
+        <el-card class="page-card" v-loading="loading">
           <template #header>
             <span>当日工作时间</span>
           </template>
@@ -50,12 +50,9 @@
                 :key="item.id"
             >
               <div class="time-range">
-                {{ item.startTime }} - {{ item.endTime }}
+                {{ formatTime(item.startTime) }} - {{ formatTime(item.endTime) }}
               </div>
               <div class="item-meta">
-                <el-tag :type="item.status === 1 ? 'success' : 'info'">
-                  {{ item.status === 1 ? "启用" : "停用" }}
-                </el-tag>
                 <span class="max-count">最大预约人数：{{ item.maxAppointments }}</span>
               </div>
               <div class="remark" v-if="item.remark">
@@ -70,48 +67,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
+import { ElMessage } from "element-plus"
+import request from "@/utils/request"
 
 const selectedDate = ref(new Date())
-
-const scheduleList = ref([
-  {
-    id: 1,
-    weekDay: 1,
-    startTime: "08:00",
-    endTime: "10:00",
-    maxAppointments: 2,
-    status: 1,
-    remark: "周一上午值班"
-  },
-  {
-    id: 2,
-    weekDay: 1,
-    startTime: "14:00",
-    endTime: "16:00",
-    maxAppointments: 2,
-    status: 1,
-    remark: "周一下午咨询"
-  },
-  {
-    id: 3,
-    weekDay: 3,
-    startTime: "09:00",
-    endTime: "11:00",
-    maxAppointments: 3,
-    status: 1,
-    remark: "周三上午工作时间"
-  },
-  {
-    id: 4,
-    weekDay: 5,
-    startTime: "15:00",
-    endTime: "17:00",
-    maxAppointments: 2,
-    status: 1,
-    remark: "周五下午心理咨询"
-  }
-])
+const loading = ref(false)
+const scheduleList = ref([])
 
 const weekMap = {
   1: "星期一",
@@ -136,6 +98,11 @@ const getWeekDayByDate = (date) => {
   return day === 0 ? 7 : day
 }
 
+const formatTime = (time) => {
+  if (!time) return ""
+  return String(time).slice(0, 5)
+}
+
 const selectedDateText = computed(() => formatDate(selectedDate.value))
 
 const selectedWeekText = computed(() => {
@@ -145,8 +112,38 @@ const selectedWeekText = computed(() => {
 
 const currentScheduleList = computed(() => {
   const weekDay = getWeekDayByDate(selectedDate.value)
-  return scheduleList.value.filter(item => item.weekDay === weekDay)
+  return scheduleList.value.filter(item => Number(item.weekDay) === weekDay)
 })
+
+const loadScheduleList = async () => {
+  const teacherAccount =
+      localStorage.getItem("teacherAccount") || localStorage.getItem("username")
+
+  if (!teacherAccount) {
+    ElMessage.error("未获取到老师账号")
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await request.post("/api/teacher/schedule/query", {
+      teacherAccount
+    })
+
+    const result = res.data || {}
+    const success = result.code === 200 || result.success === true
+
+    if (success) {
+      scheduleList.value = result.data || []
+    } else {
+      ElMessage.error(result.message || "查询失败")
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || "查询失败")
+  } finally {
+    loading.value = false
+  }
+}
 
 const handleDateSelect = (day) => {
   selectedDate.value = new Date(day)
@@ -158,12 +155,16 @@ const getDayNumber = (day) => {
 
 const hasSchedule = (day) => {
   const weekDay = getWeekDayByDate(day)
-  return scheduleList.value.some(item => item.weekDay === weekDay && item.status === 1)
+  return scheduleList.value.some(item => Number(item.weekDay) === weekDay)
 }
 
 const isSameDate = (day, dateObj) => {
   return formatDate(dateObj) === day
 }
+
+onMounted(() => {
+  loadScheduleList()
+})
 </script>
 
 <style scoped>

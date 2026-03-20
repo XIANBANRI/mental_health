@@ -9,31 +9,30 @@
         <el-button type="primary" @click="openAddDialog">新增工作时间</el-button>
       </div>
 
-      <el-table :data="scheduleList" border style="width: 100%">
+      <el-table :data="scheduleList" border style="width: 100%" v-loading="loading">
         <el-table-column prop="weekDay" label="星期" width="120">
           <template #default="scope">
             {{ formatWeekDay(scope.row.weekDay) }}
           </template>
         </el-table-column>
-        <el-table-column prop="startTime" label="开始时间" width="150" />
-        <el-table-column prop="endTime" label="结束时间" width="150" />
-        <el-table-column prop="maxAppointments" label="最大预约人数" width="140" />
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column prop="startTime" label="开始时间" width="150">
           <template #default="scope">
-            <el-switch
-                v-model="scope.row.status"
-                :active-value="1"
-                :inactive-value="0"
-            />
+            {{ formatTime(scope.row.startTime) }}
           </template>
         </el-table-column>
+        <el-table-column prop="endTime" label="结束时间" width="150">
+          <template #default="scope">
+            {{ formatTime(scope.row.endTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="maxAppointments" label="最大预约人数" width="140" />
         <el-table-column prop="remark" label="备注" min-width="180" />
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <el-button size="small" type="primary" @click="openEditDialog(scope.row)">
               编辑
             </el-button>
-            <el-button size="small" type="danger" @click="deleteSchedule(scope.$index)">
+            <el-button size="small" type="danger" @click="deleteSchedule(scope.row)">
               删除
             </el-button>
           </template>
@@ -66,6 +65,7 @@
               step="00:30"
               end="20:00"
               placeholder="选择开始时间"
+              format="HH:mm"
               style="width: 100%"
           />
         </el-form-item>
@@ -77,19 +77,13 @@
               step="00:30"
               end="20:30"
               placeholder="选择结束时间"
+              format="HH:mm"
               style="width: 100%"
           />
         </el-form-item>
 
         <el-form-item label="最大预约人数" prop="maxAppointments">
           <el-input-number v-model="form.maxAppointments" :min="1" :max="20" style="width: 100%" />
-        </el-form-item>
-
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">停用</el-radio>
-          </el-radio-group>
         </el-form-item>
 
         <el-form-item label="备注">
@@ -111,42 +105,22 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue"
+import { reactive, ref, onMounted } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
+import request from "@/utils/request"
 
+const loading = ref(false)
 const dialogVisible = ref(false)
 const dialogType = ref("add")
+const scheduleList = ref([])
 const formRef = ref()
-const editIndex = ref(-1)
-
-const scheduleList = ref([
-  {
-    id: 1,
-    weekDay: 1,
-    startTime: "08:00",
-    endTime: "10:00",
-    maxAppointments: 2,
-    status: 1,
-    remark: "周一上午值班"
-  },
-  {
-    id: 2,
-    weekDay: 3,
-    startTime: "14:00",
-    endTime: "16:00",
-    maxAppointments: 2,
-    status: 1,
-    remark: "周三下午咨询"
-  }
-])
 
 const form = reactive({
-  id: "",
+  id: null,
   weekDay: "",
   startTime: "",
   endTime: "",
   maxAppointments: 1,
-  status: 1,
   remark: ""
 })
 
@@ -170,32 +144,63 @@ const formatWeekDay = (value) => {
   return map[value] || "未知"
 }
 
+const formatTime = (time) => {
+  if (!time) return ""
+  return String(time).slice(0, 5)
+}
+
+const loadScheduleList = async () => {
+  const teacherAccount =
+      localStorage.getItem("teacherAccount") || localStorage.getItem("username")
+
+  if (!teacherAccount) {
+    ElMessage.error("未获取到老师账号")
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await request.post("/api/teacher/schedule/query", {
+      teacherAccount
+    })
+
+    const result = res.data || {}
+    const success = result.code === 200 || result.success === true
+
+    if (success) {
+      scheduleList.value = result.data || []
+    } else {
+      ElMessage.error(result.message || "加载失败")
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || "加载失败")
+  } finally {
+    loading.value = false
+  }
+}
+
 const resetForm = () => {
-  form.id = ""
+  form.id = null
   form.weekDay = ""
   form.startTime = ""
   form.endTime = ""
   form.maxAppointments = 1
-  form.status = 1
   form.remark = ""
 }
 
 const openAddDialog = () => {
   dialogType.value = "add"
-  editIndex.value = -1
   resetForm()
   dialogVisible.value = true
 }
 
 const openEditDialog = (row) => {
   dialogType.value = "edit"
-  editIndex.value = scheduleList.value.findIndex(item => item.id === row.id)
   form.id = row.id
   form.weekDay = row.weekDay
-  form.startTime = row.startTime
-  form.endTime = row.endTime
+  form.startTime = formatTime(row.startTime)
+  form.endTime = formatTime(row.endTime)
   form.maxAppointments = row.maxAppointments
-  form.status = row.status
   form.remark = row.remark || ""
   dialogVisible.value = true
 }
@@ -203,32 +208,49 @@ const openEditDialog = (row) => {
 const submitForm = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (!valid) return
 
-    const payload = {
-      id: form.id || Date.now(),
-      weekDay: form.weekDay,
-      startTime: form.startTime,
-      endTime: form.endTime,
-      maxAppointments: form.maxAppointments,
-      status: form.status,
-      remark: form.remark
-    }
+    const teacherAccount =
+        localStorage.getItem("teacherAccount") || localStorage.getItem("username")
 
-    if (dialogType.value === "add") {
-      scheduleList.value.push(payload)
-      ElMessage.success("新增成功")
-    } else if (editIndex.value > -1) {
-      scheduleList.value[editIndex.value] = payload
-      ElMessage.success("修改成功")
-    }
+    try {
+      const url =
+          dialogType.value === "add"
+              ? "/api/teacher/schedule/add"
+              : "/api/teacher/schedule/update"
 
-    dialogVisible.value = false
+      const payload = {
+        id: form.id,
+        teacherAccount,
+        weekDay: form.weekDay,
+        startTime: form.startTime,
+        endTime: form.endTime,
+        maxAppointments: form.maxAppointments,
+        remark: form.remark
+      }
+
+      const res = await request.post(url, payload)
+      const result = res.data || {}
+      const success = result.code === 200 || result.success === true
+
+      if (success) {
+        ElMessage.success(result.message || (dialogType.value === "add" ? "新增成功" : "修改成功"))
+        dialogVisible.value = false
+        loadScheduleList()
+      } else {
+        ElMessage.error(result.message || "保存失败")
+      }
+    } catch (error) {
+      ElMessage.error(error?.response?.data?.message || "保存失败")
+    }
   })
 }
 
-const deleteSchedule = async (index) => {
+const deleteSchedule = async (row) => {
+  const teacherAccount =
+      localStorage.getItem("teacherAccount") || localStorage.getItem("username")
+
   try {
     await ElMessageBox.confirm("确认删除该工作时间吗？", "提示", {
       confirmButtonText: "确定",
@@ -236,12 +258,30 @@ const deleteSchedule = async (index) => {
       type: "warning"
     })
 
-    scheduleList.value.splice(index, 1)
-    ElMessage.success("删除成功")
-  } catch (e) {
-    // 取消
+    const res = await request.post("/api/teacher/schedule/delete", {
+      id: row.id,
+      teacherAccount
+    })
+
+    const result = res.data || {}
+    const success = result.code === 200 || result.success === true
+
+    if (success) {
+      ElMessage.success(result.message || "删除成功")
+      loadScheduleList()
+    } else {
+      ElMessage.error(result.message || "删除失败")
+    }
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error(error?.response?.data?.message || "删除失败")
+    }
   }
 }
+
+onMounted(() => {
+  loadScheduleList()
+})
 </script>
 
 <style scoped>

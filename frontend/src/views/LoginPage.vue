@@ -70,12 +70,16 @@ const clearLoginCache = () => {
   localStorage.removeItem("studentName")
   localStorage.removeItem("className")
   localStorage.removeItem("college")
+  localStorage.removeItem("grade")
   localStorage.removeItem("phone")
 
   localStorage.removeItem("teacherAccount")
   localStorage.removeItem("teacherName")
   localStorage.removeItem("teacherPhone")
   localStorage.removeItem("officeLocation")
+
+  localStorage.removeItem("counselorId")
+  localStorage.removeItem("counselorName")
 }
 
 const login = async () => {
@@ -101,9 +105,9 @@ const login = async () => {
       clearLoginCache()
 
       const role = data.role || form.role
-      const username = data.username || form.username
+      const username = data.username || data.account || form.username
 
-      localStorage.setItem("token", "mock-token")
+      localStorage.setItem("token", result.token || "mock-token")
       localStorage.setItem("role", role)
       localStorage.setItem("username", username)
 
@@ -127,13 +131,16 @@ const login = async () => {
         if (data.college) {
           localStorage.setItem("college", data.college)
         }
+        if (data.grade) {
+          localStorage.setItem("grade", data.grade)
+        }
         if (data.phone) {
           localStorage.setItem("phone", data.phone)
         }
       }
 
       if (role === "teacher") {
-        localStorage.setItem("teacherAccount", data.teacherAccount || username)
+        localStorage.setItem("teacherAccount", data.teacherAccount || data.account || username)
 
         if (data.teacherName) {
           localStorage.setItem("teacherName", data.teacherName)
@@ -143,6 +150,23 @@ const login = async () => {
         }
         if (data.officeLocation) {
           localStorage.setItem("officeLocation", data.officeLocation)
+        }
+      }
+
+      if (role === "counselor") {
+        localStorage.setItem("counselorId", data.counselorId || data.account || username)
+
+        if (data.name) {
+          localStorage.setItem("counselorName", data.name)
+        }
+        if (data.college) {
+          localStorage.setItem("college", data.college)
+        }
+        if (data.grade) {
+          localStorage.setItem("grade", data.grade)
+        }
+        if (data.phone) {
+          localStorage.setItem("phone", data.phone)
         }
       }
 

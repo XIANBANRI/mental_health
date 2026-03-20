@@ -20,6 +20,13 @@ import TeacherAppointmentRecord from "@/views/teacher/appointment/AppointmentRec
 import TeacherProfile from "@/views/teacher/profile/TeacherProfile.vue"
 
 import CounselorHome from "@/views/counselor/CounselorHome.vue"
+import CounselorWelcome from "@/views/counselor/CounselorWelcome.vue"
+import CounselorStudentView from "@/views/counselor/student/StudentView.vue"
+import CounselorStudentWarning from "@/views/counselor/student/StudentWarning.vue"
+import CounselorTrendReport from "@/views/counselor/report/TrendReport.vue"
+import CounselorAppointmentStatus from "@/views/counselor/appointment/AppointmentStatus.vue"
+import CounselorProfile from "@/views/counselor/profile/CounselorProfile.vue"
+
 import AdminHome from "@/views/admin/AdminHome.vue"
 
 const routes = [
@@ -107,8 +114,39 @@ const routes = [
   },
   {
     path: "/counselor",
-    name: "CounselorHome",
-    component: CounselorHome
+    component: CounselorHome,
+    children: [
+      {
+        path: "",
+        name: "CounselorWelcome",
+        component: CounselorWelcome
+      },
+      {
+        path: "student/view",
+        name: "CounselorStudentView",
+        component: CounselorStudentView
+      },
+      {
+        path: "student/warning",
+        name: "CounselorStudentWarning",
+        component: CounselorStudentWarning
+      },
+      {
+        path: "report",
+        name: "CounselorTrendReport",
+        component: CounselorTrendReport
+      },
+      {
+        path: "appointment",
+        name: "CounselorAppointmentStatus",
+        component: CounselorAppointmentStatus
+      },
+      {
+        path: "profile",
+        name: "CounselorProfile",
+        component: CounselorProfile
+      }
+    ]
   },
   {
     path: "/admin",

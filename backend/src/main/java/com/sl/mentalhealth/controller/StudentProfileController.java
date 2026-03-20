@@ -3,11 +3,10 @@ package com.sl.mentalhealth.controller;
 import com.sl.mentalhealth.dto.StudentProfileRequest;
 import com.sl.mentalhealth.service.StudentProfileGatewayService;
 import com.sl.mentalhealth.vo.StudentProfileResponseVO;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/student")

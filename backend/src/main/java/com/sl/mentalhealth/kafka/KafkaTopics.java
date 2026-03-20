@@ -26,4 +26,7 @@ public final class KafkaTopics {
   public static final String TEACHER_SCHEDULE_REQUEST = "mh.teacher.schedule.request";
   public static final String TEACHER_SCHEDULE_RESPONSE = "mh.teacher.schedule.response";
 
+  public static final String TEACHER_APPOINTMENT_REQUEST = "mh.teacher.appointment.request";
+  public static final String TEACHER_APPOINTMENT_RESPONSE = "mh.teacher.appointment.response";
+
 }

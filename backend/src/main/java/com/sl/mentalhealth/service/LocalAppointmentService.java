@@ -10,15 +10,22 @@ import com.sl.mentalhealth.repository.TeacherRepository;
 import com.sl.mentalhealth.repository.TeacherScheduleRepository;
 import com.sl.mentalhealth.vo.AppointmentVO;
 import com.sl.mentalhealth.vo.AvailableAppointmentVO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -108,7 +115,6 @@ public class LocalAppointmentService {
       throw new RuntimeException("预约日期与老师排班星期不匹配");
     }
 
-    // 1. 防止同一个排班重复预约
     boolean duplicated = appointmentRepository.existsByStudentAccountAndScheduleIdAndAppointmentDateAndStatusIn(
         studentId, scheduleId, appointmentDate, DUPLICATE_STATUS
     );
@@ -116,7 +122,6 @@ public class LocalAppointmentService {
       throw new RuntimeException("你已预约过该时段");
     }
 
-    // 2. 防止同一天同一时间段预约多个老师
     boolean sameTimeDuplicated =
         appointmentRepository.existsByStudentAccountAndAppointmentDateAndStartTimeAndEndTimeAndStatusIn(
             studentId,
@@ -129,7 +134,6 @@ public class LocalAppointmentService {
       throw new RuntimeException("同一天同一时间段只能预约一个老师");
     }
 
-    // 3. 校验该排班剩余名额
     long used = appointmentRepository.countByScheduleIdAndAppointmentDateAndStatusIn(
         scheduleId, appointmentDate, OCCUPIED_STATUS
     );
@@ -191,7 +195,12 @@ public class LocalAppointmentService {
       date = LocalDate.parse(dateStr);
     }
 
-    List<Appointment> list = appointmentRepository.findTeacherAppointments(teacherAccount, status, date);
+    List<Appointment> list = appointmentRepository.findTeacherAppointments(
+        teacherAccount,
+        null,
+        status,
+        date
+    );
     return buildAppointmentVOList(list);
   }
 

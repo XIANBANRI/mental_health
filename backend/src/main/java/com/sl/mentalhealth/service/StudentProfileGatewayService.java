@@ -5,13 +5,12 @@ import com.sl.mentalhealth.kafka.StudentProfileRequestProducer;
 import com.sl.mentalhealth.kafka.message.StudentProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.StudentProfileResponseMessage;
 import com.sl.mentalhealth.vo.StudentProfileResponseVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 @Service
 public class StudentProfileGatewayService {
@@ -21,7 +20,8 @@ public class StudentProfileGatewayService {
   private final StudentProfileRequestProducer studentProfileRequestProducer;
   private final PendingStudentProfileService pendingStudentProfileService;
 
-  public StudentProfileGatewayService(StudentProfileRequestProducer studentProfileRequestProducer,
+  public StudentProfileGatewayService(
+      StudentProfileRequestProducer studentProfileRequestProducer,
       PendingStudentProfileService pendingStudentProfileService) {
     this.studentProfileRequestProducer = studentProfileRequestProducer;
     this.pendingStudentProfileService = pendingStudentProfileService;
@@ -52,7 +52,10 @@ public class StudentProfileGatewayService {
           response.getName(),
           response.getClassName(),
           response.getCollege(),
-          response.getPhone()
+          response.getGrade(),
+          response.getPhone(),
+          response.getCounselorName(),
+          response.getCounselorPhone()
       );
     } catch (Exception e) {
       log.error("学生信息查询异常, requestId={}, message={}", requestId, e.getMessage(), e);

@@ -11,8 +11,12 @@ import com.sl.mentalhealth.kafka.message.ResetPasswordRequestMessage;
 import com.sl.mentalhealth.kafka.message.ResetPasswordResponseMessage;
 import com.sl.mentalhealth.kafka.message.StudentProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.StudentProfileResponseMessage;
+import com.sl.mentalhealth.kafka.message.TeacherAppointmentRequestMessage;
+import com.sl.mentalhealth.kafka.message.TeacherAppointmentResponseMessage;
 import com.sl.mentalhealth.kafka.message.TeacherProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.TeacherProfileResponseMessage;
+import com.sl.mentalhealth.kafka.message.TeacherScheduleRequestMessage;
+import com.sl.mentalhealth.kafka.message.TeacherScheduleResponseMessage;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -30,8 +34,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
-import com.sl.mentalhealth.kafka.message.TeacherScheduleRequestMessage;
-import com.sl.mentalhealth.kafka.message.TeacherScheduleResponseMessage;
 
 @Configuration
 public class KafkaConfig {
@@ -108,11 +110,16 @@ public class KafkaConfig {
     return new NewTopic(KafkaTopics.TEACHER_SCHEDULE_RESPONSE, 1, (short) 1);
   }
 
-  /**
-   * 通用 Object ProducerFactory
-   * 供 TeacherProfileRequestProducer / TeacherProfileResponseProducer 这类
-   * 使用 KafkaTemplate<String, Object> 的类注入使用
-   */
+  @Bean
+  public NewTopic teacherAppointmentRequestTopic() {
+    return new NewTopic(KafkaTopics.TEACHER_APPOINTMENT_REQUEST, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic teacherAppointmentResponseTopic() {
+    return new NewTopic(KafkaTopics.TEACHER_APPOINTMENT_RESPONSE, 1, (short) 1);
+  }
+
   @Bean
   public ProducerFactory<String, Object> objectProducerFactory() {
     Map<String, Object> props = new HashMap<>();
@@ -293,6 +300,62 @@ public class KafkaConfig {
   @Bean
   public KafkaTemplate<String, AppointmentResponseMessage> appointmentResponseKafkaTemplate() {
     return new KafkaTemplate<>(appointmentResponseProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherScheduleRequestMessage> teacherScheduleRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherScheduleRequestMessage> teacherScheduleRequestKafkaTemplate() {
+    return new KafkaTemplate<>(teacherScheduleRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherScheduleResponseMessage> teacherScheduleResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherScheduleResponseMessage> teacherScheduleResponseKafkaTemplate() {
+    return new KafkaTemplate<>(teacherScheduleResponseProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherAppointmentRequestMessage> teacherAppointmentRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherAppointmentRequestMessage> teacherAppointmentRequestKafkaTemplate() {
+    return new KafkaTemplate<>(teacherAppointmentRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherAppointmentResponseMessage> teacherAppointmentResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherAppointmentResponseMessage> teacherAppointmentResponseKafkaTemplate() {
+    return new KafkaTemplate<>(teacherAppointmentResponseProducerFactory());
   }
 
   @Bean
@@ -607,34 +670,6 @@ public class KafkaConfig {
   }
 
   @Bean
-  public ProducerFactory<String, TeacherScheduleRequestMessage> teacherScheduleRequestProducerFactory() {
-    Map<String, Object> props = new HashMap<>();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-    return new DefaultKafkaProducerFactory<>(props);
-  }
-
-  @Bean
-  public KafkaTemplate<String, TeacherScheduleRequestMessage> teacherScheduleRequestKafkaTemplate() {
-    return new KafkaTemplate<>(teacherScheduleRequestProducerFactory());
-  }
-
-  @Bean
-  public ProducerFactory<String, TeacherScheduleResponseMessage> teacherScheduleResponseProducerFactory() {
-    Map<String, Object> props = new HashMap<>();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-    return new DefaultKafkaProducerFactory<>(props);
-  }
-
-  @Bean
-  public KafkaTemplate<String, TeacherScheduleResponseMessage> teacherScheduleResponseKafkaTemplate() {
-    return new KafkaTemplate<>(teacherScheduleResponseProducerFactory());
-  }
-
-  @Bean
   public ConsumerFactory<String, TeacherScheduleRequestMessage> teacherScheduleRequestConsumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -688,6 +723,63 @@ public class KafkaConfig {
     ConcurrentKafkaListenerContainerFactory<String, TeacherScheduleResponseMessage> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(teacherScheduleResponseConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, TeacherAppointmentRequestMessage> teacherAppointmentRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-teacher-appointment-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<TeacherAppointmentRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(TeacherAppointmentRequestMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, TeacherAppointmentRequestMessage>
+  teacherAppointmentRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, TeacherAppointmentRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(teacherAppointmentRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, TeacherAppointmentResponseMessage> teacherAppointmentResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-teacher-appointment-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<TeacherAppointmentResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(TeacherAppointmentResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, TeacherAppointmentResponseMessage>
+  teacherAppointmentResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, TeacherAppointmentResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(teacherAppointmentResponseConsumerFactory());
     return factory;
   }
 }

@@ -9,13 +9,17 @@ public class StudentProfileResponseMessage {
   private String name;
   private String className;
   private String college;
+  private String grade;
   private String phone;
+  private String counselorName;
+  private String counselorPhone;
 
   public StudentProfileResponseMessage() {
   }
 
   public StudentProfileResponseMessage(String requestId, Boolean success, String message,
-      String studentId, String name, String className, String college, String phone) {
+      String studentId, String name, String className, String college, String grade,
+      String phone, String counselorName, String counselorPhone) {
     this.requestId = requestId;
     this.success = success;
     this.message = message;
@@ -23,7 +27,10 @@ public class StudentProfileResponseMessage {
     this.name = name;
     this.className = className;
     this.college = college;
+    this.grade = grade;
     this.phone = phone;
+    this.counselorName = counselorName;
+    this.counselorPhone = counselorPhone;
   }
 
   public String getRequestId() {
@@ -82,11 +89,35 @@ public class StudentProfileResponseMessage {
     this.college = college;
   }
 
+  public String getGrade() {
+    return grade;
+  }
+
+  public void setGrade(String grade) {
+    this.grade = grade;
+  }
+
   public String getPhone() {
     return phone;
   }
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getCounselorName() {
+    return counselorName;
+  }
+
+  public void setCounselorName(String counselorName) {
+    this.counselorName = counselorName;
+  }
+
+  public String getCounselorPhone() {
+    return counselorPhone;
+  }
+
+  public void setCounselorPhone(String counselorPhone) {
+    this.counselorPhone = counselorPhone;
   }
 }

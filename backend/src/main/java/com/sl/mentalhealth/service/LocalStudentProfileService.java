@@ -1,9 +1,11 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.entity.Counselor;
+import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.kafka.message.StudentProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.StudentProfileResponseMessage;
+import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
 import com.sl.mentalhealth.repository.CounselorRepository;
 import com.sl.mentalhealth.repository.StudentRepository;
 import java.util.Optional;
@@ -14,11 +16,14 @@ public class LocalStudentProfileService {
 
   private final StudentRepository studentRepository;
   private final CounselorRepository counselorRepository;
+  private final CounselorClassMappingRepository counselorClassMappingRepository;
 
   public LocalStudentProfileService(StudentRepository studentRepository,
-      CounselorRepository counselorRepository) {
+      CounselorRepository counselorRepository,
+      CounselorClassMappingRepository counselorClassMappingRepository) {
     this.studentRepository = studentRepository;
     this.counselorRepository = counselorRepository;
+    this.counselorClassMappingRepository = counselorClassMappingRepository;
   }
 
   public StudentProfileResponseMessage queryProfile(StudentProfileRequestMessage request) {
@@ -46,14 +51,24 @@ public class LocalStudentProfileService {
     String counselorName = null;
     String counselorPhone = null;
 
-    if (student.getCollege() != null && student.getGrade() != null) {
-      Optional<Counselor> counselorOptional =
-          counselorRepository.findFirstByCollegeAndGrade(student.getCollege(), student.getGrade());
+    if (student.getClassName() != null && !student.getClassName().trim().isEmpty()) {
+      Optional<CounselorClassMapping> mappingOptional =
+          counselorClassMappingRepository.findFirstByClassName(student.getClassName());
 
-      if (counselorOptional.isPresent()) {
-        Counselor counselor = counselorOptional.get();
-        counselorName = counselor.getName();
-        counselorPhone = counselor.getPhone();
+      if (mappingOptional.isPresent()) {
+        CounselorClassMapping mapping = mappingOptional.get();
+
+        Optional<Counselor> counselorOptional =
+            counselorRepository.findById(mapping.getCounselorAccount());
+
+        if (counselorOptional.isPresent()) {
+          Counselor counselor = counselorOptional.get();
+
+          if (student.getGrade() != null && student.getGrade().equals(counselor.getGrade())) {
+            counselorName = counselor.getName();
+            counselorPhone = counselor.getPhone();
+          }
+        }
       }
     }
 

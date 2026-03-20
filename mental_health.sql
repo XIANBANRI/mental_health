@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `mental_health` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `mental_health`;
 -- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
 --
 -- Host: localhost    Database: mental_health
@@ -73,7 +75,7 @@ CREATE TABLE `appointment` (
   KEY `idx_appointment_status` (`status`),
   CONSTRAINT `fk_appointment_schedule` FOREIGN KEY (`schedule_id`) REFERENCES `teacher_schedule` (`id`),
   CONSTRAINT `fk_appointment_teacher` FOREIGN KEY (`teacher_account`) REFERENCES `teacher` (`account`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='学生心理预约表';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='学生心理预约表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,6 +84,7 @@ CREATE TABLE `appointment` (
 
 LOCK TABLES `appointment` WRITE;
 /*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
+INSERT INTO `appointment` VALUES (1,'APT1773729908706','2023010101','teacher02',3,'2026-03-17','15:00:00','17:00:00','学习压力','无',NULL,'CANCELLED','2026-03-17 14:45:09','2026-03-18 12:37:51',NULL,'2026-03-18 12:37:51',NULL),(2,'APT1773808704307','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无','',NULL,'CANCELLED','2026-03-18 12:38:24','2026-03-18 12:38:33',NULL,'2026-03-18 12:38:33',NULL),(3,'APT1773808742764','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无\n','',NULL,'CANCELLED','2026-03-18 12:39:03','2026-03-18 12:39:10',NULL,'2026-03-18 12:39:10',NULL),(4,'APT1773996887002','2023010101','teacher01',2,'2026-03-25','09:00:00','11:00:00','wu','','ok','COMPLETED','2026-03-20 16:54:47','2026-03-20 16:54:47','2026-03-20 16:55:21',NULL,'2026-03-20 16:55:47'),(5,'APT1774001073764','2023010101','teacher02',3,'2026-03-24','15:00:00','17:00:00','wu','','','APPROVED','2026-03-20 18:04:34','2026-03-20 18:04:34','2026-03-20 18:05:47',NULL,NULL);
 /*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,7 +109,7 @@ CREATE TABLE `assessment_answer` (
   CONSTRAINT `fk_answer_option` FOREIGN KEY (`option_id`) REFERENCES `assessment_option` (`id`),
   CONSTRAINT `fk_answer_question` FOREIGN KEY (`question_id`) REFERENCES `assessment_question` (`id`),
   CONSTRAINT `fk_answer_record` FOREIGN KEY (`record_id`) REFERENCES `assessment_record` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评作答明细表';
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评作答明细表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -115,7 +118,7 @@ CREATE TABLE `assessment_answer` (
 
 LOCK TABLES `assessment_answer` WRITE;
 /*!40000 ALTER TABLE `assessment_answer` DISABLE KEYS */;
-INSERT INTO `assessment_answer` VALUES (1,1,85,530,1,'2026-03-15 11:01:32'),(2,1,86,529,1,'2026-03-15 11:01:32'),(3,1,87,528,1,'2026-03-15 11:01:32'),(4,1,88,527,1,'2026-03-15 11:01:32'),(5,1,89,526,1,'2026-03-15 11:01:32'),(6,1,90,525,1,'2026-03-15 11:01:32'),(7,1,91,524,1,'2026-03-15 11:01:32'),(8,1,92,523,1,'2026-03-15 11:01:32'),(9,1,93,522,1,'2026-03-15 11:01:32'),(10,1,94,521,1,'2026-03-15 11:01:32'),(11,1,69,463,2,'2026-03-15 11:01:45'),(12,1,70,464,2,'2026-03-15 11:01:45'),(13,1,71,465,2,'2026-03-15 11:01:45'),(14,1,72,466,2,'2026-03-15 11:01:45'),(15,1,73,467,2,'2026-03-15 11:01:45'),(16,1,74,468,2,'2026-03-15 11:01:45'),(17,1,75,469,2,'2026-03-15 11:01:45'),(18,1,76,470,2,'2026-03-15 11:01:45'),(19,1,77,471,2,'2026-03-15 11:01:45'),(20,1,78,507,2,'2026-03-15 11:01:55'),(21,1,79,508,2,'2026-03-15 11:01:55'),(22,1,80,509,2,'2026-03-15 11:01:55'),(23,1,81,510,2,'2026-03-15 11:01:55'),(24,1,82,511,2,'2026-03-15 11:01:55'),(25,1,83,512,2,'2026-03-15 11:01:55'),(26,1,84,513,2,'2026-03-15 11:01:55');
+INSERT INTO `assessment_answer` VALUES (20,1,78,507,2,'2026-03-15 11:01:55'),(21,1,79,508,2,'2026-03-15 11:01:55'),(22,1,80,509,2,'2026-03-15 11:01:55'),(23,1,81,510,2,'2026-03-15 11:01:55'),(24,1,82,511,2,'2026-03-15 11:01:55'),(25,1,83,512,2,'2026-03-15 11:01:55'),(26,1,84,513,2,'2026-03-15 11:01:55'),(27,1,85,540,2,'2026-03-16 16:08:10'),(28,1,86,529,1,'2026-03-16 16:08:10'),(29,1,87,528,1,'2026-03-16 16:08:10'),(30,1,88,527,1,'2026-03-16 16:08:10'),(31,1,89,526,1,'2026-03-16 16:08:10'),(32,1,90,525,1,'2026-03-16 16:08:10'),(33,1,91,524,1,'2026-03-16 16:08:10'),(34,1,92,523,1,'2026-03-16 16:08:10'),(35,1,93,522,1,'2026-03-16 16:08:10'),(36,1,94,521,1,'2026-03-16 16:08:10'),(37,1,64,426,5,'2026-03-16 16:08:32'),(38,1,65,427,5,'2026-03-16 16:08:32'),(39,1,66,428,5,'2026-03-16 16:08:32'),(40,1,67,429,5,'2026-03-16 16:08:32'),(41,1,68,430,5,'2026-03-16 16:08:32'),(42,1,69,433,0,'2026-03-16 16:08:55'),(43,1,70,434,0,'2026-03-16 16:08:55'),(44,1,71,435,0,'2026-03-16 16:08:55'),(45,1,72,436,0,'2026-03-16 16:08:55'),(46,1,73,437,0,'2026-03-16 16:08:55'),(47,1,74,438,0,'2026-03-16 16:08:55'),(48,1,75,439,0,'2026-03-16 16:08:55'),(49,1,76,440,0,'2026-03-16 16:08:55'),(50,1,77,441,0,'2026-03-16 16:08:55'),(51,2,85,540,2,'2026-03-16 16:09:35'),(52,2,86,539,2,'2026-03-16 16:09:35'),(53,2,87,538,2,'2026-03-16 16:09:35'),(54,2,88,537,2,'2026-03-16 16:09:35'),(55,2,89,536,2,'2026-03-16 16:09:35'),(56,2,90,535,2,'2026-03-16 16:09:35'),(57,2,91,534,2,'2026-03-16 16:09:35'),(58,2,92,533,2,'2026-03-16 16:09:35'),(59,2,93,532,2,'2026-03-16 16:09:35'),(60,2,94,531,2,'2026-03-16 16:09:35');
 /*!40000 ALTER TABLE `assessment_answer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -215,7 +218,7 @@ CREATE TABLE `assessment_record` (
   UNIQUE KEY `uk_student_semester` (`student_id`,`semester`),
   KEY `idx_record_student_id` (`student_id`),
   KEY `idx_record_semester` (`semester`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评汇总记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评汇总记录表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -224,7 +227,7 @@ CREATE TABLE `assessment_record` (
 
 LOCK TABLES `assessment_record` WRITE;
 /*!40000 ALTER TABLE `assessment_record` DISABLE KEYS */;
-INSERT INTO `assessment_record` VALUES (1,'2023010101','第1学期',10,'已完成','低','心理困扰水平较低',4,'已完成','较差','当前幸福感偏低，建议进一步评估情绪状态',18,'已完成','中重度','抑郁风险较高',14,'已完成','中度','存在中度焦虑风险',54,'风险较高','综合风险较高，建议及时干预','2026-03-15 11:01:55','2026-03-15 11:01:55');
+INSERT INTO `assessment_record` VALUES (1,'2023010101','第1学期',11,'已完成','低','心理困扰水平较低',25,'已完成','正常','当前幸福感总体正常',0,'已完成','无或极轻','当前抑郁症状较少',14,'已完成','中度','存在中度焦虑风险',17,'健康','整体心理状态健康，风险较低','2026-03-16 16:08:55','2026-03-16 16:08:55'),(2,'2023010101','第2学期',20,'已完成','中等','存在一定心理困扰',NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成','四项量表未全部完成，暂不生成综合总分','2026-03-16 16:09:35','2026-03-16 16:09:35');
 /*!40000 ALTER TABLE `assessment_record` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -332,8 +335,10 @@ DROP TABLE IF EXISTS `counselor`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `counselor` (
   `account` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账号',
+  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '辅导员姓名',
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   `college` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
+  `grade` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '负责年级，如2023级',
   `phone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '手机号',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='辅导员表';
@@ -345,7 +350,7 @@ CREATE TABLE `counselor` (
 
 LOCK TABLES `counselor` WRITE;
 /*!40000 ALTER TABLE `counselor` DISABLE KEYS */;
-INSERT INTO `counselor` VALUES ('counselor01','counselor@01','计算机科学与技术学院','13700137001'),('counselor02','counselor@02','文学院','13700137002'),('counselor03','counselor@03','医学院','13700137003'),('counselor04','counselor@04','商学院','13700137004'),('counselor05','counselor@05','外国语学院','13700137005');
+INSERT INTO `counselor` VALUES ('counselor01','李老师','counselor@01','计算机科学与技术学院','2023级','13700137001'),('counselor02','王老师','counselor@02','文学院','2022级','13700137002'),('counselor03','张老师','counselor@03','医学院','2022级','13700137003'),('counselor04','赵老师','counselor@04','商学院','2023级','13700137004'),('counselor05','陈老师','counselor@05','外国语学院','2023级','13700137005');
 /*!40000 ALTER TABLE `counselor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -361,6 +366,7 @@ CREATE TABLE `student` (
   `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '姓名',
   `college` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
   `class_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
+  `grade` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '年级，如2023级',
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
   PRIMARY KEY (`student_id`),
@@ -374,7 +380,7 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES ('2023010101','张三','计算机科学与技术学院','软件工程2301班','123456','13800138001'),('2023010102','李四','计算机科学与技术学院','软件工程2301班','123456aA!','13800138002'),('2023020201','王五','文学院','汉语言文学2302班','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','123456aA!','13800138010');
+INSERT INTO `student` VALUES ('2023010101','张三','计算机科学与技术学院','软件工程2301班','2023级','123456','13800138001'),('2023010102','李四','计算机科学与技术学院','软件工程2301班','2023级','123456aA!','13800138002'),('2023020201','王五','文学院','汉语言文学2302班','2023级','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','2023级','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','2023级','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','2023级','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','2023级','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','2023级','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','2023级','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','2023级','123456aA!','13800138010');
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -457,4 +463,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-15 14:58:45
+-- Dump completed on 2026-03-20 19:59:05

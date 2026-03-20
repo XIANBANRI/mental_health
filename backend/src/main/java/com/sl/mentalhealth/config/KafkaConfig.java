@@ -30,6 +30,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+import com.sl.mentalhealth.kafka.message.TeacherScheduleRequestMessage;
+import com.sl.mentalhealth.kafka.message.TeacherScheduleResponseMessage;
 
 @Configuration
 public class KafkaConfig {
@@ -94,6 +96,16 @@ public class KafkaConfig {
   @Bean
   public NewTopic appointmentResponseTopic() {
     return new NewTopic(KafkaTopics.APPOINTMENT_RESPONSE, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic teacherScheduleRequestTopic() {
+    return new NewTopic(KafkaTopics.TEACHER_SCHEDULE_REQUEST, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic teacherScheduleResponseTopic() {
+    return new NewTopic(KafkaTopics.TEACHER_SCHEDULE_RESPONSE, 1, (short) 1);
   }
 
   /**
@@ -591,6 +603,91 @@ public class KafkaConfig {
     ConcurrentKafkaListenerContainerFactory<String, AppointmentResponseMessage> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(appointmentResponseConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherScheduleRequestMessage> teacherScheduleRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherScheduleRequestMessage> teacherScheduleRequestKafkaTemplate() {
+    return new KafkaTemplate<>(teacherScheduleRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, TeacherScheduleResponseMessage> teacherScheduleResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean
+  public KafkaTemplate<String, TeacherScheduleResponseMessage> teacherScheduleResponseKafkaTemplate() {
+    return new KafkaTemplate<>(teacherScheduleResponseProducerFactory());
+  }
+
+  @Bean
+  public ConsumerFactory<String, TeacherScheduleRequestMessage> teacherScheduleRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-teacher-schedule-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<TeacherScheduleRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(TeacherScheduleRequestMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, TeacherScheduleRequestMessage>
+  teacherScheduleRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, TeacherScheduleRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(teacherScheduleRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, TeacherScheduleResponseMessage> teacherScheduleResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-teacher-schedule-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<TeacherScheduleResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(TeacherScheduleResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, TeacherScheduleResponseMessage>
+  teacherScheduleResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, TeacherScheduleResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(teacherScheduleResponseConsumerFactory());
     return factory;
   }
 }

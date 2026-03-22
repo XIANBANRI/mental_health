@@ -60,6 +60,22 @@ const form = reactive({
   password: ""
 })
 
+const getAdminDisplayName = (username, data = {}) => {
+  if (data.name && String(data.name).trim()) {
+    return data.name
+  }
+
+  if (username === "admin") {
+    return "管理员1"
+  }
+
+  if (username === "operator") {
+    return "管理员2"
+  }
+
+  return "系统管理员"
+}
+
 const clearLoginCache = () => {
   localStorage.removeItem("token")
   localStorage.removeItem("role")
@@ -80,6 +96,9 @@ const clearLoginCache = () => {
 
   localStorage.removeItem("counselorId")
   localStorage.removeItem("counselorName")
+
+  localStorage.removeItem("adminAccount")
+  localStorage.removeItem("adminName")
 }
 
 const login = async () => {
@@ -106,69 +125,99 @@ const login = async () => {
 
       const role = data.role || form.role
       const username = data.username || data.account || form.username
+      const token = result.token || data.token || "mock-token"
 
-      localStorage.setItem("token", result.token || "mock-token")
+      localStorage.setItem("token", token)
       localStorage.setItem("role", role)
       localStorage.setItem("username", username)
 
-      localStorage.setItem(
-          "userInfo",
-          JSON.stringify({
-            role,
-            username
-          })
-      )
+      const userInfo = {
+        role,
+        username
+      }
 
       if (role === "student") {
+        const studentName = data.name || data.studentName || ""
+
         localStorage.setItem("studentId", data.studentId || username)
 
-        if (data.name) {
-          localStorage.setItem("studentName", data.name)
+        if (studentName) {
+          localStorage.setItem("studentName", studentName)
+          userInfo.name = studentName
         }
         if (data.className) {
           localStorage.setItem("className", data.className)
+          userInfo.className = data.className
         }
         if (data.college) {
           localStorage.setItem("college", data.college)
+          userInfo.college = data.college
         }
         if (data.grade) {
           localStorage.setItem("grade", data.grade)
+          userInfo.grade = data.grade
         }
         if (data.phone) {
           localStorage.setItem("phone", data.phone)
+          userInfo.phone = data.phone
         }
       }
 
       if (role === "teacher") {
-        localStorage.setItem("teacherAccount", data.teacherAccount || data.account || username)
+        const teacherName = data.teacherName || data.name || ""
 
-        if (data.teacherName) {
-          localStorage.setItem("teacherName", data.teacherName)
+        localStorage.setItem(
+            "teacherAccount",
+            data.teacherAccount || data.account || username
+        )
+
+        if (teacherName) {
+          localStorage.setItem("teacherName", teacherName)
+          userInfo.name = teacherName
         }
         if (data.phone) {
           localStorage.setItem("teacherPhone", data.phone)
+          userInfo.phone = data.phone
         }
         if (data.officeLocation) {
           localStorage.setItem("officeLocation", data.officeLocation)
+          userInfo.officeLocation = data.officeLocation
         }
       }
 
       if (role === "counselor") {
+        const counselorName = data.name || data.counselorName || ""
+
         localStorage.setItem("counselorId", data.counselorId || data.account || username)
 
-        if (data.name) {
-          localStorage.setItem("counselorName", data.name)
+        if (counselorName) {
+          localStorage.setItem("counselorName", counselorName)
+          userInfo.name = counselorName
         }
         if (data.college) {
           localStorage.setItem("college", data.college)
+          userInfo.college = data.college
         }
         if (data.grade) {
           localStorage.setItem("grade", data.grade)
+          userInfo.grade = data.grade
         }
         if (data.phone) {
           localStorage.setItem("phone", data.phone)
+          userInfo.phone = data.phone
         }
       }
+
+      if (role === "admin") {
+        const adminName = getAdminDisplayName(username, data)
+
+        localStorage.setItem("adminAccount", username)
+        localStorage.setItem("adminName", adminName)
+
+        userInfo.name = adminName
+      }
+
+      localStorage.setItem("userInfo", JSON.stringify(userInfo))
 
       ElMessage.success(result.message || "登录成功")
       router.push(data.redirectPath || `/${role}`)

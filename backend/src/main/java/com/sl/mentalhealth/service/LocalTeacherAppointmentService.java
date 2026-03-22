@@ -14,6 +14,7 @@ import com.sl.mentalhealth.vo.TeacherAppointmentVO;
 import com.sl.mentalhealth.vo.TeacherAssessmentRecordVO;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,10 @@ public class LocalTeacherAppointmentService {
   private final AssessmentRecordRepository assessmentRecordRepository;
   private final TeacherRepository teacherRepository;
   private final StudentRepository studentRepository;
+
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   public List<TeacherAppointmentVO> query(TeacherAppointmentQueryRequest request) {
     validateTeacher(request.getTeacherAccount());
@@ -81,39 +86,72 @@ public class LocalTeacherAppointmentService {
         )
         .orElseThrow(() -> new RuntimeException("未找到对应预约记录"));
 
-    String currentStatus = appointment.getStatus();
+    String currentStatus = safe(appointment.getStatus());
+    String newOfflineRecord = safe(request.getOfflineRecord());
+    LocalDateTime now = LocalDateTime.now();
 
     switch (targetStatus) {
-      case "APPROVED":
-        if (!"PENDING".equals(currentStatus)) {
-          throw new RuntimeException("只有待处理预约才能通过");
-        }
-        appointment.setStatus("APPROVED");
-        appointment.setApprovedAt(LocalDateTime.now());
-        break;
-
-      case "REJECTED":
-        if (!"PENDING".equals(currentStatus)) {
-          throw new RuntimeException("只有待处理预约才能拒绝");
-        }
-        appointment.setStatus("REJECTED");
-        break;
-
-      case "COMPLETED":
-        if (!"APPROVED".equals(currentStatus)) {
-          throw new RuntimeException("只有已通过预约才能标记完成");
-        }
-        appointment.setStatus("COMPLETED");
-        appointment.setCompletedAt(LocalDateTime.now());
-        break;
-
-      default:
-        throw new RuntimeException("不支持的状态操作");
+      case "APPROVED" -> handleApproved(appointment, currentStatus, newOfflineRecord, now);
+      case "REJECTED" -> handleRejected(appointment, currentStatus);
+      case "COMPLETED" -> handleCompleted(appointment, currentStatus, newOfflineRecord, now);
+      default -> throw new RuntimeException("不支持的状态操作");
     }
 
-    appointment.setTeacherReply(request.getTeacherReply());
     Appointment saved = appointmentRepository.save(appointment);
     return toAppointmentVO(saved);
+  }
+
+  private void handleApproved(
+      Appointment appointment,
+      String currentStatus,
+      String newOfflineRecord,
+      LocalDateTime now
+  ) {
+    if ("PENDING".equals(currentStatus)) {
+      appointment.setStatus("APPROVED");
+      appointment.setApprovedAt(now);
+      return;
+    }
+
+    if (!"APPROVED".equals(currentStatus)) {
+      throw new RuntimeException("只有待处理或已通过预约才能执行该操作");
+    }
+
+    if (!StringUtils.hasText(newOfflineRecord)) {
+      throw new RuntimeException("线下问诊记录不能为空");
+    }
+
+    appointment.setTeacherReply(newOfflineRecord);
+  }
+
+  private void handleRejected(Appointment appointment, String currentStatus) {
+    if (!"PENDING".equals(currentStatus)) {
+      throw new RuntimeException("只有待处理预约才能拒绝");
+    }
+    appointment.setStatus("REJECTED");
+  }
+
+  private void handleCompleted(
+      Appointment appointment,
+      String currentStatus,
+      String newOfflineRecord,
+      LocalDateTime now
+  ) {
+    if (!"APPROVED".equals(currentStatus)) {
+      throw new RuntimeException("只有已通过预约才能完成记录");
+    }
+
+    String finalRecord = StringUtils.hasText(newOfflineRecord)
+        ? newOfflineRecord
+        : safe(appointment.getTeacherReply());
+
+    if (!StringUtils.hasText(finalRecord)) {
+      throw new RuntimeException("请先填写线下问诊记录，再点击完成");
+    }
+
+    appointment.setTeacherReply(finalRecord);
+    appointment.setStatus("COMPLETED");
+    appointment.setCompletedAt(now);
   }
 
   public List<TeacherAssessmentRecordVO> assessmentRecord(TeacherAssessmentRecordQueryRequest request) {
@@ -137,33 +175,60 @@ public class LocalTeacherAppointmentService {
         student.getCollege(),
         student.getClassName(),
         item.getSemester(),
-
         item.getK10Score(),
         item.getK10Status(),
         item.getK10Level(),
         item.getK10Summary(),
-
         item.getWho5Score(),
         item.getWho5Status(),
         item.getWho5Level(),
         item.getWho5Summary(),
-
         item.getPhq9Score(),
         item.getPhq9Status(),
         item.getPhq9Level(),
         item.getPhq9Summary(),
-
         item.getGad7Score(),
         item.getGad7Status(),
         item.getGad7Level(),
         item.getGad7Summary(),
-
         item.getHealthTotalScore(),
         item.getHealthStatus(),
         item.getHealthSummary(),
-
-        item.getSubmittedAt() == null ? null : item.getSubmittedAt().toString()
+        item.getSubmittedAt() == null ? "" : item.getSubmittedAt().format(DATE_TIME_FORMATTER)
     )).toList();
+  }
+
+  private TeacherAppointmentVO toAppointmentVO(Appointment appointment) {
+    String studentId = appointment.getStudentAccount();
+    String studentName = "";
+
+    if (StringUtils.hasText(studentId)) {
+      studentName = studentRepository.findByStudentId(studentId)
+          .map(Student::getName)
+          .orElse("");
+    }
+
+    boolean recordCompleted = "COMPLETED".equals(safe(appointment.getStatus()));
+
+    return new TeacherAppointmentVO(
+        appointment.getId(),
+        appointment.getAppointmentNo(),
+        studentId,
+        studentName,
+        appointment.getTeacherAccount(),
+        appointment.getScheduleId(),
+        appointment.getAppointmentDate() == null ? "" : appointment.getAppointmentDate().format(DATE_FORMATTER),
+        appointment.getStartTime() == null ? "" : appointment.getStartTime().format(TIME_FORMATTER),
+        appointment.getEndTime() == null ? "" : appointment.getEndTime().format(TIME_FORMATTER),
+        safe(appointment.getPurpose()),
+        safe(appointment.getRemark()),
+        safe(appointment.getTeacherReply()),
+        recordCompleted,
+        safe(appointment.getStatus()),
+        formatDateTime(appointment.getCreatedAt()),
+        formatDateTime(appointment.getApprovedAt()),
+        formatDateTime(appointment.getCompletedAt())
+    );
   }
 
   private void validateTeacher(String teacherAccount) {
@@ -175,39 +240,19 @@ public class LocalTeacherAppointmentService {
         .orElseThrow(() -> new RuntimeException("老师账号不存在"));
   }
 
-  private LocalDate parseDate(String text) {
+  private LocalDate parseDate(String value) {
+    String text = safe(value);
     if (!StringUtils.hasText(text)) {
       return null;
     }
-    return LocalDate.parse(text.trim());
+    return LocalDate.parse(text);
   }
 
-  private String safe(String text) {
-    return text == null ? null : text.trim();
+  private String formatDateTime(LocalDateTime value) {
+    return value == null ? "" : value.format(DATE_TIME_FORMATTER);
   }
 
-  private TeacherAppointmentVO toAppointmentVO(Appointment appointment) {
-    String studentName = "";
-    Student student = studentRepository.findByStudentId(appointment.getStudentAccount()).orElse(null);
-    if (student != null) {
-      studentName = student.getName();
-    }
-
-    return new TeacherAppointmentVO(
-        appointment.getId(),
-        appointment.getAppointmentNo(),
-        appointment.getStudentAccount(),
-        studentName,
-        appointment.getTeacherAccount(),
-        appointment.getScheduleId(),
-        appointment.getAppointmentDate() == null ? null : appointment.getAppointmentDate().toString(),
-        appointment.getStartTime() == null ? null : appointment.getStartTime().toString(),
-        appointment.getEndTime() == null ? null : appointment.getEndTime().toString(),
-        appointment.getPurpose(),
-        appointment.getRemark(),
-        appointment.getTeacherReply(),
-        appointment.getStatus(),
-        appointment.getCreatedAt() == null ? null : appointment.getCreatedAt().toString()
-    );
+  private String safe(String value) {
+    return value == null ? "" : value.trim();
   }
 }

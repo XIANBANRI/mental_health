@@ -7,5 +7,5 @@ public class TeacherAppointmentUpdateStatusRequest {
   private Long id;
   private String teacherAccount;
   private String status;
-  private String teacherReply;
+  private String offlineRecord;
 }

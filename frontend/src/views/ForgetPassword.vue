@@ -15,11 +15,9 @@
         <el-form-item label="账号">
           <el-input v-model="form.username" />
         </el-form-item>
-
         <el-form-item label="手机号">
           <el-input v-model="form.phone" />
         </el-form-item>
-
         <el-form-item label="新密码">
           <el-input v-model="form.password" type="password" show-password />
         </el-form-item>
@@ -34,7 +32,6 @@
             >
               重置密码
             </el-button>
-
             <el-button
                 class="full-btn"
                 :disabled="loading"
@@ -83,12 +80,10 @@ const reset = async () => {
 
     if (res.data && res.data.success) {
       ElMessage.success(res.data.message || "密码重置成功")
-
       form.role = ""
       form.username = ""
       form.phone = ""
       form.password = ""
-
       router.push("/")
     } else {
       ElMessage.error((res.data && res.data.message) || "密码重置失败")
@@ -115,12 +110,17 @@ const backLogin = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(120deg, #89f7fe, #66a6ff);
+  background: url("@/assets/bg.jpg") no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 .forget-card {
   width: 450px;
   padding: 20px !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 10px !important;
 }
 
 h2 {
@@ -143,6 +143,23 @@ h2 {
 .role-group .el-radio {
   display: inline-flex !important;
   margin: 0 !important;
+}
+
+
+.reset-form :deep(.el-form-item__label) {
+  width: 80px !important;
+  flex: 0 0 80px !important;
+  text-align: right !important;
+  padding-right: 10px !important;
+}
+
+.reset-form :deep(.el-form-item):not(.btn-form-item):not(:first-child) .el-form-item__content {
+  width: calc(100% - 90px) !important;
+  flex: 0 0 calc(100% - 90px) !important;
+}
+.reset-form :deep(.el-input) {
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .btn-form-item {

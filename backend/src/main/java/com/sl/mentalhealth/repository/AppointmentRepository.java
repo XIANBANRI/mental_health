@@ -18,6 +18,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
       Collection<String> statuses
   );
 
+  long countByScheduleIdAndStatusNotIn(
+      Long scheduleId,
+      Collection<String> statuses
+  );
+
   boolean existsByStudentAccountAndScheduleIdAndAppointmentDateAndStatusIn(
       String studentAccount,
       Long scheduleId,

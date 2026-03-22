@@ -28,6 +28,11 @@ import CounselorAppointmentStatus from "@/views/counselor/appointment/Appointmen
 import CounselorProfile from "@/views/counselor/profile/CounselorProfile.vue"
 
 import AdminHome from "@/views/admin/AdminHome.vue"
+import AdminWelcome from "@/views/admin/AdminWelcome.vue"
+import CounselorManage from "@/views/admin/management/CounselorManage.vue"
+import TeacherManage from "@/views/admin/management/TeacherManage.vue"
+import TestInput from "@/views/admin/test/TestInput.vue"
+import AdminProfile from "@/views/admin/profile/AdminProfile.vue"
 
 const routes = [
   {
@@ -150,8 +155,34 @@ const routes = [
   },
   {
     path: "/admin",
-    name: "AdminHome",
-    component: AdminHome
+    component: AdminHome,
+    children: [
+      {
+        path: "",
+        name: "AdminWelcome",
+        component: AdminWelcome
+      },
+      {
+        path: "management/counselor",
+        name: "CounselorManage",
+        component: CounselorManage
+      },
+      {
+        path: "management/teacher",
+        name: "AdminTeacherManage",
+        component: TeacherManage
+      },
+      {
+        path: "test/input",
+        name: "TestInput",
+        component: TestInput
+      },
+      {
+        path: "profile",
+        name: "AdminProfile",
+        component: AdminProfile
+      }
+    ]
   }
 ]
 

@@ -53,7 +53,7 @@ public class TeacherScheduleRequestConsumer {
         TeacherScheduleDeleteRequest request = message.getDeleteRequest();
         localTeacherScheduleService.delete(request);
         response.setSuccess(true);
-        response.setMessage("删除成功");
+        response.setMessage("停用成功");
       } else {
         response.setSuccess(false);
         response.setMessage("不支持的操作类型");

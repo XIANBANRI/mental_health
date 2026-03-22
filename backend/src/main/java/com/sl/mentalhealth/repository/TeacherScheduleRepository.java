@@ -9,46 +9,63 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TeacherScheduleRepository extends JpaRepository<TeacherSchedule, Long> {
 
   /**
-   * 原有：按星期查询全部老师的时间
+   * 学生端：按星期查询启用中的工作时间
    */
-  List<TeacherSchedule> findByWeekDayOrderByStartTimeAsc(Integer weekDay);
+  List<TeacherSchedule> findByWeekDayAndStatusOrderByStartTimeAsc(Integer weekDay, Integer status);
 
   /**
-   * 按老师账号查询全部工作时间
+   * 老师端：查询本人启用中的全部工作时间
    */
-  List<TeacherSchedule> findByTeacherAccountOrderByWeekDayAscStartTimeAsc(String teacherAccount);
-
-  /**
-   * 按老师账号 + 星期查询工作时间
-   */
-  List<TeacherSchedule> findByTeacherAccountAndWeekDayOrderByStartTimeAsc(
+  List<TeacherSchedule> findByTeacherAccountAndStatusOrderByWeekDayAscStartTimeAsc(
       String teacherAccount,
-      Integer weekDay
+      Integer status
   );
 
   /**
-   * 按ID和老师账号查询，防止误改别人的记录
+   * 老师端：按星期查询本人启用中的工作时间
+   */
+  List<TeacherSchedule> findByTeacherAccountAndWeekDayAndStatusOrderByStartTimeAsc(
+      String teacherAccount,
+      Integer weekDay,
+      Integer status
+  );
+
+  /**
+   * 按ID和老师账号查询
    */
   Optional<TeacherSchedule> findByIdAndTeacherAccount(Long id, String teacherAccount);
 
   /**
-   * 新增时校验是否已存在相同时间段
+   * 查询是否存在相同时间段且为指定状态
    */
-  boolean existsByTeacherAccountAndWeekDayAndStartTimeAndEndTime(
-      String teacherAccount,
-      Integer weekDay,
-      LocalTime startTime,
-      LocalTime endTime
-  );
-
-  /**
-   * 修改时校验是否与其他记录重复
-   */
-  boolean existsByTeacherAccountAndWeekDayAndStartTimeAndEndTimeAndIdNot(
+  boolean existsByTeacherAccountAndWeekDayAndStartTimeAndEndTimeAndStatus(
       String teacherAccount,
       Integer weekDay,
       LocalTime startTime,
       LocalTime endTime,
+      Integer status
+  );
+
+  /**
+   * 修改时排除自身后，校验是否与其他启用记录重复
+   */
+  boolean existsByTeacherAccountAndWeekDayAndStartTimeAndEndTimeAndStatusAndIdNot(
+      String teacherAccount,
+      Integer weekDay,
+      LocalTime startTime,
+      LocalTime endTime,
+      Integer status,
       Long id
+  );
+
+  /**
+   * 查找相同时间段且为指定状态的记录，用于恢复停用记录
+   */
+  Optional<TeacherSchedule> findByTeacherAccountAndWeekDayAndStartTimeAndEndTimeAndStatus(
+      String teacherAccount,
+      Integer weekDay,
+      LocalTime startTime,
+      LocalTime endTime,
+      Integer status
   );
 }

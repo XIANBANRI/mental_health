@@ -1,11 +1,16 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.Data;
 
 @Data
 @Entity
@@ -63,4 +68,11 @@ public class Appointment {
 
   @Column(name = "completed_at")
   private LocalDateTime completedAt;
+
+  @PrePersist
+  public void prePersist() {
+    if (status == null || status.trim().isEmpty()) {
+      status = "PENDING";
+    }
+  }
 }

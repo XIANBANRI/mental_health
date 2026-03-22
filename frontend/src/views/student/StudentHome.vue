@@ -48,7 +48,7 @@
 
           <el-menu-item index="/student/profile">
             <el-icon><Document /></el-icon>
-            <span>档案查询</span>
+            <span>个人信息查询</span>
           </el-menu-item>
         </el-menu>
       </el-aside>

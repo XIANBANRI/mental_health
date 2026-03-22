@@ -2,10 +2,12 @@
   <div class="appointment-query-page">
     <el-card class="page-card">
       <template #header>
-        <span>预约查询</span>
+        <div class="card-header">
+          <span>预约管理</span>
+        </div>
       </template>
 
-      <el-form :inline="true" class="search-form">
+      <el-form :model="queryForm" inline class="search-form">
         <el-form-item label="学生学号">
           <el-input
               v-model="queryForm.studentId"
@@ -19,14 +21,15 @@
           <el-date-picker
               v-model="queryForm.appointmentDate"
               type="date"
-              placeholder="请选择日期"
               value-format="YYYY-MM-DD"
+              placeholder="选择预约日期"
+              clearable
               style="width: 180px"
           />
         </el-form-item>
 
         <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="请选择状态" clearable style="width: 180px">
+          <el-select v-model="queryForm.status" placeholder="全部" clearable style="width: 160px">
             <el-option label="待处理" value="PENDING" />
             <el-option label="已通过" value="APPROVED" />
             <el-option label="已拒绝" value="REJECTED" />
@@ -39,64 +42,93 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="appointmentList" border style="width: 100%" v-loading="loading">
-        <el-table-column prop="appointmentNo" label="预约单号" width="160" />
-        <el-table-column prop="studentId" label="学生学号" width="130" />
-        <el-table-column prop="studentName" label="学生姓名" width="120" />
-        <el-table-column prop="appointmentDate" label="预约日期" width="140" />
-        <el-table-column prop="startTime" label="开始时间" width="120">
+      <el-table
+          :data="appointmentList"
+          border
+          style="width: 100%"
+          v-loading="loading"
+          empty-text="暂无预约数据"
+      >
+        <el-table-column prop="appointmentNo" label="预约编号" min-width="160" />
+        <el-table-column prop="studentId" label="学生学号" width="120" />
+        <el-table-column prop="studentName" label="学生姓名" width="100" />
+        <el-table-column prop="appointmentDate" label="预约日期" width="120" />
+        <el-table-column prop="startTime" label="开始时间" width="90" />
+        <el-table-column prop="endTime" label="结束时间" width="90" />
+        <el-table-column prop="purpose" label="预约原因" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="remark" label="学生备注" min-width="140" show-overflow-tooltip />
+
+        <el-table-column label="会诊记录" min-width="220" show-overflow-tooltip>
           <template #default="scope">
-            {{ formatTime(scope.row.startTime) }}
+            {{ scope.row.offlineRecord || "暂无" }}
           </template>
         </el-table-column>
-        <el-table-column prop="endTime" label="结束时间" width="120">
-          <template #default="scope">
-            {{ formatTime(scope.row.endTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="purpose" label="预约原因" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="120">
+
+        <el-table-column label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="getStatusTag(scope.row.status)">
               {{ getStatusText(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="teacherReply" label="老师回复" min-width="180" show-overflow-tooltip />
-        <el-table-column label="操作" width="280" fixed="right" align="center">
+
+        <el-table-column label="记录状态" width="110" align="center">
+          <template #default="scope">
+            <el-tag :type="scope.row.recordCompleted ? 'success' : 'warning'">
+              {{ scope.row.recordCompleted ? "已完成" : "未完成" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="320" fixed="right" align="center">
           <template #default="scope">
             <div class="action-group">
               <el-button
-                  size="small"
-                  type="success"
-                  @click="openAuditDialog(scope.row, 'APPROVED')"
                   v-if="scope.row.status === 'PENDING'"
+                  type="success"
+                  size="small"
+                  @click="approveAppointment(scope.row)"
               >
                 通过
               </el-button>
 
               <el-button
-                  size="small"
-                  type="danger"
-                  @click="openAuditDialog(scope.row, 'REJECTED')"
                   v-if="scope.row.status === 'PENDING'"
+                  type="danger"
+                  size="small"
+                  @click="rejectAppointment(scope.row)"
               >
                 拒绝
               </el-button>
 
               <el-button
-                  size="small"
-                  type="primary"
-                  @click="openAuditDialog(scope.row, 'COMPLETED')"
                   v-if="scope.row.status === 'APPROVED'"
+                  type="primary"
+                  size="small"
+                  @click="openRecordDialog(scope.row)"
+              >
+                记录
+              </el-button>
+
+              <el-button
+                  v-if="scope.row.status === 'APPROVED'"
+                  type="success"
+                  size="small"
+                  @click="completeRecord(scope.row)"
               >
                 完成
               </el-button>
 
               <el-button
+                  v-if="scope.row.status === 'COMPLETED'"
+                  type="info"
                   size="small"
-                  @click="loadAssessmentRecord(scope.row)"
+                  disabled
               >
+                已完成
+              </el-button>
+
+              <el-button size="small" @click="loadAssessmentRecord(scope.row)">
                 测试记录
               </el-button>
             </div>
@@ -106,49 +138,53 @@
     </el-card>
 
     <el-dialog
-        v-model="auditDialogVisible"
-        :title="auditDialogTitle"
-        width="520px"
+        v-model="recordDialogVisible"
+        :title="recordDialogTitle"
+        width="560px"
+        destroy-on-close
     >
-      <el-form :model="auditForm" label-width="90px">
+      <el-form :model="recordForm" label-width="100px">
         <el-form-item label="学生学号">
-          <el-input v-model="auditForm.studentId" disabled />
+          <el-input v-model="recordForm.studentId" disabled />
         </el-form-item>
 
         <el-form-item label="学生姓名">
-          <el-input v-model="auditForm.studentName" disabled />
+          <el-input v-model="recordForm.studentName" disabled />
         </el-form-item>
 
-        <el-form-item label="老师回复">
+        <el-form-item label="会诊记录">
           <el-input
-              v-model="auditForm.teacherReply"
+              v-model="recordForm.offlineRecord"
               type="textarea"
-              :rows="4"
-              :placeholder="auditPlaceholder"
+              :rows="6"
+              maxlength="500"
+              show-word-limit
+              placeholder="请输入会诊记录"
           />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="auditDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitAudit">确定</el-button>
+        <el-button @click="recordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveRecord">保存记录</el-button>
       </template>
     </el-dialog>
 
     <el-dialog
         v-model="assessmentDialogVisible"
         title="学生心理测试记录"
-        width="1000px"
+        width="1100px"
+        destroy-on-close
     >
       <div class="student-info" v-if="assessmentRecords.length > 0">
         <span>学号：{{ assessmentRecords[0].studentId }}</span>
         <span>姓名：{{ assessmentRecords[0].studentName }}</span>
-        <span>学院：{{ assessmentRecords[0].college || '暂无' }}</span>
-        <span>班级：{{ assessmentRecords[0].className || '暂无' }}</span>
+        <span>学院：{{ assessmentRecords[0].college || "暂无" }}</span>
+        <span>班级：{{ assessmentRecords[0].className || "暂无" }}</span>
       </div>
 
       <el-empty
-          v-if="assessmentRecords.length === 0"
+          v-if="!assessmentLoading && assessmentRecords.length === 0"
           description="暂无心理测试记录"
       />
 
@@ -169,7 +205,8 @@
         <el-table-column prop="gad7Score" label="GAD-7分数" width="110" />
         <el-table-column prop="gad7Status" label="GAD-7状态" width="130" />
         <el-table-column prop="healthTotalScore" label="总分" width="90" />
-        <el-table-column prop="healthStatus" label="健康状态" width="140" />
+        <el-table-column prop="healthStatus" label="健康状态" width="120" />
+        <el-table-column prop="healthSummary" label="测评结论" min-width="180" show-overflow-tooltip />
         <el-table-column prop="submittedAt" label="提交时间" min-width="180" />
       </el-table>
     </el-dialog>
@@ -177,20 +214,19 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from "vue"
+import { computed, onMounted, reactive, ref } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import request from "@/utils/request"
 
 const loading = ref(false)
 const appointmentList = ref([])
 
-const assessmentLoading = ref(false)
-const assessmentDialogVisible = ref(false)
-const assessmentRecords = ref([])
-
-const auditDialogVisible = ref(false)
-const auditType = ref("")
+const recordDialogVisible = ref(false)
 const currentRow = ref(null)
+
+const assessmentDialogVisible = ref(false)
+const assessmentLoading = ref(false)
+const assessmentRecords = ref([])
 
 const queryForm = reactive({
   studentId: "",
@@ -198,38 +234,20 @@ const queryForm = reactive({
   status: ""
 })
 
-const auditForm = reactive({
+const recordForm = reactive({
   id: null,
   studentId: "",
   studentName: "",
-  teacherReply: ""
+  offlineRecord: ""
 })
 
-const auditDialogTitle = computed(() => {
-  const map = {
-    APPROVED: "通过预约",
-    REJECTED: "拒绝预约",
-    COMPLETED: "完成预约"
-  }
-  return map[auditType.value] || "处理预约"
+const teacherAccount = computed(() => {
+  return localStorage.getItem("teacherAccount") || localStorage.getItem("username") || ""
 })
 
-const auditPlaceholder = computed(() => {
-  const map = {
-    APPROVED: "请输入通过说明，可不填",
-    REJECTED: "请输入拒绝原因，建议填写",
-    COMPLETED: "请输入完成说明，可不填"
-  }
-  return map[auditType.value] || "请输入老师回复"
+const recordDialogTitle = computed(() => {
+  return recordForm.offlineRecord ? "修改会诊记录" : "填写会诊记录"
 })
-
-const teacherAccount = () =>
-    localStorage.getItem("teacherAccount") || localStorage.getItem("username")
-
-const formatTime = (time) => {
-  if (!time) return ""
-  return String(time).slice(0, 5)
-}
 
 const getStatusText = (status) => {
   const map = {
@@ -254,7 +272,7 @@ const getStatusTag = (status) => {
 }
 
 const loadAppointmentList = async () => {
-  if (!teacherAccount()) {
+  if (!teacherAccount.value) {
     ElMessage.error("未获取到老师账号")
     return
   }
@@ -262,22 +280,22 @@ const loadAppointmentList = async () => {
   loading.value = true
   try {
     const res = await request.post("/api/teacher/appointment/query", {
-      teacherAccount: teacherAccount(),
+      teacherAccount: teacherAccount.value,
       studentId: queryForm.studentId,
       appointmentDate: queryForm.appointmentDate,
       status: queryForm.status
     })
 
     const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-
-    if (success) {
+    if (result.code === 200 || result.success === true) {
       appointmentList.value = result.data || []
     } else {
+      appointmentList.value = []
       ElMessage.error(result.message || "查询失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询失败")
+    appointmentList.value = []
+    ElMessage.error(error?.response?.data?.message || error?.message || "查询失败")
   } finally {
     loading.value = false
   }
@@ -290,46 +308,142 @@ const resetQuery = () => {
   loadAppointmentList()
 }
 
-const openAuditDialog = (row, type) => {
-  currentRow.value = row
-  auditType.value = type
-  auditForm.id = row.id
-  auditForm.studentId = row.studentId
-  auditForm.studentName = row.studentName
-  auditForm.teacherReply = row.teacherReply || ""
-  auditDialogVisible.value = true
-}
-
-const submitAudit = async () => {
-  if (!currentRow.value) return
-
+const approveAppointment = async (row) => {
   try {
-    await ElMessageBox.confirm(`确认要${auditDialogTitle.value}吗？`, "提示", {
+    await ElMessageBox.confirm("确认通过该预约吗？", "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning"
     })
 
     const res = await request.post("/api/teacher/appointment/updateStatus", {
-      id: auditForm.id,
-      teacherAccount: teacherAccount(),
-      status: auditType.value,
-      teacherReply: auditForm.teacherReply
+      id: row.id,
+      teacherAccount: teacherAccount.value,
+      status: "APPROVED",
+      offlineRecord: ""
     })
 
     const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-
-    if (success) {
-      ElMessage.success(result.message || "操作成功")
-      auditDialogVisible.value = false
+    if (result.code === 200 || result.success === true) {
+      ElMessage.success(result.message || "预约已通过")
       loadAppointmentList()
     } else {
       ElMessage.error(result.message || "操作失败")
     }
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error(error?.response?.data?.message || "操作失败")
+      ElMessage.error(error?.response?.data?.message || error?.message || "操作失败")
+    }
+  }
+}
+
+const rejectAppointment = async (row) => {
+  try {
+    await ElMessageBox.confirm("确认拒绝该预约吗？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    })
+
+    const res = await request.post("/api/teacher/appointment/updateStatus", {
+      id: row.id,
+      teacherAccount: teacherAccount.value,
+      status: "REJECTED",
+      offlineRecord: ""
+    })
+
+    const result = res.data || {}
+    if (result.code === 200 || result.success === true) {
+      ElMessage.success(result.message || "预约已拒绝")
+      loadAppointmentList()
+    } else {
+      ElMessage.error(result.message || "操作失败")
+    }
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error(error?.response?.data?.message || error?.message || "操作失败")
+    }
+  }
+}
+
+const openRecordDialog = (row) => {
+  if (row.status === "COMPLETED" || row.recordCompleted) {
+    ElMessage.warning("该记录已完成，不能再修改")
+    return
+  }
+
+  currentRow.value = row
+  recordForm.id = row.id
+  recordForm.studentId = row.studentId || ""
+  recordForm.studentName = row.studentName || ""
+  recordForm.offlineRecord = row.offlineRecord || ""
+  recordDialogVisible.value = true
+}
+
+const saveRecord = async () => {
+  if (!recordForm.id) {
+    ElMessage.error("记录ID不能为空")
+    return
+  }
+
+  if (!recordForm.offlineRecord.trim()) {
+    ElMessage.warning("请填写会诊记录")
+    return
+  }
+
+  try {
+    const res = await request.post("/api/teacher/appointment/updateStatus", {
+      id: recordForm.id,
+      teacherAccount: teacherAccount.value,
+      status: "APPROVED",
+      offlineRecord: recordForm.offlineRecord.trim()
+    })
+
+    const result = res.data || {}
+    if (result.code === 200 || result.success === true) {
+      ElMessage.success(result.message || "记录保存成功")
+      recordDialogVisible.value = false
+      loadAppointmentList()
+    } else {
+      ElMessage.error(result.message || "保存失败")
+    }
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || "保存失败")
+  }
+}
+
+const completeRecord = async (row) => {
+  const offlineRecord = row.offlineRecord || ""
+
+  if (!String(offlineRecord).trim()) {
+    ElMessage.warning("请先点击“记录”填写会诊记录，再点击完成")
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm("完成后会诊记录将锁定，确认继续吗？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    })
+
+    const res = await request.post("/api/teacher/appointment/updateStatus", {
+      id: row.id,
+      teacherAccount: teacherAccount.value,
+      status: "COMPLETED",
+      offlineRecord: offlineRecord.trim()
+    })
+
+    const result = res.data || {}
+    if (result.code === 200 || result.success === true) {
+      ElMessage.success(result.message || "记录已完成并锁定")
+      loadAppointmentList()
+    } else {
+      ElMessage.error(result.message || "操作失败")
+    }
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error(error?.response?.data?.message || error?.message || "操作失败")
     }
   }
 }
@@ -341,20 +455,18 @@ const loadAssessmentRecord = async (row) => {
 
   try {
     const res = await request.post("/api/teacher/appointment/assessmentRecord", {
-      teacherAccount: teacherAccount(),
+      teacherAccount: teacherAccount.value,
       studentId: row.studentId
     })
 
     const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-
-    if (success) {
+    if (result.code === 200 || result.success === true) {
       assessmentRecords.value = result.data || []
     } else {
-      ElMessage.error(result.message || "查询心理测试记录失败")
+      ElMessage.error(result.message || "查询测试记录失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询心理测试记录失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "查询测试记录失败")
   } finally {
     assessmentLoading.value = false
   }
@@ -372,6 +484,12 @@ onMounted(() => {
 
 .page-card {
   border-radius: 10px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .search-form {

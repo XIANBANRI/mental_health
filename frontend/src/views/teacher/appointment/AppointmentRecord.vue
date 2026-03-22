@@ -2,10 +2,12 @@
   <div class="appointment-record-page">
     <el-card class="page-card">
       <template #header>
-        <span>预约记录</span>
+        <div class="card-header">
+          <span>预约记录</span>
+        </div>
       </template>
 
-      <el-form :inline="true" class="search-form">
+      <el-form :model="queryForm" inline class="search-form">
         <el-form-item label="学生学号">
           <el-input
               v-model="queryForm.studentId"
@@ -19,14 +21,15 @@
           <el-date-picker
               v-model="queryForm.appointmentDate"
               type="date"
-              placeholder="请选择日期"
               value-format="YYYY-MM-DD"
+              placeholder="选择预约日期"
+              clearable
               style="width: 180px"
           />
         </el-form-item>
 
         <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="请选择状态" clearable style="width: 180px">
+          <el-select v-model="queryForm.status" placeholder="全部" clearable style="width: 160px">
             <el-option label="已通过" value="APPROVED" />
             <el-option label="已拒绝" value="REJECTED" />
             <el-option label="已完成" value="COMPLETED" />
@@ -40,37 +43,50 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="recordList" border style="width: 100%" v-loading="loading">
-        <el-table-column prop="appointmentNo" label="预约单号" width="160" />
-        <el-table-column prop="studentId" label="学生学号" width="130" />
-        <el-table-column prop="studentName" label="学生姓名" width="120" />
-        <el-table-column prop="appointmentDate" label="预约日期" width="140" />
-        <el-table-column prop="startTime" label="开始时间" width="120">
+      <el-table
+          :data="recordList"
+          border
+          style="width: 100%"
+          v-loading="loading"
+          empty-text="暂无预约记录"
+      >
+        <el-table-column prop="appointmentNo" label="预约编号" min-width="160" />
+        <el-table-column prop="studentId" label="学生学号" width="120" />
+        <el-table-column prop="studentName" label="学生姓名" width="100" />
+        <el-table-column prop="appointmentDate" label="预约日期" width="120" />
+        <el-table-column prop="startTime" label="开始时间" width="90" />
+        <el-table-column prop="endTime" label="结束时间" width="90" />
+        <el-table-column prop="purpose" label="预约原因" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="remark" label="学生备注" min-width="140" show-overflow-tooltip />
+
+        <el-table-column label="会诊记录" min-width="220" show-overflow-tooltip>
           <template #default="scope">
-            {{ formatTime(scope.row.startTime) }}
+            {{ scope.row.offlineRecord || "暂无" }}
           </template>
         </el-table-column>
-        <el-table-column prop="endTime" label="结束时间" width="120">
-          <template #default="scope">
-            {{ formatTime(scope.row.endTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="purpose" label="预约原因" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="teacherReply" label="老师回复" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="120">
+
+        <el-table-column label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="getStatusTag(scope.row.status)">
               {{ getStatusText(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" min-width="180" />
+
+        <el-table-column label="记录状态" width="110" align="center">
+          <template #default="scope">
+            <el-tag :type="scope.row.recordCompleted ? 'success' : 'warning'">
+              {{ scope.row.recordCompleted ? "已完成" : "未完成" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="approvedAt" label="通过时间" min-width="170" />
+        <el-table-column prop="completedAt" label="完成时间" min-width="170" />
+
         <el-table-column label="操作" width="120" fixed="right" align="center">
           <template #default="scope">
-            <el-button
-                size="small"
-                @click="loadAssessmentRecord(scope.row)"
-            >
+            <el-button size="small" @click="loadAssessmentRecord(scope.row)">
               测试记录
             </el-button>
           </template>
@@ -81,17 +97,18 @@
     <el-dialog
         v-model="assessmentDialogVisible"
         title="学生心理测试记录"
-        width="1000px"
+        width="1100px"
+        destroy-on-close
     >
       <div class="student-info" v-if="assessmentRecords.length > 0">
         <span>学号：{{ assessmentRecords[0].studentId }}</span>
         <span>姓名：{{ assessmentRecords[0].studentName }}</span>
-        <span>学院：{{ assessmentRecords[0].college || '暂无' }}</span>
-        <span>班级：{{ assessmentRecords[0].className || '暂无' }}</span>
+        <span>学院：{{ assessmentRecords[0].college || "暂无" }}</span>
+        <span>班级：{{ assessmentRecords[0].className || "暂无" }}</span>
       </div>
 
       <el-empty
-          v-if="assessmentRecords.length === 0"
+          v-if="!assessmentLoading && assessmentRecords.length === 0"
           description="暂无心理测试记录"
       />
 
@@ -112,7 +129,8 @@
         <el-table-column prop="gad7Score" label="GAD-7分数" width="110" />
         <el-table-column prop="gad7Status" label="GAD-7状态" width="130" />
         <el-table-column prop="healthTotalScore" label="总分" width="90" />
-        <el-table-column prop="healthStatus" label="健康状态" width="140" />
+        <el-table-column prop="healthStatus" label="健康状态" width="120" />
+        <el-table-column prop="healthSummary" label="测评结论" min-width="180" show-overflow-tooltip />
         <el-table-column prop="submittedAt" label="提交时间" min-width="180" />
       </el-table>
     </el-dialog>
@@ -120,15 +138,15 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from "vue"
+import { computed, onMounted, reactive, ref } from "vue"
 import { ElMessage } from "element-plus"
 import request from "@/utils/request"
 
 const loading = ref(false)
 const recordList = ref([])
 
-const assessmentLoading = ref(false)
 const assessmentDialogVisible = ref(false)
+const assessmentLoading = ref(false)
 const assessmentRecords = ref([])
 
 const queryForm = reactive({
@@ -137,16 +155,13 @@ const queryForm = reactive({
   status: ""
 })
 
-const teacherAccount = () =>
-    localStorage.getItem("teacherAccount") || localStorage.getItem("username")
-
-const formatTime = (time) => {
-  if (!time) return ""
-  return String(time).slice(0, 5)
-}
+const teacherAccount = computed(() => {
+  return localStorage.getItem("teacherAccount") || localStorage.getItem("username") || ""
+})
 
 const getStatusText = (status) => {
   const map = {
+    PENDING: "待处理",
     APPROVED: "已通过",
     REJECTED: "已拒绝",
     COMPLETED: "已完成",
@@ -157,6 +172,7 @@ const getStatusText = (status) => {
 
 const getStatusTag = (status) => {
   const map = {
+    PENDING: "warning",
     APPROVED: "success",
     REJECTED: "danger",
     COMPLETED: "primary",
@@ -166,7 +182,7 @@ const getStatusTag = (status) => {
 }
 
 const loadRecordList = async () => {
-  if (!teacherAccount()) {
+  if (!teacherAccount.value) {
     ElMessage.error("未获取到老师账号")
     return
   }
@@ -174,22 +190,22 @@ const loadRecordList = async () => {
   loading.value = true
   try {
     const res = await request.post("/api/teacher/appointment/record", {
-      teacherAccount: teacherAccount(),
+      teacherAccount: teacherAccount.value,
       studentId: queryForm.studentId,
       appointmentDate: queryForm.appointmentDate,
       status: queryForm.status
     })
 
     const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-
-    if (success) {
+    if (result.code === 200 || result.success === true) {
       recordList.value = result.data || []
     } else {
+      recordList.value = []
       ElMessage.error(result.message || "查询失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询失败")
+    recordList.value = []
+    ElMessage.error(error?.response?.data?.message || error?.message || "查询失败")
   } finally {
     loading.value = false
   }
@@ -209,20 +225,18 @@ const loadAssessmentRecord = async (row) => {
 
   try {
     const res = await request.post("/api/teacher/appointment/assessmentRecord", {
-      teacherAccount: teacherAccount(),
+      teacherAccount: teacherAccount.value,
       studentId: row.studentId
     })
 
     const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-
-    if (success) {
+    if (result.code === 200 || result.success === true) {
       assessmentRecords.value = result.data || []
     } else {
-      ElMessage.error(result.message || "查询心理测试记录失败")
+      ElMessage.error(result.message || "查询测试记录失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询心理测试记录失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "查询测试记录失败")
   } finally {
     assessmentLoading.value = false
   }
@@ -240,6 +254,12 @@ onMounted(() => {
 
 .page-card {
   border-radius: 10px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .search-form {

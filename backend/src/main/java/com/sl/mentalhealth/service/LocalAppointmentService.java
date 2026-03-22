@@ -31,19 +31,24 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LocalAppointmentService {
 
+  private static final Integer STATUS_ENABLED = 1;
+
+  private static final List<String> OCCUPIED_STATUS = Arrays.asList("PENDING", "APPROVED", "COMPLETED");
+  private static final List<String> DUPLICATE_STATUS = Arrays.asList("PENDING", "APPROVED");
+
   private final AppointmentRepository appointmentRepository;
   private final TeacherScheduleRepository teacherScheduleRepository;
   private final TeacherRepository teacherRepository;
   private final StudentRepository studentRepository;
 
-  private static final List<String> OCCUPIED_STATUS = Arrays.asList("PENDING", "APPROVED", "COMPLETED");
-  private static final List<String> DUPLICATE_STATUS = Arrays.asList("PENDING", "APPROVED");
-
   public List<AvailableAppointmentVO> studentAvailable(String dateStr) {
     LocalDate date = (dateStr == null || dateStr.isBlank()) ? LocalDate.now() : LocalDate.parse(dateStr);
     int weekDay = convertWeekDay(date.getDayOfWeek());
 
-    List<TeacherSchedule> schedules = teacherScheduleRepository.findByWeekDayOrderByStartTimeAsc(weekDay);
+    // 只查询启用中的工作时间
+    List<TeacherSchedule> schedules =
+        teacherScheduleRepository.findByWeekDayAndStatusOrderByStartTimeAsc(weekDay, STATUS_ENABLED);
+
     if (schedules.isEmpty()) {
       return Collections.emptyList();
     }
@@ -77,7 +82,7 @@ public class LocalAppointmentService {
       vo.setEndTime(schedule.getEndTime() == null ? null : schedule.getEndTime().toString());
       vo.setMaxAppointments(schedule.getMaxAppointments());
       vo.setUsedAppointments((int) used);
-      vo.setRemainingAppointments(schedule.getMaxAppointments() - (int) used);
+      vo.setRemainingAppointments(Math.max(schedule.getMaxAppointments() - (int) used, 0));
       vo.setRemark(schedule.getRemark());
       result.add(vo);
     }
@@ -86,7 +91,13 @@ public class LocalAppointmentService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Long studentCreate(String studentId, Long scheduleId, String appointmentDateStr, String purpose, String remark) {
+  public Long studentCreate(
+      String studentId,
+      Long scheduleId,
+      String appointmentDateStr,
+      String purpose,
+      String remark
+  ) {
     if (studentId == null || studentId.isBlank()) {
       throw new RuntimeException("学生学号不能为空");
     }
@@ -109,6 +120,11 @@ public class LocalAppointmentService {
 
     TeacherSchedule schedule = teacherScheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new RuntimeException("排班不存在"));
+
+    // 逻辑删除后的保护：停用排班不可预约
+    if (!Objects.equals(schedule.getStatus(), STATUS_ENABLED)) {
+      throw new RuntimeException("该工作时间已停用，无法预约");
+    }
 
     int weekDay = convertWeekDay(appointmentDate.getDayOfWeek());
     if (!Objects.equals(schedule.getWeekDay(), weekDay)) {
@@ -160,7 +176,8 @@ public class LocalAppointmentService {
   }
 
   public List<AppointmentVO> studentMy(String studentId) {
-    List<Appointment> list = appointmentRepository.findByStudentAccountOrderByAppointmentDateDescStartTimeDesc(studentId);
+    List<Appointment> list =
+        appointmentRepository.findByStudentAccountOrderByAppointmentDateDescStartTimeDesc(studentId);
     return buildAppointmentVOList(list);
   }
 

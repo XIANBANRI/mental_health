@@ -32,4 +32,6 @@ public final class KafkaTopics {
   public static final String COUNSELOR_PROFILE_REQUEST = "mh.counselor.profile.request";
   public static final String COUNSELOR_PROFILE_RESPONSE = "mh.counselor.profile.response";
 
+  public static final String ASSESSMENT_SCALE_MANAGE_REQUEST = "mh.assessment-scale.manage.request";
+  public static final String ASSESSMENT_SCALE_MANAGE_RESPONSE = "mh.assessment-scale.manage.response";
 }

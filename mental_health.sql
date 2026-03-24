@@ -25,9 +25,9 @@ DROP TABLE IF EXISTS `admin`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin` (
-  `account` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账号',
-  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '管理员姓名',
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
+  `account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账号',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '管理员姓名',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -51,17 +51,17 @@ DROP TABLE IF EXISTS `appointment`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `appointment` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `appointment_no` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '预约编号',
-  `student_account` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '学生账号或学号',
-  `teacher_account` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '心理老师账号',
+  `appointment_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '预约编号',
+  `student_account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '学生账号或学号',
+  `teacher_account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '心理老师账号',
   `schedule_id` bigint NOT NULL COMMENT '办公时间ID',
   `appointment_date` date NOT NULL COMMENT '预约日期',
   `start_time` time NOT NULL COMMENT '预约开始时间',
   `end_time` time NOT NULL COMMENT '预约结束时间',
-  `purpose` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '预约目的',
-  `remark` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '学生备注',
-  `teacher_reply` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师回复',
-  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING待审核 APPROVED已通过 REJECTED已拒绝 CANCELLED已取消 COMPLETED已完成',
+  `purpose` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '预约目的',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '学生备注',
+  `teacher_reply` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师回复',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING待审核 APPROVED已通过 REJECTED已拒绝 CANCELLED已取消 COMPLETED已完成',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `approved_at` datetime DEFAULT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE `assessment_option` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `question_id` bigint NOT NULL,
   `option_no` int NOT NULL,
-  `option_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `option_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `option_score` int NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -164,7 +164,7 @@ CREATE TABLE `assessment_question` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `scale_id` bigint NOT NULL,
   `question_no` int NOT NULL,
-  `question_text` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `question_text` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `required_flag` tinyint NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -192,27 +192,27 @@ DROP TABLE IF EXISTS `assessment_record`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `assessment_record` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `student_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学生学号',
-  `semester` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '第1学期' COMMENT '学期',
+  `student_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学生学号',
+  `semester` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '第1学期' COMMENT '学期',
   `k10_score` int DEFAULT NULL COMMENT 'K10原始分',
-  `k10_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `k10_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10等级',
-  `k10_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10结果说明',
+  `k10_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
+  `k10_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10等级',
+  `k10_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10结果说明',
   `who5_score` int DEFAULT NULL COMMENT 'WHO5原始分',
-  `who5_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `who5_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5等级',
-  `who5_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5结果说明',
+  `who5_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
+  `who5_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5等级',
+  `who5_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5结果说明',
   `phq9_score` int DEFAULT NULL COMMENT 'PHQ9原始分',
-  `phq9_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `phq9_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9等级',
-  `phq9_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9结果说明',
+  `phq9_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
+  `phq9_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9等级',
+  `phq9_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9结果说明',
   `gad7_score` int DEFAULT NULL COMMENT 'GAD7原始分',
-  `gad7_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `gad7_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7等级',
-  `gad7_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7结果说明',
+  `gad7_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
+  `gad7_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7等级',
+  `gad7_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7结果说明',
   `health_total_score` int DEFAULT NULL COMMENT '综合总分(0~100)',
-  `health_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '健康/预警/风险较高/高风险/未完成',
-  `health_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '四项量表未全部完成，暂不生成综合总分' COMMENT '综合结果说明',
+  `health_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '健康/预警/风险较高/高风险/未完成',
+  `health_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '四项量表未全部完成，暂不生成综合总分' COMMENT '综合结果说明',
   `submitted_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '最近提交时间',
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -244,9 +244,9 @@ CREATE TABLE `assessment_result_rule` (
   `scale_id` bigint NOT NULL,
   `min_score` int NOT NULL,
   `max_score` int NOT NULL,
-  `result_level` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `result_summary` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `suggestion` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `result_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `result_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `suggestion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_rule_scale` (`scale_id`),
@@ -273,19 +273,22 @@ DROP TABLE IF EXISTS `assessment_scale`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `assessment_scale` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `scale_code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `scale_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `scale_type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `scale_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `scale_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `scale_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `question_count` int NOT NULL,
   `score_min` int NOT NULL,
   `score_max` int NOT NULL,
   `status` tinyint NOT NULL DEFAULT '1',
+  `deleted_flag` tinyint NOT NULL DEFAULT '0' COMMENT '0未删除 1已逻辑删除',
+  `current_version_id` bigint DEFAULT NULL COMMENT '当前版本ID',
+  `created_by` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '创建人账号',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_scale_code` (`scale_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评量表表';
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评量表表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -294,8 +297,43 @@ CREATE TABLE `assessment_scale` (
 
 LOCK TABLES `assessment_scale` WRITE;
 /*!40000 ALTER TABLE `assessment_scale` DISABLE KEYS */;
-INSERT INTO `assessment_scale` VALUES (4,'K10','K10 心理困扰量表','distress','10题总体心理困扰筛查',10,10,50,1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),(14,'WHO5','WHO-5 幸福感指数','wellbeing','5题快速幸福感/心理状态筛查',5,0,25,1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),(15,'PHQ9','PHQ-9 抑郁筛查','depression','9题抑郁症状筛查',9,0,27,1,'2026-03-15 02:29:57','2026-03-15 02:29:57'),(16,'GAD7','GAD-7 焦虑筛查','anxiety','7题焦虑症状筛查',7,0,21,1,'2026-03-15 02:29:57','2026-03-15 02:29:57');
+INSERT INTO `assessment_scale` VALUES (4,'K10','K10 心理困扰量表','distress','10题总体心理困扰筛查',10,10,50,1,0,2,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(14,'WHO5','WHO-5 幸福感指数','wellbeing','5题快速幸福感/心理状态筛查',5,0,25,1,0,4,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(15,'PHQ9','PHQ-9 抑郁筛查','depression','9题抑郁症状筛查',9,0,27,1,0,3,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(16,'GAD7','GAD-7 焦虑筛查','anxiety','7题焦虑症状筛查',6,0,22,1,0,12,'system','2026-03-15 02:29:57','2026-03-24 17:04:05'),(17,'HAMA-14','汉密尔顿焦虑量表','anxious','测量是否焦虑',14,0,56,0,1,9,'admin','2026-03-24 16:22:00','2026-03-24 17:01:24'),(18,'HAMD-14','HAMD焦虑','anxious','汉密尔顿焦虑测试',14,0,56,1,0,10,'admin','2026-03-24 17:02:40','2026-03-24 17:02:40');
 /*!40000 ALTER TABLE `assessment_scale` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `assessment_scale_version`
+--
+
+DROP TABLE IF EXISTS `assessment_scale_version`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assessment_scale_version` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `scale_id` bigint NOT NULL COMMENT '所属量表ID',
+  `version_no` int NOT NULL COMMENT '版本号，从1开始',
+  `version_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE' COMMENT 'ACTIVE启用 INACTIVE停用',
+  `source_question_file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '题目Excel文件名',
+  `source_rule_file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '规则Excel文件名',
+  `version_remark` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '版本备注',
+  `created_by` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '创建人',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_scale_version_no` (`scale_id`,`version_no`),
+  KEY `idx_scale_version_scale_id` (`scale_id`),
+  CONSTRAINT `fk_scale_version_scale` FOREIGN KEY (`scale_id`) REFERENCES `assessment_scale` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表版本表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assessment_scale_version`
+--
+
+LOCK TABLES `assessment_scale_version` WRITE;
+/*!40000 ALTER TABLE `assessment_scale_version` DISABLE KEYS */;
+INSERT INTO `assessment_scale_version` VALUES (1,16,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(2,4,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(3,15,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(4,14,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(8,17,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 16:22:00','2026-03-24 16:22:00'),(9,17,2,'INACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 16:54:14','2026-03-24 17:01:24'),(10,18,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 17:02:40','2026-03-24 17:02:40'),(11,16,2,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:03:11','2026-03-24 17:03:11'),(12,16,3,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:04:05','2026-03-24 17:04:05');
+/*!40000 ALTER TABLE `assessment_scale_version` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -309,9 +347,9 @@ CREATE TABLE `assessment_total_rule` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `min_score` int NOT NULL,
   `max_score` int NOT NULL,
-  `health_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '健康/预警/风险较高/高风险',
-  `health_summary` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `suggestion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `health_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '健康/预警/风险较高/高风险',
+  `health_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `suggestion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='综合总分判定规则表';
@@ -328,6 +366,100 @@ INSERT INTO `assessment_total_rule` VALUES (1,0,24,'健康','整体心理状态�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `assessment_version_option`
+--
+
+DROP TABLE IF EXISTS `assessment_version_option`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assessment_version_option` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `version_question_id` bigint NOT NULL COMMENT '版本题目ID',
+  `option_no` int NOT NULL COMMENT '选项序号',
+  `option_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选项内容',
+  `option_score` int NOT NULL COMMENT '选项分值',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_version_option_no` (`version_question_id`,`option_no`),
+  KEY `idx_version_option_question_id` (`version_question_id`),
+  CONSTRAINT `fk_version_option_question` FOREIGN KEY (`version_question_id`) REFERENCES `assessment_version_question` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=514 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表版本选项表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assessment_version_option`
+--
+
+LOCK TABLES `assessment_version_option` WRITE;
+/*!40000 ALTER TABLE `assessment_version_option` DISABLE KEYS */;
+INSERT INTO `assessment_version_option` VALUES (1,1,1,'从不',1,'2026-03-15 02:29:57'),(2,1,2,'偶尔',2,'2026-03-15 02:29:57'),(3,1,3,'有时',3,'2026-03-15 02:29:57'),(4,1,4,'经常',4,'2026-03-15 02:29:57'),(5,1,5,'总是',5,'2026-03-15 02:29:57'),(6,2,1,'从不',1,'2026-03-15 02:29:57'),(7,2,2,'偶尔',2,'2026-03-15 02:29:57'),(8,2,3,'有时',3,'2026-03-15 02:29:57'),(9,2,4,'经常',4,'2026-03-15 02:29:57'),(10,2,5,'总是',5,'2026-03-15 02:29:57'),(11,3,1,'从不',1,'2026-03-15 02:29:57'),(12,3,2,'偶尔',2,'2026-03-15 02:29:57'),(13,3,3,'有时',3,'2026-03-15 02:29:57'),(14,3,4,'经常',4,'2026-03-15 02:29:57'),(15,3,5,'总是',5,'2026-03-15 02:29:57'),(16,4,1,'从不',1,'2026-03-15 02:29:57'),(17,4,2,'偶尔',2,'2026-03-15 02:29:57'),(18,4,3,'有时',3,'2026-03-15 02:29:57'),(19,4,4,'经常',4,'2026-03-15 02:29:57'),(20,4,5,'总是',5,'2026-03-15 02:29:57'),(21,5,1,'从不',1,'2026-03-15 02:29:57'),(22,5,2,'偶尔',2,'2026-03-15 02:29:57'),(23,5,3,'有时',3,'2026-03-15 02:29:57'),(24,5,4,'经常',4,'2026-03-15 02:29:57'),(25,5,5,'总是',5,'2026-03-15 02:29:57'),(26,6,1,'从不',1,'2026-03-15 02:29:57'),(27,6,2,'偶尔',2,'2026-03-15 02:29:57'),(28,6,3,'有时',3,'2026-03-15 02:29:57'),(29,6,4,'经常',4,'2026-03-15 02:29:57'),(30,6,5,'总是',5,'2026-03-15 02:29:57'),(31,7,1,'从不',1,'2026-03-15 02:29:57'),(32,7,2,'偶尔',2,'2026-03-15 02:29:57'),(33,7,3,'有时',3,'2026-03-15 02:29:57'),(34,7,4,'经常',4,'2026-03-15 02:29:57'),(35,7,5,'总是',5,'2026-03-15 02:29:57'),(36,8,1,'从不',1,'2026-03-15 02:29:57'),(37,8,2,'偶尔',2,'2026-03-15 02:29:57'),(38,8,3,'有时',3,'2026-03-15 02:29:57'),(39,8,4,'经常',4,'2026-03-15 02:29:57'),(40,8,5,'总是',5,'2026-03-15 02:29:57'),(41,9,1,'从不',1,'2026-03-15 02:29:57'),(42,9,2,'偶尔',2,'2026-03-15 02:29:57'),(43,9,3,'有时',3,'2026-03-15 02:29:57'),(44,9,4,'经常',4,'2026-03-15 02:29:57'),(45,9,5,'总是',5,'2026-03-15 02:29:57'),(46,10,1,'从不',1,'2026-03-15 02:29:57'),(47,10,2,'偶尔',2,'2026-03-15 02:29:57'),(48,10,3,'有时',3,'2026-03-15 02:29:57'),(49,10,4,'经常',4,'2026-03-15 02:29:57'),(50,10,5,'总是',5,'2026-03-15 02:29:57'),(51,11,1,'从未',0,'2026-03-15 02:29:57'),(52,11,2,'偶尔',1,'2026-03-15 02:29:57'),(53,11,3,'少于一半时间',2,'2026-03-15 02:29:57'),(54,11,4,'超过一半时间',3,'2026-03-15 02:29:57'),(55,11,5,'大部分时间',4,'2026-03-15 02:29:57'),(56,11,6,'一直如此',5,'2026-03-15 02:29:57'),(57,12,1,'从未',0,'2026-03-15 02:29:57'),(58,12,2,'偶尔',1,'2026-03-15 02:29:57'),(59,12,3,'少于一半时间',2,'2026-03-15 02:29:57'),(60,12,4,'超过一半时间',3,'2026-03-15 02:29:57'),(61,12,5,'大部分时间',4,'2026-03-15 02:29:57'),(62,12,6,'一直如此',5,'2026-03-15 02:29:57'),(63,13,1,'从未',0,'2026-03-15 02:29:57'),(64,13,2,'偶尔',1,'2026-03-15 02:29:57'),(65,13,3,'少于一半时间',2,'2026-03-15 02:29:57'),(66,13,4,'超过一半时间',3,'2026-03-15 02:29:57'),(67,13,5,'大部分时间',4,'2026-03-15 02:29:57'),(68,13,6,'一直如此',5,'2026-03-15 02:29:57'),(69,14,1,'从未',0,'2026-03-15 02:29:57'),(70,14,2,'偶尔',1,'2026-03-15 02:29:57'),(71,14,3,'少于一半时间',2,'2026-03-15 02:29:57'),(72,14,4,'超过一半时间',3,'2026-03-15 02:29:57'),(73,14,5,'大部分时间',4,'2026-03-15 02:29:57'),(74,14,6,'一直如此',5,'2026-03-15 02:29:57'),(75,15,1,'从未',0,'2026-03-15 02:29:57'),(76,15,2,'偶尔',1,'2026-03-15 02:29:57'),(77,15,3,'少于一半时间',2,'2026-03-15 02:29:57'),(78,15,4,'超过一半时间',3,'2026-03-15 02:29:57'),(79,15,5,'大部分时间',4,'2026-03-15 02:29:57'),(80,15,6,'一直如此',5,'2026-03-15 02:29:57'),(81,16,1,'完全没有',0,'2026-03-15 02:29:57'),(82,16,2,'几天',1,'2026-03-15 02:29:57'),(83,16,3,'一半以上天数',2,'2026-03-15 02:29:57'),(84,16,4,'几乎每天',3,'2026-03-15 02:29:57'),(85,17,1,'完全没有',0,'2026-03-15 02:29:57'),(86,17,2,'几天',1,'2026-03-15 02:29:57'),(87,17,3,'一半以上天数',2,'2026-03-15 02:29:57'),(88,17,4,'几乎每天',3,'2026-03-15 02:29:57'),(89,18,1,'完全没有',0,'2026-03-15 02:29:57'),(90,18,2,'几天',1,'2026-03-15 02:29:57'),(91,18,3,'一半以上天数',2,'2026-03-15 02:29:57'),(92,18,4,'几乎每天',3,'2026-03-15 02:29:57'),(93,19,1,'完全没有',0,'2026-03-15 02:29:57'),(94,19,2,'几天',1,'2026-03-15 02:29:57'),(95,19,3,'一半以上天数',2,'2026-03-15 02:29:57'),(96,19,4,'几乎每天',3,'2026-03-15 02:29:57'),(97,20,1,'完全没有',0,'2026-03-15 02:29:57'),(98,20,2,'几天',1,'2026-03-15 02:29:57'),(99,20,3,'一半以上天数',2,'2026-03-15 02:29:57'),(100,20,4,'几乎每天',3,'2026-03-15 02:29:57'),(101,21,1,'完全没有',0,'2026-03-15 02:29:57'),(102,21,2,'几天',1,'2026-03-15 02:29:57'),(103,21,3,'一半以上天数',2,'2026-03-15 02:29:57'),(104,21,4,'几乎每天',3,'2026-03-15 02:29:57'),(105,22,1,'完全没有',0,'2026-03-15 02:29:57'),(106,22,2,'几天',1,'2026-03-15 02:29:57'),(107,22,3,'一半以上天数',2,'2026-03-15 02:29:57'),(108,22,4,'几乎每天',3,'2026-03-15 02:29:57'),(109,23,1,'完全没有',0,'2026-03-15 02:29:57'),(110,23,2,'几天',1,'2026-03-15 02:29:57'),(111,23,3,'一半以上天数',2,'2026-03-15 02:29:57'),(112,23,4,'几乎每天',3,'2026-03-15 02:29:57'),(113,24,1,'完全没有',0,'2026-03-15 02:29:57'),(114,24,2,'几天',1,'2026-03-15 02:29:57'),(115,24,3,'一半以上天数',2,'2026-03-15 02:29:57'),(116,24,4,'几乎每天',3,'2026-03-15 02:29:57'),(117,25,1,'完全没有',0,'2026-03-15 02:29:57'),(118,25,2,'几天',1,'2026-03-15 02:29:57'),(119,25,3,'一半以上天数',2,'2026-03-15 02:29:57'),(120,25,4,'几乎每天',3,'2026-03-15 02:29:57'),(121,26,1,'完全没有',0,'2026-03-15 02:29:57'),(122,26,2,'几天',1,'2026-03-15 02:29:57'),(123,26,3,'一半以上天数',2,'2026-03-15 02:29:57'),(124,26,4,'几乎每天',3,'2026-03-15 02:29:57'),(125,27,1,'完全没有',0,'2026-03-15 02:29:57'),(126,27,2,'几天',1,'2026-03-15 02:29:57'),(127,27,3,'一半以上天数',2,'2026-03-15 02:29:57'),(128,27,4,'几乎每天',3,'2026-03-15 02:29:57'),(129,28,1,'完全没有',0,'2026-03-15 02:29:57'),(130,28,2,'几天',1,'2026-03-15 02:29:57'),(131,28,3,'一半以上天数',2,'2026-03-15 02:29:57'),(132,28,4,'几乎每天',3,'2026-03-15 02:29:57'),(133,29,1,'完全没有',0,'2026-03-15 02:29:57'),(134,29,2,'几天',1,'2026-03-15 02:29:57'),(135,29,3,'一半以上天数',2,'2026-03-15 02:29:57'),(136,29,4,'几乎每天',3,'2026-03-15 02:29:57'),(137,30,1,'完全没有',0,'2026-03-15 02:29:57'),(138,30,2,'几天',1,'2026-03-15 02:29:57'),(139,30,3,'一半以上天数',2,'2026-03-15 02:29:57'),(140,30,4,'几乎每天',3,'2026-03-15 02:29:57'),(141,31,1,'完全没有',0,'2026-03-15 02:29:57'),(142,31,2,'几天',1,'2026-03-15 02:29:57'),(143,31,3,'一半以上天数',2,'2026-03-15 02:29:57'),(144,31,4,'几乎每天',3,'2026-03-15 02:29:57'),(256,32,1,'无',0,'2026-03-24 16:22:00'),(257,32,2,'轻度紧张担忧',1,'2026-03-24 16:22:00'),(258,32,3,'明显担忧、害怕',2,'2026-03-24 16:22:00'),(259,32,4,'恐惧不安',3,'2026-03-24 16:22:00'),(260,32,5,'惊恐、濒死感',4,'2026-03-24 16:22:00'),(261,33,1,'无',0,'2026-03-24 16:22:00'),(262,33,2,'肌肉紧张',1,'2026-03-24 16:22:00'),(263,33,3,'坐立不安',2,'2026-03-24 16:22:00'),(264,33,4,'发抖、无法放松',3,'2026-03-24 16:22:00'),(265,33,5,'极度紧张失控',4,'2026-03-24 16:22:00'),(266,34,1,'无',0,'2026-03-24 16:22:00'),(267,34,2,'怕黑暗、陌生人',1,'2026-03-24 16:22:00'),(268,34,3,'怕独处、外出',2,'2026-03-24 16:22:00'),(269,34,4,'恐惧发作',3,'2026-03-24 16:22:00'),(270,34,5,'严重恐惧',4,'2026-03-24 16:22:00'),(271,35,1,'无',0,'2026-03-24 16:22:00'),(272,35,2,'入睡困难',1,'2026-03-24 16:22:00'),(273,35,3,'易醒、多梦',2,'2026-03-24 16:22:00'),(274,35,4,'早醒、睡眠差',3,'2026-03-24 16:22:00'),(275,35,5,'彻夜不眠',4,'2026-03-24 16:22:00'),(276,36,1,'无',0,'2026-03-24 16:22:00'),(277,36,2,'注意力不集中',1,'2026-03-24 16:22:00'),(278,36,3,'记忆力下降',2,'2026-03-24 16:22:00'),(279,36,4,'思维混乱',3,'2026-03-24 16:22:00'),(280,36,5,'严重认知障碍',4,'2026-03-24 16:22:00'),(281,37,1,'无',0,'2026-03-24 16:22:00'),(282,37,2,'情绪低落',1,'2026-03-24 16:22:00'),(283,37,3,'明显抑郁',2,'2026-03-24 16:22:00'),(284,37,4,'兴趣丧失',3,'2026-03-24 16:22:00'),(285,37,5,'严重抑郁',4,'2026-03-24 16:22:00'),(286,38,1,'无',0,'2026-03-24 16:22:00'),(287,38,2,'肌肉酸痛',1,'2026-03-24 16:22:00'),(288,38,3,'僵硬、震颤',2,'2026-03-24 16:22:00'),(289,38,4,'肌痉挛',3,'2026-03-24 16:22:00'),(290,38,5,'严重肌肉症状',4,'2026-03-24 16:22:00'),(291,39,1,'无',0,'2026-03-24 16:22:00'),(292,39,2,'头晕、耳鸣',1,'2026-03-24 16:22:00'),(293,39,3,'视物模糊、刺痛',2,'2026-03-24 16:22:00'),(294,39,4,'明显感觉异常',3,'2026-03-24 16:22:00'),(295,39,5,'严重障碍',4,'2026-03-24 16:22:00'),(296,40,1,'无',0,'2026-03-24 16:22:00'),(297,40,2,'心悸',1,'2026-03-24 16:22:00'),(298,40,3,'胸闷',2,'2026-03-24 16:22:00'),(299,40,4,'心动过速',3,'2026-03-24 16:22:00'),(300,40,5,'胸痛、血压波动',4,'2026-03-24 16:22:00'),(301,41,1,'无',0,'2026-03-24 16:22:00'),(302,41,2,'胸闷气短',1,'2026-03-24 16:22:00'),(303,41,3,'叹气、不畅',2,'2026-03-24 16:22:00'),(304,41,4,'窒息感',3,'2026-03-24 16:22:00'),(305,41,5,'过度换气',4,'2026-03-24 16:22:00'),(306,42,1,'无',0,'2026-03-24 16:22:00'),(307,42,2,'口干、腹胀',1,'2026-03-24 16:22:00'),(308,42,3,'恶心、嗳气',2,'2026-03-24 16:22:00'),(309,42,4,'腹泻、腹痛',3,'2026-03-24 16:22:00'),(310,42,5,'呕吐、吞咽困难',4,'2026-03-24 16:22:00'),(311,43,1,'无',0,'2026-03-24 16:22:00'),(312,43,2,'尿频',1,'2026-03-24 16:22:00'),(313,43,3,'尿急',2,'2026-03-24 16:22:00'),(314,43,4,'月经紊乱、性欲减退',3,'2026-03-24 16:22:00'),(315,43,5,'严重不适',4,'2026-03-24 16:22:00'),(316,44,1,'无',0,'2026-03-24 16:22:00'),(317,44,2,'出汗、脸红',1,'2026-03-24 16:22:00'),(318,44,3,'口干、手抖',2,'2026-03-24 16:22:00'),(319,44,4,'大汗、寒战',3,'2026-03-24 16:22:00'),(320,44,5,'严重紊乱',4,'2026-03-24 16:22:00'),(321,45,1,'正常',0,'2026-03-24 16:22:00'),(322,45,2,'轻微紧张',1,'2026-03-24 16:22:00'),(323,45,3,'坐立不安、发抖',2,'2026-03-24 16:22:00'),(324,45,4,'激动、语速快',3,'2026-03-24 16:22:00'),(325,45,5,'无法配合',4,'2026-03-24 16:22:00'),(326,46,1,'无',0,'2026-03-24 16:54:14'),(327,46,2,'轻度紧张担忧',1,'2026-03-24 16:54:14'),(328,46,3,'明显担忧、害怕',2,'2026-03-24 16:54:14'),(329,46,4,'恐惧不安',3,'2026-03-24 16:54:14'),(330,46,5,'惊恐、濒死感',4,'2026-03-24 16:54:14'),(331,47,1,'无',0,'2026-03-24 16:54:14'),(332,47,2,'肌肉紧张',1,'2026-03-24 16:54:14'),(333,47,3,'坐立不安',2,'2026-03-24 16:54:14'),(334,47,4,'发抖、无法放松',3,'2026-03-24 16:54:14'),(335,47,5,'极度紧张失控',4,'2026-03-24 16:54:14'),(336,48,1,'无',0,'2026-03-24 16:54:14'),(337,48,2,'怕黑暗、陌生人',1,'2026-03-24 16:54:14'),(338,48,3,'怕独处、外出',2,'2026-03-24 16:54:14'),(339,48,4,'恐惧发作',3,'2026-03-24 16:54:14'),(340,48,5,'严重恐惧',4,'2026-03-24 16:54:14'),(341,49,1,'无',0,'2026-03-24 16:54:14'),(342,49,2,'入睡困难',1,'2026-03-24 16:54:14'),(343,49,3,'易醒、多梦',2,'2026-03-24 16:54:14'),(344,49,4,'早醒、睡眠差',3,'2026-03-24 16:54:14'),(345,49,5,'彻夜不眠',4,'2026-03-24 16:54:14'),(346,50,1,'无',0,'2026-03-24 16:54:14'),(347,50,2,'注意力不集中',1,'2026-03-24 16:54:14'),(348,50,3,'记忆力下降',2,'2026-03-24 16:54:14'),(349,50,4,'思维混乱',3,'2026-03-24 16:54:14'),(350,50,5,'严重认知障碍',4,'2026-03-24 16:54:14'),(351,51,1,'无',0,'2026-03-24 16:54:14'),(352,51,2,'情绪低落',1,'2026-03-24 16:54:14'),(353,51,3,'明显抑郁',2,'2026-03-24 16:54:14'),(354,51,4,'兴趣丧失',3,'2026-03-24 16:54:14'),(355,51,5,'严重抑郁',4,'2026-03-24 16:54:14'),(356,52,1,'无',0,'2026-03-24 16:54:14'),(357,52,2,'肌肉酸痛',1,'2026-03-24 16:54:14'),(358,52,3,'僵硬、震颤',2,'2026-03-24 16:54:14'),(359,52,4,'肌痉挛',3,'2026-03-24 16:54:14'),(360,52,5,'严重肌肉症状',4,'2026-03-24 16:54:14'),(361,53,1,'无',0,'2026-03-24 16:54:14'),(362,53,2,'头晕、耳鸣',1,'2026-03-24 16:54:14'),(363,53,3,'视物模糊、刺痛',2,'2026-03-24 16:54:14'),(364,53,4,'明显感觉异常',3,'2026-03-24 16:54:14'),(365,53,5,'严重障碍',4,'2026-03-24 16:54:14'),(366,54,1,'无',0,'2026-03-24 16:54:14'),(367,54,2,'心悸',1,'2026-03-24 16:54:14'),(368,54,3,'胸闷',2,'2026-03-24 16:54:14'),(369,54,4,'心动过速',3,'2026-03-24 16:54:14'),(370,54,5,'胸痛、血压波动',4,'2026-03-24 16:54:14'),(371,55,1,'无',0,'2026-03-24 16:54:14'),(372,55,2,'胸闷气短',1,'2026-03-24 16:54:14'),(373,55,3,'叹气、不畅',2,'2026-03-24 16:54:14'),(374,55,4,'窒息感',3,'2026-03-24 16:54:14'),(375,55,5,'过度换气',4,'2026-03-24 16:54:14'),(376,56,1,'无',0,'2026-03-24 16:54:14'),(377,56,2,'口干、腹胀',1,'2026-03-24 16:54:14'),(378,56,3,'恶心、嗳气',2,'2026-03-24 16:54:14'),(379,56,4,'腹泻、腹痛',3,'2026-03-24 16:54:14'),(380,56,5,'呕吐、吞咽困难',4,'2026-03-24 16:54:14'),(381,57,1,'无',0,'2026-03-24 16:54:14'),(382,57,2,'尿频',1,'2026-03-24 16:54:14'),(383,57,3,'尿急',2,'2026-03-24 16:54:14'),(384,57,4,'月经紊乱、性欲减退',3,'2026-03-24 16:54:14'),(385,57,5,'严重不适',4,'2026-03-24 16:54:14'),(386,58,1,'无',0,'2026-03-24 16:54:14'),(387,58,2,'出汗、脸红',1,'2026-03-24 16:54:14'),(388,58,3,'口干、手抖',2,'2026-03-24 16:54:14'),(389,58,4,'大汗、寒战',3,'2026-03-24 16:54:14'),(390,58,5,'严重紊乱',4,'2026-03-24 16:54:14'),(391,59,1,'正常',0,'2026-03-24 16:54:14'),(392,59,2,'轻微紧张',1,'2026-03-24 16:54:14'),(393,59,3,'坐立不安、发抖',2,'2026-03-24 16:54:14'),(394,59,4,'激动、语速快',3,'2026-03-24 16:54:14'),(395,59,5,'无法配合',4,'2026-03-24 16:54:14'),(396,60,1,'无',0,'2026-03-24 17:02:40'),(397,60,2,'轻度紧张担忧',1,'2026-03-24 17:02:40'),(398,60,3,'明显担忧、害怕',2,'2026-03-24 17:02:40'),(399,60,4,'恐惧不安',3,'2026-03-24 17:02:40'),(400,60,5,'惊恐、濒死感',4,'2026-03-24 17:02:40'),(401,61,1,'无',0,'2026-03-24 17:02:40'),(402,61,2,'肌肉紧张',1,'2026-03-24 17:02:40'),(403,61,3,'坐立不安',2,'2026-03-24 17:02:40'),(404,61,4,'发抖、无法放松',3,'2026-03-24 17:02:40'),(405,61,5,'极度紧张失控',4,'2026-03-24 17:02:40'),(406,62,1,'无',0,'2026-03-24 17:02:40'),(407,62,2,'怕黑暗、陌生人',1,'2026-03-24 17:02:40'),(408,62,3,'怕独处、外出',2,'2026-03-24 17:02:40'),(409,62,4,'恐惧发作',3,'2026-03-24 17:02:40'),(410,62,5,'严重恐惧',4,'2026-03-24 17:02:40'),(411,63,1,'无',0,'2026-03-24 17:02:40'),(412,63,2,'入睡困难',1,'2026-03-24 17:02:40'),(413,63,3,'易醒、多梦',2,'2026-03-24 17:02:40'),(414,63,4,'早醒、睡眠差',3,'2026-03-24 17:02:40'),(415,63,5,'彻夜不眠',4,'2026-03-24 17:02:40'),(416,64,1,'无',0,'2026-03-24 17:02:40'),(417,64,2,'注意力不集中',1,'2026-03-24 17:02:40'),(418,64,3,'记忆力下降',2,'2026-03-24 17:02:40'),(419,64,4,'思维混乱',3,'2026-03-24 17:02:40'),(420,64,5,'严重认知障碍',4,'2026-03-24 17:02:40'),(421,65,1,'无',0,'2026-03-24 17:02:40'),(422,65,2,'情绪低落',1,'2026-03-24 17:02:40'),(423,65,3,'明显抑郁',2,'2026-03-24 17:02:40'),(424,65,4,'兴趣丧失',3,'2026-03-24 17:02:40'),(425,65,5,'严重抑郁',4,'2026-03-24 17:02:40'),(426,66,1,'无',0,'2026-03-24 17:02:40'),(427,66,2,'肌肉酸痛',1,'2026-03-24 17:02:40'),(428,66,3,'僵硬、震颤',2,'2026-03-24 17:02:40'),(429,66,4,'肌痉挛',3,'2026-03-24 17:02:40'),(430,66,5,'严重肌肉症状',4,'2026-03-24 17:02:40'),(431,67,1,'无',0,'2026-03-24 17:02:40'),(432,67,2,'头晕、耳鸣',1,'2026-03-24 17:02:40'),(433,67,3,'视物模糊、刺痛',2,'2026-03-24 17:02:40'),(434,67,4,'明显感觉异常',3,'2026-03-24 17:02:40'),(435,67,5,'严重障碍',4,'2026-03-24 17:02:40'),(436,68,1,'无',0,'2026-03-24 17:02:40'),(437,68,2,'心悸',1,'2026-03-24 17:02:40'),(438,68,3,'胸闷',2,'2026-03-24 17:02:40'),(439,68,4,'心动过速',3,'2026-03-24 17:02:40'),(440,68,5,'胸痛、血压波动',4,'2026-03-24 17:02:40'),(441,69,1,'无',0,'2026-03-24 17:02:40'),(442,69,2,'胸闷气短',1,'2026-03-24 17:02:40'),(443,69,3,'叹气、不畅',2,'2026-03-24 17:02:40'),(444,69,4,'窒息感',3,'2026-03-24 17:02:40'),(445,69,5,'过度换气',4,'2026-03-24 17:02:40'),(446,70,1,'无',0,'2026-03-24 17:02:40'),(447,70,2,'口干、腹胀',1,'2026-03-24 17:02:40'),(448,70,3,'恶心、嗳气',2,'2026-03-24 17:02:40'),(449,70,4,'腹泻、腹痛',3,'2026-03-24 17:02:40'),(450,70,5,'呕吐、吞咽困难',4,'2026-03-24 17:02:40'),(451,71,1,'无',0,'2026-03-24 17:02:40'),(452,71,2,'尿频',1,'2026-03-24 17:02:40'),(453,71,3,'尿急',2,'2026-03-24 17:02:40'),(454,71,4,'月经紊乱、性欲减退',3,'2026-03-24 17:02:40'),(455,71,5,'严重不适',4,'2026-03-24 17:02:40'),(456,72,1,'无',0,'2026-03-24 17:02:40'),(457,72,2,'出汗、脸红',1,'2026-03-24 17:02:40'),(458,72,3,'口干、手抖',2,'2026-03-24 17:02:40'),(459,72,4,'大汗、寒战',3,'2026-03-24 17:02:40'),(460,72,5,'严重紊乱',4,'2026-03-24 17:02:40'),(461,73,1,'正常',0,'2026-03-24 17:02:40'),(462,73,2,'轻微紧张',1,'2026-03-24 17:02:40'),(463,73,3,'坐立不安、发抖',2,'2026-03-24 17:02:40'),(464,73,4,'激动、语速快',3,'2026-03-24 17:02:40'),(465,73,5,'无法配合',4,'2026-03-24 17:02:40'),(466,74,1,'完全没有',0,'2026-03-24 17:03:11'),(467,74,2,'几天',1,'2026-03-24 17:03:11'),(468,74,3,'一半以上天数',2,'2026-03-24 17:03:11'),(469,74,4,'几乎每天',3,'2026-03-24 17:03:11'),(470,75,1,'完全没有',0,'2026-03-24 17:03:11'),(471,75,2,'几天',1,'2026-03-24 17:03:11'),(472,75,3,'一半以上天数',2,'2026-03-24 17:03:11'),(473,75,4,'几乎每天',3,'2026-03-24 17:03:11'),(474,76,1,'完全没有',0,'2026-03-24 17:03:11'),(475,76,2,'几天',1,'2026-03-24 17:03:11'),(476,76,3,'一半以上天数',2,'2026-03-24 17:03:11'),(477,76,4,'几乎每天',3,'2026-03-24 17:03:11'),(478,77,1,'完全没有',0,'2026-03-24 17:03:11'),(479,77,2,'几天',1,'2026-03-24 17:03:11'),(480,77,3,'一半以上天数',2,'2026-03-24 17:03:11'),(481,77,4,'几乎每天',3,'2026-03-24 17:03:11'),(482,78,1,'完全没有',0,'2026-03-24 17:03:11'),(483,78,2,'几天',1,'2026-03-24 17:03:11'),(484,78,3,'一半以上天数',2,'2026-03-24 17:03:11'),(485,78,4,'几乎每天',3,'2026-03-24 17:03:11'),(486,79,1,'完全没有',0,'2026-03-24 17:03:11'),(487,79,2,'几天',1,'2026-03-24 17:03:11'),(488,79,3,'一半以上天数',2,'2026-03-24 17:03:11'),(489,79,4,'几乎每天',3,'2026-03-24 17:03:11'),(490,80,1,'完全没有',0,'2026-03-24 17:04:05'),(491,80,2,'几天',1,'2026-03-24 17:04:05'),(492,80,3,'一半以上天数',2,'2026-03-24 17:04:05'),(493,80,4,'几乎每天',3,'2026-03-24 17:04:05'),(494,81,1,'完全没有',0,'2026-03-24 17:04:05'),(495,81,2,'几天',1,'2026-03-24 17:04:05'),(496,81,3,'一半以上天数',2,'2026-03-24 17:04:05'),(497,81,4,'几乎每天',3,'2026-03-24 17:04:05'),(498,82,1,'完全没有',0,'2026-03-24 17:04:05'),(499,82,2,'几天',1,'2026-03-24 17:04:05'),(500,82,3,'一半以上天数',2,'2026-03-24 17:04:05'),(501,82,4,'几乎每天',3,'2026-03-24 17:04:05'),(502,83,1,'完全没有',0,'2026-03-24 17:04:05'),(503,83,2,'几天',1,'2026-03-24 17:04:05'),(504,83,3,'一半以上天数',2,'2026-03-24 17:04:05'),(505,83,4,'几乎每天',3,'2026-03-24 17:04:05'),(506,84,1,'完全没有',0,'2026-03-24 17:04:05'),(507,84,2,'几天',1,'2026-03-24 17:04:05'),(508,84,3,'一半以上天数',2,'2026-03-24 17:04:05'),(509,84,4,'几乎每天',3,'2026-03-24 17:04:05'),(510,85,1,'完全没有',0,'2026-03-24 17:04:05'),(511,85,2,'几天',1,'2026-03-24 17:04:05'),(512,85,3,'一半以上天数',2,'2026-03-24 17:04:05'),(513,85,4,'几乎每天',3,'2026-03-24 17:04:05');
+/*!40000 ALTER TABLE `assessment_version_option` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `assessment_version_question`
+--
+
+DROP TABLE IF EXISTS `assessment_version_question`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assessment_version_question` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `version_id` bigint NOT NULL COMMENT '版本ID',
+  `question_no` int NOT NULL COMMENT '题号',
+  `question_text` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '题目内容',
+  `required_flag` tinyint NOT NULL DEFAULT '1' COMMENT '是否必答',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_version_question_no` (`version_id`,`question_no`),
+  KEY `idx_version_question_version_id` (`version_id`),
+  CONSTRAINT `fk_version_question_version` FOREIGN KEY (`version_id`) REFERENCES `assessment_scale_version` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表版本题目表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assessment_version_question`
+--
+
+LOCK TABLES `assessment_version_question` WRITE;
+/*!40000 ALTER TABLE `assessment_version_question` DISABLE KEYS */;
+INSERT INTO `assessment_version_question` VALUES (1,2,1,'过去30天里，你是否无明显原因地感到疲惫？',1,'2026-03-15 02:29:57'),(2,2,2,'过去30天里，你是否感到紧张？',1,'2026-03-15 02:29:57'),(3,2,3,'过去30天里，你是否紧张到难以平静下来？',1,'2026-03-15 02:29:57'),(4,2,4,'过去30天里，你是否感到没有希望？',1,'2026-03-15 02:29:57'),(5,2,5,'过去30天里，你是否感到坐立不安或心烦意乱？',1,'2026-03-15 02:29:57'),(6,2,6,'过去30天里，你是否坐立不安到根本坐不住？',1,'2026-03-15 02:29:57'),(7,2,7,'过去30天里，你是否感到情绪低落？',1,'2026-03-15 02:29:57'),(8,2,8,'过去30天里，你是否觉得做任何事都很费力？',1,'2026-03-15 02:29:57'),(9,2,9,'过去30天里，你是否悲伤到没有什么能让你开心起来？',1,'2026-03-15 02:29:57'),(10,2,10,'过去30天里，你是否感到自己毫无价值？',1,'2026-03-15 02:29:57'),(11,4,1,'过去两周，我感觉心情愉快、精神较好',1,'2026-03-15 02:29:57'),(12,4,2,'过去两周，我感觉平静、放松',1,'2026-03-15 02:29:57'),(13,4,3,'过去两周，我感觉精力充沛、做事有劲头',1,'2026-03-15 02:29:57'),(14,4,4,'过去两周，我起床后感觉休息充分',1,'2026-03-15 02:29:57'),(15,4,5,'过去两周，我的日常生活里有让我感兴趣的事情',1,'2026-03-15 02:29:57'),(16,3,1,'过去两周，做事兴趣下降或提不起劲',1,'2026-03-15 02:29:57'),(17,3,2,'过去两周，情绪低落、沮丧或感到无望',1,'2026-03-15 02:29:57'),(18,3,3,'过去两周，入睡困难、易醒或睡得过多',1,'2026-03-15 02:29:57'),(19,3,4,'过去两周，感到疲惫或缺乏精力',1,'2026-03-15 02:29:57'),(20,3,5,'过去两周，食欲差或吃得过多',1,'2026-03-15 02:29:57'),(21,3,6,'过去两周，对自己评价很差，觉得自己失败或让家人失望',1,'2026-03-15 02:29:57'),(22,3,7,'过去两周，难以集中注意力，如学习或阅读时难专心',1,'2026-03-15 02:29:57'),(23,3,8,'过去两周，动作或说话明显变慢，或坐立不安比平时更明显',1,'2026-03-15 02:29:57'),(24,3,9,'过去两周，出现过伤害自己或认为不如消失的想法',1,'2026-03-15 02:29:57'),(25,1,1,'过去两周，感到紧张、焦虑或神经绷得很紧',1,'2026-03-15 02:29:57'),(26,1,2,'过去两周，无法停止担忧或控制担忧',1,'2026-03-15 02:29:57'),(27,1,3,'过去两周，过度担心各种事情',1,'2026-03-15 02:29:57'),(28,1,4,'过去两周，难以放松下来',1,'2026-03-15 02:29:57'),(29,1,5,'过去两周，坐立不安，难以安静坐着',1,'2026-03-15 02:29:57'),(30,1,6,'过去两周，容易烦躁或被激怒',1,'2026-03-15 02:29:57'),(31,1,7,'过去两周，总担心会有糟糕的事情发生',1,'2026-03-15 02:29:57'),(32,8,1,'焦虑心境',1,'2026-03-24 16:22:00'),(33,8,2,'紧张感',1,'2026-03-24 16:22:00'),(34,8,3,'害怕',1,'2026-03-24 16:22:00'),(35,8,4,'失眠',1,'2026-03-24 16:22:00'),(36,8,5,'认知功能',1,'2026-03-24 16:22:00'),(37,8,6,'抑郁心境',1,'2026-03-24 16:22:00'),(38,8,7,'肌肉系统症状',1,'2026-03-24 16:22:00'),(39,8,8,'感觉系统症状',1,'2026-03-24 16:22:00'),(40,8,9,'心血管症状',1,'2026-03-24 16:22:00'),(41,8,10,'呼吸系统症状',1,'2026-03-24 16:22:00'),(42,8,11,'胃肠道症状',1,'2026-03-24 16:22:00'),(43,8,12,'泌尿生殖症状',1,'2026-03-24 16:22:00'),(44,8,13,'自主神经症状',1,'2026-03-24 16:22:00'),(45,8,14,'会谈行为表现',1,'2026-03-24 16:22:00'),(46,9,1,'焦虑心境',1,'2026-03-24 16:54:14'),(47,9,2,'紧张感',1,'2026-03-24 16:54:14'),(48,9,3,'害怕',1,'2026-03-24 16:54:14'),(49,9,4,'失眠',1,'2026-03-24 16:54:14'),(50,9,5,'认知功能',1,'2026-03-24 16:54:14'),(51,9,6,'抑郁心境',1,'2026-03-24 16:54:14'),(52,9,7,'肌肉系统症状',1,'2026-03-24 16:54:14'),(53,9,8,'感觉系统症状',1,'2026-03-24 16:54:14'),(54,9,9,'心血管症状',1,'2026-03-24 16:54:14'),(55,9,10,'呼吸系统症状',1,'2026-03-24 16:54:14'),(56,9,11,'胃肠道症状',1,'2026-03-24 16:54:14'),(57,9,12,'泌尿生殖症状',1,'2026-03-24 16:54:14'),(58,9,13,'自主神经症状',1,'2026-03-24 16:54:14'),(59,9,14,'会谈行为表现',1,'2026-03-24 16:54:14'),(60,10,1,'焦虑心境',1,'2026-03-24 17:02:40'),(61,10,2,'紧张感',1,'2026-03-24 17:02:40'),(62,10,3,'害怕',1,'2026-03-24 17:02:40'),(63,10,4,'失眠',1,'2026-03-24 17:02:40'),(64,10,5,'认知功能',1,'2026-03-24 17:02:40'),(65,10,6,'抑郁心境',1,'2026-03-24 17:02:40'),(66,10,7,'肌肉系统症状',1,'2026-03-24 17:02:40'),(67,10,8,'感觉系统症状',1,'2026-03-24 17:02:40'),(68,10,9,'心血管症状',1,'2026-03-24 17:02:40'),(69,10,10,'呼吸系统症状',1,'2026-03-24 17:02:40'),(70,10,11,'胃肠道症状',1,'2026-03-24 17:02:40'),(71,10,12,'泌尿生殖症状',1,'2026-03-24 17:02:40'),(72,10,13,'自主神经症状',1,'2026-03-24 17:02:40'),(73,10,14,'会谈行为表现',1,'2026-03-24 17:02:40'),(74,11,1,'过去两周，无法停止担忧或控制担忧',1,'2026-03-24 17:03:11'),(75,11,2,'过去两周，过度担心各种事情',1,'2026-03-24 17:03:11'),(76,11,3,'过去两周，难以放松下来',1,'2026-03-24 17:03:11'),(77,11,4,'过去两周，坐立不安，难以安静坐着',1,'2026-03-24 17:03:11'),(78,11,5,'过去两周，容易烦躁或被激怒',1,'2026-03-24 17:03:11'),(79,11,6,'过去两周，总担心会有糟糕的事情发生',1,'2026-03-24 17:03:11'),(80,12,1,'过去两周，无法停止担忧或控制担忧',1,'2026-03-24 17:04:05'),(81,12,2,'过去两周，过度担心各种事情',1,'2026-03-24 17:04:05'),(82,12,3,'过去两周，难以放松下来',1,'2026-03-24 17:04:05'),(83,12,4,'过去两周，坐立不安，难以安静坐着',1,'2026-03-24 17:04:05'),(84,12,5,'过去两周，容易烦躁或被激怒',1,'2026-03-24 17:04:05'),(85,12,6,'过去两周，总担心会有糟糕的事情发生',1,'2026-03-24 17:04:05');
+/*!40000 ALTER TABLE `assessment_version_question` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `assessment_version_rule`
+--
+
+DROP TABLE IF EXISTS `assessment_version_rule`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assessment_version_rule` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `version_id` bigint NOT NULL COMMENT '版本ID',
+  `min_score` int NOT NULL COMMENT '最小分',
+  `max_score` int NOT NULL COMMENT '最大分',
+  `result_level` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '结果等级',
+  `result_summary` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '结果说明',
+  `suggestion` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '建议',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_version_rule_version_id` (`version_id`),
+  CONSTRAINT `fk_version_rule_version` FOREIGN KEY (`version_id`) REFERENCES `assessment_scale_version` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表版本判定规则表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assessment_version_rule`
+--
+
+LOCK TABLES `assessment_version_rule` WRITE;
+/*!40000 ALTER TABLE `assessment_version_rule` DISABLE KEYS */;
+INSERT INTO `assessment_version_rule` VALUES (1,2,10,15,'低','心理困扰水平较低','建议保持当前状态','2026-03-15 02:29:57'),(2,2,16,21,'中等','存在一定心理困扰','建议关注近期压力事件，必要时复测','2026-03-15 02:29:57'),(3,2,22,29,'高','心理困扰水平较高','建议预约心理咨询','2026-03-15 02:29:57'),(4,2,30,50,'很高','心理困扰水平很高','建议尽快寻求专业帮助','2026-03-15 02:29:57'),(5,4,0,12,'较差','当前幸福感偏低，建议进一步评估情绪状态','建议继续做 PHQ-9 或联系心理老师','2026-03-15 02:29:57'),(6,4,13,25,'正常','当前幸福感总体正常','建议保持规律作息并定期复测','2026-03-15 02:29:57'),(7,3,0,4,'无或极轻','当前抑郁症状较少','建议保持规律生活并持续关注情绪变化','2026-03-15 02:29:57'),(8,3,5,9,'轻度','存在轻度抑郁倾向','建议一到两周后复测，并关注睡眠与压力','2026-03-15 02:29:57'),(9,3,10,14,'中度','存在中度抑郁风险','建议预约心理咨询或联系辅导员','2026-03-15 02:29:57'),(10,3,15,19,'中重度','抑郁风险较高','建议尽快进行专业心理评估','2026-03-15 02:29:57'),(11,3,20,27,'重度','抑郁风险高','建议尽快联系专业心理老师或医疗机构','2026-03-15 02:29:57'),(12,1,0,4,'无或极轻','当前焦虑症状较少','建议保持稳定作息和运动','2026-03-15 02:29:57'),(13,1,5,9,'轻度','存在轻度焦虑倾向','建议关注压力来源并进行自我调节','2026-03-15 02:29:57'),(14,1,10,14,'中度','存在中度焦虑风险','建议进一步咨询心理老师','2026-03-15 02:29:57'),(15,1,15,21,'重度','焦虑风险较高','建议尽快接受专业评估','2026-03-15 02:29:57'),(16,8,0,6,'无焦虑','当前无明显焦虑症状','建议保持稳定作息和运动，持续关注情绪状态','2026-03-24 16:22:00'),(17,8,7,13,'可能轻度焦虑','存在轻度焦虑倾向','建议关注压力来源，进行自我调节，定期复测','2026-03-24 16:22:00'),(18,8,14,20,'轻度焦虑','存在轻度焦虑风险','建议进一步咨询心理老师，学习情绪调节方法','2026-03-24 16:22:00'),(19,8,21,28,'中度焦虑','存在中度焦虑风险','建议预约专业心理咨询，接受系统干预','2026-03-24 16:22:00'),(20,8,29,56,'重度焦虑','焦虑风险极高','建议尽快接受专业心理评估与临床干预','2026-03-24 16:22:00'),(21,9,0,6,'无焦虑','当前无明显焦虑症状','建议保持稳定作息和运动，持续关注情绪状态','2026-03-24 16:54:14'),(22,9,7,13,'可能轻度焦虑','存在轻度焦虑倾向','建议关注压力来源，进行自我调节，定期复测','2026-03-24 16:54:14'),(23,9,14,20,'轻度焦虑','存在轻度焦虑风险','建议进一步咨询心理老师，学习情绪调节方法','2026-03-24 16:54:14'),(24,9,21,28,'中度焦虑','存在中度焦虑风险','建议预约专业心理咨询，接受系统干预','2026-03-24 16:54:14'),(25,9,29,56,'重度焦虑','焦虑风险极高','建议尽快接受专业心理评估与临床干预','2026-03-24 16:54:14'),(26,10,0,6,'无焦虑','当前无明显焦虑症状','建议保持稳定作息和运动，持续关注情绪状态','2026-03-24 17:02:40'),(27,10,7,13,'可能轻度焦虑','存在轻度焦虑倾向','建议关注压力来源，进行自我调节，定期复测','2026-03-24 17:02:40'),(28,10,14,20,'轻度焦虑','存在轻度焦虑风险','建议进一步咨询心理老师，学习情绪调节方法','2026-03-24 17:02:40'),(29,10,21,28,'中度焦虑','存在中度焦虑风险','建议预约专业心理咨询，接受系统干预','2026-03-24 17:02:40'),(30,10,29,56,'重度焦虑','焦虑风险极高','建议尽快接受专业心理评估与临床干预','2026-03-24 17:02:40'),(31,11,0,4,'无或极轻','当前焦虑症状较少','建议保持稳定作息和运动','2026-03-24 17:03:11'),(32,11,5,9,'轻度','存在轻度焦虑倾向','建议关注压力来源并进行自我调节','2026-03-24 17:03:11'),(33,11,10,14,'中度','存在中度焦虑风险','建议进一步咨询心理老师','2026-03-24 17:03:11'),(34,11,15,21,'重度','焦虑风险较高','建议尽快接受专业评估','2026-03-24 17:03:11'),(35,12,0,3,'无或极轻','当前焦虑症状较少','建议保持稳定作息和运动','2026-03-24 17:04:05'),(36,12,4,8,'轻度','存在轻度焦虑倾向','建议关注压力来源并进行自我调节','2026-03-24 17:04:05'),(37,12,11,13,'中度','存在中度焦虑风险','建议进一步咨询心理老师','2026-03-24 17:04:05'),(38,12,14,22,'重度','焦虑风险较高','建议尽快接受专业评估','2026-03-24 17:04:05');
+/*!40000 ALTER TABLE `assessment_version_rule` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `counselor`
 --
 
@@ -335,12 +467,12 @@ DROP TABLE IF EXISTS `counselor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `counselor` (
-  `account` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账号',
-  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '辅导员姓名',
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
-  `college` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
-  `grade` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '负责年级，如2023级',
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '手机号',
+  `account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '账号',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '辅导员姓名',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
+  `college` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
+  `grade` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '负责年级，如2023级',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '手机号',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='辅导员表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -364,8 +496,8 @@ DROP TABLE IF EXISTS `counselor_class_mapping`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `counselor_class_mapping` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `counselor_account` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '辅导员账号',
-  `class_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
+  `counselor_account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '辅导员账号',
+  `class_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -393,13 +525,13 @@ DROP TABLE IF EXISTS `student`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `student` (
-  `student_id` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学号',
-  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '姓名',
-  `college` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
-  `class_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
-  `grade` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '年级，如2023级',
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
+  `student_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学号',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '姓名',
+  `college` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
+  `class_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
+  `grade` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '年级，如2023级',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `uk_student_phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生表';
@@ -423,11 +555,11 @@ DROP TABLE IF EXISTS `teacher`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `teacher` (
-  `account` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '老师账号',
-  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '密码',
-  `teacher_name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师姓名',
-  `office_location` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '办公地点',
-  `phone` varchar(20) COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
+  `account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '老师账号',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '密码',
+  `teacher_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师姓名',
+  `office_location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '办公地点',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='教师表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -451,12 +583,12 @@ DROP TABLE IF EXISTS `teacher_schedule`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `teacher_schedule` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `teacher_account` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '心理老师账号',
+  `teacher_account` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '心理老师账号',
   `week_day` tinyint NOT NULL COMMENT '星期几：1周一 2周二 3周三 4周四 5周五 6周六 7周日',
   `start_time` time NOT NULL COMMENT '开始时间',
   `end_time` time NOT NULL COMMENT '结束时间',
   `max_appointments` int NOT NULL DEFAULT '1' COMMENT '该时段最大可预约人数',
-  `remark` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '1启用 0停用',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -495,4 +627,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-22 20:26:37
+-- Dump completed on 2026-03-24 17:09:12

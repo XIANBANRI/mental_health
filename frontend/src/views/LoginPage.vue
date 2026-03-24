@@ -69,7 +69,7 @@ const getAdminDisplayName = (username, data = {}) => {
     return "管理员1"
   }
 
-  if (username === "operator") {
+  if (username === "operator" || username === "admin2") {
     return "管理员2"
   }
 
@@ -110,22 +110,21 @@ const login = async () => {
   loading.value = true
 
   try {
-    const res = await request.post("/api/auth/login", {
+    const result = await request.post("/api/auth/login", {
       role: form.role,
       username: form.username,
       password: form.password
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
-    const data = result.data || {}
+    const success = result?.code === 200 || result?.success === true
+    const data = result?.data || {}
 
     if (success) {
       clearLoginCache()
 
       const role = data.role || form.role
       const username = data.username || data.account || form.username
-      const token = result.token || data.token || "mock-token"
+      const token = result?.token || data?.token || "mock-token"
 
       localStorage.setItem("token", token)
       localStorage.setItem("role", role)
@@ -188,7 +187,10 @@ const login = async () => {
       if (role === "counselor") {
         const counselorName = data.name || data.counselorName || ""
 
-        localStorage.setItem("counselorId", data.counselorId || data.account || username)
+        localStorage.setItem(
+            "counselorId",
+            data.counselorId || data.account || username
+        )
 
         if (counselorName) {
           localStorage.setItem("counselorName", counselorName)
@@ -219,16 +221,17 @@ const login = async () => {
 
       localStorage.setItem("userInfo", JSON.stringify(userInfo))
 
-      ElMessage.success(result.message || "登录成功")
-      router.push(data.redirectPath || `/${role}`)
+      ElMessage.success(result?.message || "登录成功")
+      router.push(data?.redirectPath || `/${role}`)
     } else {
-      ElMessage.error(result.message || "登录失败")
+      ElMessage.error(result?.message || "登录失败")
     }
   } catch (error) {
     console.error(error)
     ElMessage.error(
         error?.response?.data?.message ||
         error?.response?.data?.msg ||
+        error?.message ||
         "无法连接后端，请检查后端是否启动"
     )
   } finally {
@@ -247,7 +250,9 @@ const goForget = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(120deg, #89f7fe, #66a6ff);
+  /* 原来的渐变背景已替换为图片背景 */
+  background: url("@/assets/bg.jpg") no-repeat center center;
+  background-size: cover;
 }
 
 .login-card {

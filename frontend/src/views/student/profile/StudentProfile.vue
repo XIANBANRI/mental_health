@@ -75,13 +75,11 @@ const loadProfile = async () => {
   loading.value = true
 
   try {
-    const res = await request.post("/api/student/profile", {
+    const result = await request.post("/api/student/profile", {
       studentId
     })
 
-    const result = res.data || {}
-
-    if (result.success) {
+    if (result?.success) {
       const data = result.data || {}
 
       profile.studentId = data.studentId || ""
@@ -93,12 +91,10 @@ const loadProfile = async () => {
       profile.counselorName = data.counselorName || ""
       profile.counselorPhone = data.counselorPhone || ""
     } else {
-      ElMessage.error(result.message || "档案查询失败")
+      ElMessage.error(result?.message || "档案查询失败")
     }
   } catch (error) {
-    ElMessage.error(
-        error?.response?.data?.message || "档案查询失败"
-    )
+    ElMessage.error(error?.response?.data?.message || error?.message || "档案查询失败")
   } finally {
     loading.value = false
   }

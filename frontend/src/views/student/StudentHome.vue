@@ -141,13 +141,11 @@ const loadStudentProfile = async () => {
   }
 
   try {
-    const res = await request.post("/api/student/profile", {
+    const result = await request.post("/api/student/profile", {
       studentId
     })
 
-    const result = res.data || {}
-
-    if (result.success) {
+    if (result?.success) {
       const data = result.data || {}
 
       student.studentId = data.studentId || ""
@@ -162,12 +160,10 @@ const loadStudentProfile = async () => {
       localStorage.setItem("college", data.college || "")
       localStorage.setItem("phone", data.phone || "")
     } else {
-      ElMessage.error(result.message || "学生信息加载失败")
+      ElMessage.error(result?.message || "学生信息加载失败")
     }
   } catch (error) {
-    ElMessage.error(
-        error?.response?.data?.message || "学生信息加载失败"
-    )
+    ElMessage.error(error?.response?.data?.message || error?.message || "学生信息加载失败")
   }
 }
 
@@ -258,16 +254,11 @@ onMounted(() => {
   color: #606266;
 }
 
-.info-item {
-  white-space: nowrap;
-}
-
 .user-dropdown {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  color: #409eff;
-  font-weight: 500;
+  color: #303133;
 }
 
 .dropdown-icon {
@@ -275,8 +266,12 @@ onMounted(() => {
 }
 
 .main-content {
-  background: #f5f7fa;
   padding: 20px;
-  box-sizing: border-box;
+  background: #f5f7fa;
+  overflow-y: auto;
+}
+
+.info-item {
+  white-space: nowrap;
 }
 </style>

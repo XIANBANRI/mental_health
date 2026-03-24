@@ -11,42 +11,47 @@ public class AssessmentScale {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "scale_code")
+  @Column(name = "scale_code", nullable = false, unique = true, length = 50)
   private String scaleCode;
 
-  @Column(name = "scale_name")
+  @Column(name = "scale_name", nullable = false, length = 100)
   private String scaleName;
 
-  @Column(name = "scale_type")
+  @Column(name = "scale_type", nullable = false, length = 50)
   private String scaleType;
 
-  @Column(name = "description")
+  @Column(name = "description", length = 255)
   private String description;
 
-  @Column(name = "question_count")
+  @Column(name = "question_count", nullable = false)
   private Integer questionCount;
 
-  @Column(name = "score_min")
+  @Column(name = "score_min", nullable = false)
   private Integer scoreMin;
 
-  @Column(name = "score_max")
+  @Column(name = "score_max", nullable = false)
   private Integer scoreMax;
 
-  @Column(name = "status")
-  private Integer status;
+  @Column(name = "status", nullable = false)
+  private Integer status = 1;
 
-  @Column(name = "created_at")
+  @Column(name = "deleted_flag", nullable = false)
+  private Integer deletedFlag = 0;
+
+  @Column(name = "current_version_id")
+  private Long currentVersionId;
+
+  @Column(name = "created_by", length = 50)
+  private String createdBy;
+
+  @Column(name = "created_at", insertable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
+  @Column(name = "updated_at", insertable = false, updatable = false)
   private LocalDateTime updatedAt;
 
   public Long getId() {
     return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
   }
 
   public String getScaleCode() {
@@ -113,19 +118,35 @@ public class AssessmentScale {
     this.status = status;
   }
 
+  public Integer getDeletedFlag() {
+    return deletedFlag;
+  }
+
+  public void setDeletedFlag(Integer deletedFlag) {
+    this.deletedFlag = deletedFlag;
+  }
+
+  public Long getCurrentVersionId() {
+    return currentVersionId;
+  }
+
+  public void setCurrentVersionId(Long currentVersionId) {
+    this.currentVersionId = currentVersionId;
+  }
+
+  public String getCreatedBy() {
+    return createdBy;
+  }
+
+  public void setCreatedBy(String createdBy) {
+    this.createdBy = createdBy;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
-
   public LocalDateTime getUpdatedAt() {
     return updatedAt;
-  }
-
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-    this.updatedAt = updatedAt;
   }
 }

@@ -48,29 +48,28 @@ const loadProfile = async () => {
 
   loading.value = true
   try {
-    const res = await request.post("/api/teacher/profile", {
+    const result = await request.post("/api/teacher/profile", {
       teacherAccount
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
+    const success = result?.code === 200 || result?.success === true
 
     if (success) {
-      const data = result.data || {}
+      const data = result?.data || {}
       profile.teacherAccount = data.teacherAccount || teacherAccount
-      profile.teacherName = data.teacherName || ""
+      profile.teacherName = data.teacherName || data.name || ""
       profile.phone = data.phone || ""
       profile.officeLocation = data.officeLocation || ""
 
       localStorage.setItem("teacherAccount", data.teacherAccount || teacherAccount)
-      localStorage.setItem("teacherName", data.teacherName || "")
+      localStorage.setItem("teacherName", data.teacherName || data.name || "")
       localStorage.setItem("teacherPhone", data.phone || "")
       localStorage.setItem("officeLocation", data.officeLocation || "")
     } else {
-      ElMessage.error(result.message || "查询失败")
+      ElMessage.error(result?.message || "查询失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "查询失败")
   } finally {
     loading.value = false
   }

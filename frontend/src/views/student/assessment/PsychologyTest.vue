@@ -117,16 +117,15 @@ const resetAnswers = () => {
 const loadScaleList = async () => {
   listLoading.value = true
   try {
-    const res = await request.get("/api/student/assessment/scales")
-    const result = res.data || {}
+    const result = await request.get("/api/student/assessment/scales")
 
-    if (result.success) {
+    if (result?.success) {
       scaleList.value = result.data || []
     } else {
-      ElMessage.error(result.message || "量表列表加载失败")
+      ElMessage.error(result?.message || "量表列表加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "量表列表加载失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "量表列表加载失败")
   } finally {
     listLoading.value = false
   }
@@ -134,18 +133,17 @@ const loadScaleList = async () => {
 
 const loadDetail = async (scale) => {
   try {
-    const res = await request.get(`/api/student/assessment/detail/${scale.id}`)
-    const result = res.data || {}
+    const result = await request.get(`/api/student/assessment/detail/${scale.id}`)
 
-    if (result.success) {
+    if (result?.success) {
       currentScale.value = result.data
       currentScaleId.value = scale.id
       clearAnswerMap()
     } else {
-      ElMessage.error(result.message || "量表详情加载失败")
+      ElMessage.error(result?.message || "量表详情加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "量表详情加载失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "量表详情加载失败")
   }
 }
 
@@ -199,16 +197,14 @@ const submitAssessment = async () => {
 
   submitLoading.value = true
   try {
-    const res = await request.post("/api/student/assessment/submit", {
+    const result = await request.post("/api/student/assessment/submit", {
       studentId,
       semester: selectedSemester.value,
       scaleId: currentScaleId.value,
       answers
     })
 
-    const result = res.data || {}
-
-    if (result.success) {
+    if (result?.success) {
       const data = result.data || {}
 
       await ElMessageBox.alert(buildResultMessage(data), "测试完成", {
@@ -220,10 +216,10 @@ const submitAssessment = async () => {
       clearAnswerMap()
       loadScaleList()
     } else {
-      ElMessage.error(result.message || "提交失败")
+      ElMessage.error(result?.message || "提交失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "提交失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "提交失败")
   } finally {
     submitLoading.value = false
   }
@@ -263,31 +259,29 @@ onMounted(() => {
 .scale-desc {
   margin-bottom: 20px;
   color: #606266;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .question-block {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .question-title {
   margin-bottom: 12px;
-  font-weight: 600;
+  font-size: 15px;
   color: #303133;
-  line-height: 1.6;
+  font-weight: 500;
+  line-height: 1.7;
 }
 
 .option-item {
   display: block;
-  margin-bottom: 10px;
+  margin: 10px 0;
 }
 
 .submit-area {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
+  margin-top: 24px;
+  text-align: right;
 }
 </style>

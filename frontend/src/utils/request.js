@@ -9,7 +9,7 @@ const request = axios.create({
 })
 
 request.interceptors.response.use(
-    response => response,
+    response => response.data,
     error => Promise.reject(error)
 )
 

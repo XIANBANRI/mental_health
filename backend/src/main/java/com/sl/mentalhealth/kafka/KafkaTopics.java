@@ -1,0 +1,35 @@
+package com.sl.mentalhealth.kafka;
+
+public final class KafkaTopics {
+
+  private KafkaTopics() {
+  }
+
+  public static final String LOGIN_REQUEST = "mh.login.request";
+  public static final String LOGIN_RESPONSE = "mh.login.response";
+
+  public static final String RESET_PASSWORD_REQUEST = "mh.reset-password.request";
+  public static final String RESET_PASSWORD_RESPONSE = "mh.reset-password.response";
+
+  public static final String STUDENT_PROFILE_REQUEST = "mh.student.profile.request";
+  public static final String STUDENT_PROFILE_RESPONSE = "mh.student.profile.response";
+
+  public static final String ASSESSMENT_REQUEST = "mh.assessment.request";
+  public static final String ASSESSMENT_RESPONSE = "mh.assessment.response";
+
+  public static final String APPOINTMENT_REQUEST = "appointment-request";
+  public static final String APPOINTMENT_RESPONSE = "appointment-response";
+
+  public static final String TEACHER_PROFILE_REQUEST = "mh.teacher.profile.request";
+  public static final String TEACHER_PROFILE_RESPONSE = "mh.teacher.profile.response";
+
+  public static final String TEACHER_SCHEDULE_REQUEST = "mh.teacher.schedule.request";
+  public static final String TEACHER_SCHEDULE_RESPONSE = "mh.teacher.schedule.response";
+
+  public static final String TEACHER_APPOINTMENT_REQUEST = "mh.teacher.appointment.request";
+  public static final String TEACHER_APPOINTMENT_RESPONSE = "mh.teacher.appointment.response";
+
+  public static final String COUNSELOR_PROFILE_REQUEST = "mh.counselor.profile.request";
+  public static final String COUNSELOR_PROFILE_RESPONSE = "mh.counselor.profile.response";
+
+}

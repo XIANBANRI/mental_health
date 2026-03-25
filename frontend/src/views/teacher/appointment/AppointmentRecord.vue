@@ -189,19 +189,18 @@ const loadRecordList = async () => {
 
   loading.value = true
   try {
-    const res = await request.post("/api/teacher/appointment/record", {
+    const result = await request.post("/api/teacher/appointment/record", {
       teacherAccount: teacherAccount.value,
       studentId: queryForm.studentId,
       appointmentDate: queryForm.appointmentDate,
       status: queryForm.status
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      recordList.value = result.data || []
+    if (result?.code === 200 || result?.success === true) {
+      recordList.value = result?.data || []
     } else {
       recordList.value = []
-      ElMessage.error(result.message || "查询失败")
+      ElMessage.error(result?.message || "查询失败")
     }
   } catch (error) {
     recordList.value = []
@@ -224,16 +223,15 @@ const loadAssessmentRecord = async (row) => {
   assessmentRecords.value = []
 
   try {
-    const res = await request.post("/api/teacher/appointment/assessmentRecord", {
+    const result = await request.post("/api/teacher/appointment/assessmentRecord", {
       teacherAccount: teacherAccount.value,
       studentId: row.studentId
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      assessmentRecords.value = result.data || []
+    if (result?.code === 200 || result?.success === true) {
+      assessmentRecords.value = result?.data || []
     } else {
-      ElMessage.error(result.message || "查询测试记录失败")
+      ElMessage.error(result?.message || "查询测试记录失败")
     }
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || "查询测试记录失败")

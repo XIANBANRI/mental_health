@@ -160,20 +160,19 @@ const loadScheduleList = async () => {
 
   loading.value = true
   try {
-    const res = await request.post("/api/teacher/schedule/query", {
+    const result = await request.post("/api/teacher/schedule/query", {
       teacherAccount
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
+    const success = result?.code === 200 || result?.success === true
 
     if (success) {
-      scheduleList.value = result.data || []
+      scheduleList.value = result?.data || []
     } else {
-      ElMessage.error(result.message || "加载失败")
+      ElMessage.error(result?.message || "加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "加载失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "加载失败")
   } finally {
     loading.value = false
   }
@@ -230,19 +229,18 @@ const submitForm = async () => {
         remark: form.remark
       }
 
-      const res = await request.post(url, payload)
-      const result = res.data || {}
-      const success = result.code === 200 || result.success === true
+      const result = await request.post(url, payload)
+      const success = result?.code === 200 || result?.success === true
 
       if (success) {
-        ElMessage.success(result.message || (dialogType.value === "add" ? "新增成功" : "修改成功"))
+        ElMessage.success(result?.message || (dialogType.value === "add" ? "新增成功" : "修改成功"))
         dialogVisible.value = false
         loadScheduleList()
       } else {
-        ElMessage.error(result.message || "保存失败")
+        ElMessage.error(result?.message || "保存失败")
       }
     } catch (error) {
-      ElMessage.error(error?.response?.data?.message || "保存失败")
+      ElMessage.error(error?.response?.data?.message || error?.message || "保存失败")
     }
   })
 }
@@ -258,23 +256,22 @@ const deleteSchedule = async (row) => {
       type: "warning"
     })
 
-    const res = await request.post("/api/teacher/schedule/delete", {
+    const result = await request.post("/api/teacher/schedule/delete", {
       id: row.id,
       teacherAccount
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
+    const success = result?.code === 200 || result?.success === true
 
     if (success) {
-      ElMessage.success(result.message || "删除成功")
+      ElMessage.success(result?.message || "删除成功")
       loadScheduleList()
     } else {
-      ElMessage.error(result.message || "删除失败")
+      ElMessage.error(result?.message || "删除失败")
     }
   } catch (error) {
     if (error !== "cancel") {
-      ElMessage.error(error?.response?.data?.message || "删除失败")
+      ElMessage.error(error?.response?.data?.message || error?.message || "删除失败")
     }
   }
 }

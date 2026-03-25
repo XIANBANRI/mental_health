@@ -153,32 +153,37 @@ const loadCounselorProfile = async () => {
   }
 
   try {
-    const res = await request.post("/counselor/profile/get", {
+    const result = await request.post("/counselor/profile/get", {
       account
     })
 
-    const result = res.data || res || {}
+    const success = result?.code === 200 || result?.success === true
 
-    if (result.code === 200) {
-      const data = result.data || {}
+    if (success) {
+      const data = result?.data || {}
 
-      counselor.counselorId = data.counselorId || ""
+      counselor.counselorId = data.counselorId || account
       counselor.name = data.name || ""
       counselor.college = data.college || ""
       counselor.grade = data.grade || ""
       counselor.phone = data.phone || ""
 
-      localStorage.setItem("counselorId", data.counselorId || "")
-      localStorage.setItem("counselorAccount", data.counselorId || "")
+      localStorage.setItem("counselorId", data.counselorId || account)
+      localStorage.setItem("counselorAccount", data.counselorId || account)
       localStorage.setItem("counselorName", data.name || "")
       localStorage.setItem("college", data.college || "")
       localStorage.setItem("grade", data.grade || "")
       localStorage.setItem("phone", data.phone || "")
     } else {
-      ElMessage.error(result.message || "辅导员信息加载失败")
+      ElMessage.error(result?.message || "辅导员信息加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "辅导员信息加载失败")
+    ElMessage.error(
+        error?.response?.data?.message ||
+        error?.response?.data?.msg ||
+        error?.message ||
+        "辅导员信息加载失败"
+    )
   }
 }
 
@@ -262,12 +267,13 @@ onMounted(() => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
+  font-size: 14px;
+  color: #606266;
 }
 
 .info-item {
-  font-size: 14px;
-  color: #606266;
+  white-space: nowrap;
 }
 
 .user-dropdown {
@@ -275,7 +281,7 @@ onMounted(() => {
   align-items: center;
   cursor: pointer;
   color: #409eff;
-  font-size: 14px;
+  font-weight: 500;
 }
 
 .dropdown-icon {
@@ -283,7 +289,8 @@ onMounted(() => {
 }
 
 .main-content {
-  padding: 20px;
   background: #f5f7fa;
+  padding: 20px;
+  box-sizing: border-box;
 }
 </style>

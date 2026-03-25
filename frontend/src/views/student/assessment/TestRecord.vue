@@ -90,16 +90,20 @@ const loading = ref(false)
 const recordList = ref([])
 
 const displayScore = (score) => {
-  return score === null || score === undefined ? "未完成" : score
+  return score === null || score === undefined ? "-" : score
 }
 
 const getStatusTagType = (status) => {
-  if (status === "已完成") return "success"
+  if (status === "正常") return "success"
+  if (status === "轻度") return "warning"
+  if (status === "中度") return "warning"
+  if (status === "重度") return "danger"
   return "info"
 }
 
 const getHealthTagType = (status) => {
   if (status === "健康") return "success"
+  if (status === "关注") return "warning"
   if (status === "预警") return "warning"
   if (status === "风险较高") return "danger"
   if (status === "高风险") return "danger"
@@ -116,16 +120,15 @@ const loadRecords = async () => {
 
   loading.value = true
   try {
-    const res = await request.get(`/api/student/assessment/records/${studentId}`)
-    const result = res.data || {}
+    const result = await request.get(`/api/student/assessment/records/${studentId}`)
 
-    if (result.success) {
+    if (result?.success) {
       recordList.value = result.data || []
     } else {
-      ElMessage.error(result.message || "测试记录加载失败")
+      ElMessage.error(result?.message || "测试记录加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "测试记录加载失败")
+    ElMessage.error(error?.response?.data?.message || error?.message || "测试记录加载失败")
   } finally {
     loading.value = false
   }

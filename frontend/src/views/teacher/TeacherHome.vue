@@ -139,32 +139,29 @@ const loadTeacherProfile = async () => {
   }
 
   try {
-    const res = await request.post("/api/teacher/profile", {
+    const result = await request.post("/api/teacher/profile", {
       teacherAccount
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
+    const success = result?.code === 200 || result?.success === true
 
     if (success) {
-      const data = result.data || {}
+      const data = result?.data || {}
 
       teacher.teacherAccount = data.teacherAccount || teacherAccount
-      teacher.teacherName = data.teacherName || ""
+      teacher.teacherName = data.teacherName || data.name || ""
       teacher.phone = data.phone || ""
       teacher.officeLocation = data.officeLocation || ""
 
       localStorage.setItem("teacherAccount", data.teacherAccount || teacherAccount)
-      localStorage.setItem("teacherName", data.teacherName || "")
+      localStorage.setItem("teacherName", data.teacherName || data.name || "")
       localStorage.setItem("teacherPhone", data.phone || "")
       localStorage.setItem("officeLocation", data.officeLocation || "")
     } else {
-      ElMessage.error(result.message || "老师信息加载失败")
+      ElMessage.error(result?.message || "老师信息加载失败")
     }
   } catch (error) {
-    ElMessage.error(
-        error?.response?.data?.message || "老师信息加载失败"
-    )
+    ElMessage.error(error?.response?.data?.message || error?.message || "老师信息加载失败")
   }
 }
 

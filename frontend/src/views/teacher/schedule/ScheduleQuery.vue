@@ -126,20 +126,25 @@ const loadScheduleList = async () => {
 
   loading.value = true
   try {
-    const res = await request.post("/api/teacher/schedule/query", {
+    const result = await request.post("/api/teacher/schedule/query", {
       teacherAccount
     })
 
-    const result = res.data || {}
-    const success = result.code === 200 || result.success === true
+    const success = result?.code === 200 || result?.success === true
 
     if (success) {
-      scheduleList.value = result.data || []
+      scheduleList.value = result?.data || []
     } else {
-      ElMessage.error(result.message || "查询失败")
+      scheduleList.value = []
+      ElMessage.error(result?.message || "查询失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "查询失败")
+    scheduleList.value = []
+    ElMessage.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "查询失败"
+    )
   } finally {
     loading.value = false
   }

@@ -279,19 +279,18 @@ const loadAppointmentList = async () => {
 
   loading.value = true
   try {
-    const res = await request.post("/api/teacher/appointment/query", {
+    const result = await request.post("/api/teacher/appointment/query", {
       teacherAccount: teacherAccount.value,
       studentId: queryForm.studentId,
       appointmentDate: queryForm.appointmentDate,
       status: queryForm.status
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      appointmentList.value = result.data || []
+    if (result?.code === 200 || result?.success === true) {
+      appointmentList.value = result?.data || []
     } else {
       appointmentList.value = []
-      ElMessage.error(result.message || "查询失败")
+      ElMessage.error(result?.message || "查询失败")
     }
   } catch (error) {
     appointmentList.value = []
@@ -316,19 +315,18 @@ const approveAppointment = async (row) => {
       type: "warning"
     })
 
-    const res = await request.post("/api/teacher/appointment/updateStatus", {
+    const result = await request.post("/api/teacher/appointment/updateStatus", {
       id: row.id,
       teacherAccount: teacherAccount.value,
       status: "APPROVED",
       offlineRecord: ""
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      ElMessage.success(result.message || "预约已通过")
+    if (result?.code === 200 || result?.success === true) {
+      ElMessage.success(result?.message || "预约已通过")
       loadAppointmentList()
     } else {
-      ElMessage.error(result.message || "操作失败")
+      ElMessage.error(result?.message || "操作失败")
     }
   } catch (error) {
     if (error !== "cancel") {
@@ -345,19 +343,18 @@ const rejectAppointment = async (row) => {
       type: "warning"
     })
 
-    const res = await request.post("/api/teacher/appointment/updateStatus", {
+    const result = await request.post("/api/teacher/appointment/updateStatus", {
       id: row.id,
       teacherAccount: teacherAccount.value,
       status: "REJECTED",
       offlineRecord: ""
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      ElMessage.success(result.message || "预约已拒绝")
+    if (result?.code === 200 || result?.success === true) {
+      ElMessage.success(result?.message || "预约已拒绝")
       loadAppointmentList()
     } else {
-      ElMessage.error(result.message || "操作失败")
+      ElMessage.error(result?.message || "操作失败")
     }
   } catch (error) {
     if (error !== "cancel") {
@@ -392,20 +389,19 @@ const saveRecord = async () => {
   }
 
   try {
-    const res = await request.post("/api/teacher/appointment/updateStatus", {
+    const result = await request.post("/api/teacher/appointment/updateStatus", {
       id: recordForm.id,
       teacherAccount: teacherAccount.value,
       status: "APPROVED",
       offlineRecord: recordForm.offlineRecord.trim()
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      ElMessage.success(result.message || "记录保存成功")
+    if (result?.code === 200 || result?.success === true) {
+      ElMessage.success(result?.message || "记录保存成功")
       recordDialogVisible.value = false
       loadAppointmentList()
     } else {
-      ElMessage.error(result.message || "保存失败")
+      ElMessage.error(result?.message || "保存失败")
     }
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || "保存失败")
@@ -427,19 +423,18 @@ const completeRecord = async (row) => {
       type: "warning"
     })
 
-    const res = await request.post("/api/teacher/appointment/updateStatus", {
+    const result = await request.post("/api/teacher/appointment/updateStatus", {
       id: row.id,
       teacherAccount: teacherAccount.value,
       status: "COMPLETED",
       offlineRecord: offlineRecord.trim()
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      ElMessage.success(result.message || "记录已完成并锁定")
+    if (result?.code === 200 || result?.success === true) {
+      ElMessage.success(result?.message || "记录已完成并锁定")
       loadAppointmentList()
     } else {
-      ElMessage.error(result.message || "操作失败")
+      ElMessage.error(result?.message || "操作失败")
     }
   } catch (error) {
     if (error !== "cancel") {
@@ -454,16 +449,15 @@ const loadAssessmentRecord = async (row) => {
   assessmentRecords.value = []
 
   try {
-    const res = await request.post("/api/teacher/appointment/assessmentRecord", {
+    const result = await request.post("/api/teacher/appointment/assessmentRecord", {
       teacherAccount: teacherAccount.value,
       studentId: row.studentId
     })
 
-    const result = res.data || {}
-    if (result.code === 200 || result.success === true) {
-      assessmentRecords.value = result.data || []
+    if (result?.code === 200 || result?.success === true) {
+      assessmentRecords.value = result?.data || []
     } else {
-      ElMessage.error(result.message || "查询测试记录失败")
+      ElMessage.error(result?.message || "查询测试记录失败")
     }
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || "查询测试记录失败")

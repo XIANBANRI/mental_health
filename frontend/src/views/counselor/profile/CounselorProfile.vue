@@ -63,32 +63,37 @@ const loadProfile = async () => {
   loading.value = true
 
   try {
-    const res = await request.post("/counselor/profile/get", {
+    const result = await request.post("/counselor/profile/get", {
       account
     })
 
-    const result = res.data || res || {}
+    const success = result?.code === 200 || result?.success === true
 
-    if (result.code === 200) {
-      const data = result.data || {}
+    if (success) {
+      const data = result?.data || {}
 
-      profile.counselorId = data.counselorId || ""
+      profile.counselorId = data.counselorId || account
       profile.name = data.name || ""
       profile.college = data.college || ""
       profile.grade = data.grade || ""
       profile.phone = data.phone || ""
 
-      localStorage.setItem("counselorId", data.counselorId || "")
-      localStorage.setItem("counselorAccount", data.counselorId || "")
+      localStorage.setItem("counselorId", data.counselorId || account)
+      localStorage.setItem("counselorAccount", data.counselorId || account)
       localStorage.setItem("counselorName", data.name || "")
       localStorage.setItem("college", data.college || "")
       localStorage.setItem("grade", data.grade || "")
       localStorage.setItem("phone", data.phone || "")
     } else {
-      ElMessage.error(result.message || "个人信息加载失败")
+      ElMessage.error(result?.message || "个人信息加载失败")
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || "个人信息加载失败")
+    ElMessage.error(
+        error?.response?.data?.message ||
+        error?.response?.data?.msg ||
+        error?.message ||
+        "个人信息加载失败"
+    )
   } finally {
     loading.value = false
   }

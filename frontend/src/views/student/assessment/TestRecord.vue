@@ -3,78 +3,86 @@
     <template #header>
       <div class="card-header">
         <span>测试记录</span>
-        <el-button type="primary" plain size="small" @click="loadRecords">刷新</el-button>
+        <el-button type="primary" plain size="small" @click="loadRecords">
+          刷新
+        </el-button>
       </div>
     </template>
 
-    <el-table :data="recordList" style="width: 100%" v-loading="loading" border>
-      <el-table-column prop="semester" label="学期" width="110" />
-
-      <el-table-column label="K10" min-width="180">
+    <el-table
+        :data="recordList"
+        style="width: 100%"
+        border
+        v-loading="loading"
+        row-key="summaryId"
+    >
+      <el-table-column type="expand">
         <template #default="scope">
-          <div class="scale-cell">
-            <el-tag :type="getStatusTagType(scope.row.k10Status)" size="small">
-              {{ scope.row.k10Status || "未完成" }}
-            </el-tag>
-            <div class="scale-text">得分：{{ displayScore(scope.row.k10Score) }}</div>
-            <div class="scale-text">等级：{{ scope.row.k10Level || "-" }}</div>
+          <div class="detail-wrapper">
+            <div class="detail-title">本学期测试详情</div>
+
+            <el-table
+                :data="scope.row.details || []"
+                border
+                size="small"
+                style="width: 100%"
+            >
+              <el-table-column prop="scaleCode" label="量表编码" width="120" />
+              <el-table-column prop="scaleName" label="量表名称" min-width="160" />
+              <el-table-column prop="rawScore" label="得分" width="80" />
+
+              <el-table-column label="等级" width="100">
+                <template #default="detailScope">
+                  <el-tag
+                      :type="getLevelTagType(detailScope.row.resultLevel)"
+                      size="small"
+                  >
+                    {{ detailScope.row.resultLevel || "-" }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+
+              <el-table-column
+                  prop="resultSummary"
+                  label="结果说明"
+                  min-width="220"
+                  show-overflow-tooltip
+              />
+              <el-table-column
+                  prop="suggestion"
+                  label="建议"
+                  min-width="240"
+                  show-overflow-tooltip
+              />
+              <el-table-column prop="submittedAt" label="提交时间" width="180" />
+            </el-table>
+
+            <el-empty
+                v-if="!scope.row.details || scope.row.details.length === 0"
+                description="暂无详情记录"
+            />
           </div>
         </template>
       </el-table-column>
 
-      <el-table-column label="WHO5" min-width="180">
+      <el-table-column prop="semester" label="学期" width="120" />
+      <el-table-column prop="testedCount" label="已测数量" width="100" />
+
+      <el-table-column label="分数汇总" min-width="260">
         <template #default="scope">
-          <div class="scale-cell">
-            <el-tag :type="getStatusTagType(scope.row.who5Status)" size="small">
-              {{ scope.row.who5Status || "未完成" }}
-            </el-tag>
-            <div class="scale-text">得分：{{ displayScore(scope.row.who5Score) }}</div>
-            <div class="scale-text">等级：{{ scope.row.who5Level || "-" }}</div>
+          <div class="score-summary">
+            {{ scope.row.scoreSummary || "-" }}
           </div>
         </template>
       </el-table-column>
 
-      <el-table-column label="PHQ9" min-width="180">
+      <el-table-column label="学期总等级" width="120">
         <template #default="scope">
-          <div class="scale-cell">
-            <el-tag :type="getStatusTagType(scope.row.phq9Status)" size="small">
-              {{ scope.row.phq9Status || "未完成" }}
-            </el-tag>
-            <div class="scale-text">得分：{{ displayScore(scope.row.phq9Score) }}</div>
-            <div class="scale-text">等级：{{ scope.row.phq9Level || "-" }}</div>
-          </div>
+          <el-tag :type="getSemesterTagType(scope.row.semesterLevel)">
+            {{ scope.row.semesterLevel || "-" }}
+          </el-tag>
         </template>
       </el-table-column>
-
-      <el-table-column label="GAD7" min-width="180">
-        <template #default="scope">
-          <div class="scale-cell">
-            <el-tag :type="getStatusTagType(scope.row.gad7Status)" size="small">
-              {{ scope.row.gad7Status || "未完成" }}
-            </el-tag>
-            <div class="scale-text">得分：{{ displayScore(scope.row.gad7Score) }}</div>
-            <div class="scale-text">等级：{{ scope.row.gad7Level || "-" }}</div>
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="综合结果" min-width="240">
-        <template #default="scope">
-          <div class="scale-cell">
-            <el-tag :type="getHealthTagType(scope.row.healthStatus)" size="small">
-              {{ scope.row.healthStatus || "未完成" }}
-            </el-tag>
-            <div class="scale-text">
-              综合总分：{{ displayScore(scope.row.healthTotalScore) }}
-            </div>
-            <div class="scale-summary">
-              {{ scope.row.healthSummary || "四项量表未全部完成，暂不生成综合总分" }}
-            </div>
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="submittedAt" label="提交时间" width="180" />
     </el-table>
 
     <el-empty v-if="!loading && recordList.length === 0" description="暂无测试记录" />
@@ -89,30 +97,25 @@ import request from "@/utils/request"
 const loading = ref(false)
 const recordList = ref([])
 
-const displayScore = (score) => {
-  return score === null || score === undefined ? "-" : score
-}
-
-const getStatusTagType = (status) => {
-  if (status === "正常") return "success"
-  if (status === "轻度") return "warning"
-  if (status === "中度") return "warning"
-  if (status === "重度") return "danger"
+const getLevelTagType = (level) => {
+  if (!level) return "info"
+  if (level.includes("重度") || level.includes("严重")) return "danger"
+  if (level.includes("中度")) return "warning"
+  if (level.includes("轻度") || level.includes("轻微")) return "warning"
+  if (level.includes("正常") || level.includes("无")) return "success"
   return "info"
 }
 
-const getHealthTagType = (status) => {
-  if (status === "健康") return "success"
-  if (status === "关注") return "warning"
-  if (status === "预警") return "warning"
-  if (status === "风险较高") return "danger"
-  if (status === "高风险") return "danger"
+const getSemesterTagType = (level) => {
+  if (level === "危险") return "danger"
+  if (level === "轻危") return "warning"
+  if (level === "无") return "success"
+  if (level === "未完成") return "info"
   return "info"
 }
 
 const loadRecords = async () => {
   const studentId = localStorage.getItem("studentId")
-
   if (!studentId) {
     ElMessage.error("未获取到学生学号，请重新登录")
     return
@@ -120,12 +123,11 @@ const loadRecords = async () => {
 
   loading.value = true
   try {
-    const result = await request.get(`/api/student/assessment/records/${studentId}`)
-
-    if (result?.success) {
-      recordList.value = result.data || []
+    const res = await request.get(`/api/student/assessment/records/${studentId}`)
+    if (res?.success) {
+      recordList.value = res.data || []
     } else {
-      ElMessage.error(result?.message || "测试记录加载失败")
+      ElMessage.error(res?.message || "测试记录加载失败")
     }
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error?.message || "测试记录加载失败")
@@ -150,21 +152,22 @@ onMounted(() => {
   justify-content: space-between;
 }
 
-.scale-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.score-summary {
+  white-space: normal;
+  line-height: 1.8;
+  word-break: break-word;
 }
 
-.scale-text {
-  color: #606266;
-  font-size: 13px;
-  line-height: 1.5;
+.detail-wrapper {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 8px;
 }
 
-.scale-summary {
+.detail-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
   color: #303133;
-  font-size: 13px;
-  line-height: 1.6;
 }
 </style>

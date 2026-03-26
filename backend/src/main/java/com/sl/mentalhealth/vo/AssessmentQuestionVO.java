@@ -7,16 +7,18 @@ public class AssessmentQuestionVO {
   private Long id;
   private Integer questionNo;
   private String questionText;
+  private Integer requiredFlag;
   private List<AssessmentOptionVO> options;
 
   public AssessmentQuestionVO() {
   }
 
   public AssessmentQuestionVO(Long id, Integer questionNo, String questionText,
-      List<AssessmentOptionVO> options) {
+      Integer requiredFlag, List<AssessmentOptionVO> options) {
     this.id = id;
     this.questionNo = questionNo;
     this.questionText = questionText;
+    this.requiredFlag = requiredFlag;
     this.options = options;
   }
 
@@ -42,6 +44,14 @@ public class AssessmentQuestionVO {
 
   public void setQuestionText(String questionText) {
     this.questionText = questionText;
+  }
+
+  public Integer getRequiredFlag() {
+    return requiredFlag;
+  }
+
+  public void setRequiredFlag(Integer requiredFlag) {
+    this.requiredFlag = requiredFlag;
   }
 
   public List<AssessmentOptionVO> getOptions() {

@@ -2,22 +2,22 @@ package com.sl.mentalhealth.dto;
 
 public class AssessmentSubmitAnswer {
 
-  private Long questionId;
-  private Long optionId;
+  private Long versionQuestionId;
+  private Long versionOptionId;
 
-  public Long getQuestionId() {
-    return questionId;
+  public Long getVersionQuestionId() {
+    return versionQuestionId;
   }
 
-  public void setQuestionId(Long questionId) {
-    this.questionId = questionId;
+  public void setVersionQuestionId(Long versionQuestionId) {
+    this.versionQuestionId = versionQuestionId;
   }
 
-  public Long getOptionId() {
-    return optionId;
+  public Long getVersionOptionId() {
+    return versionOptionId;
   }
 
-  public void setOptionId(Long optionId) {
-    this.optionId = optionId;
+  public void setVersionOptionId(Long versionOptionId) {
+    this.versionOptionId = versionOptionId;
   }
 }

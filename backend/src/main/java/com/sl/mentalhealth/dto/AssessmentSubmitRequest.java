@@ -7,6 +7,7 @@ public class AssessmentSubmitRequest {
   private String studentId;
   private String semester;
   private Long scaleId;
+  private Long versionId;
   private List<AssessmentSubmitAnswer> answers;
 
   public String getStudentId() {
@@ -31,6 +32,14 @@ public class AssessmentSubmitRequest {
 
   public void setScaleId(Long scaleId) {
     this.scaleId = scaleId;
+  }
+
+  public Long getVersionId() {
+    return versionId;
+  }
+
+  public void setVersionId(Long versionId) {
+    this.versionId = versionId;
   }
 
   public List<AssessmentSubmitAnswer> getAnswers() {

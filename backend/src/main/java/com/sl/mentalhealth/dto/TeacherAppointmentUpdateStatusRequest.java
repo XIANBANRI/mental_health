@@ -8,4 +8,5 @@ public class TeacherAppointmentUpdateStatusRequest {
   private String teacherAccount;
   private String status;
   private String offlineRecord;
+  private String rejectReason;
 }

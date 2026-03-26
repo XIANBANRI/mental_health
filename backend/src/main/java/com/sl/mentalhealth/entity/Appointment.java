@@ -51,6 +51,9 @@ public class Appointment {
   @Column(name = "teacher_reply", length = 500)
   private String teacherReply;
 
+  @Column(name = "reject_reason", length = 500)
+  private String rejectReason;
+
   @Column(name = "status", nullable = false, length = 20)
   private String status;
 

@@ -1,10 +1,9 @@
 package com.sl.mentalhealth.repository;
 
 import com.sl.mentalhealth.entity.StudentAssessmentRecord;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentAssessmentRecordRepository extends JpaRepository<StudentAssessmentRecord, Long> {
 

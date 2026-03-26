@@ -45,7 +45,6 @@ public class LocalAppointmentService {
     LocalDate date = (dateStr == null || dateStr.isBlank()) ? LocalDate.now() : LocalDate.parse(dateStr);
     int weekDay = convertWeekDay(date.getDayOfWeek());
 
-    // 只查询启用中的工作时间
     List<TeacherSchedule> schedules =
         teacherScheduleRepository.findByWeekDayAndStatusOrderByStartTimeAsc(weekDay, STATUS_ENABLED);
 
@@ -121,7 +120,6 @@ public class LocalAppointmentService {
     TeacherSchedule schedule = teacherScheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new RuntimeException("排班不存在"));
 
-    // 逻辑删除后的保护：停用排班不可预约
     if (!Objects.equals(schedule.getStatus(), STATUS_ENABLED)) {
       throw new RuntimeException("该工作时间已停用，无法预约");
     }
@@ -232,6 +230,7 @@ public class LocalAppointmentService {
 
     appointment.setStatus("APPROVED");
     appointment.setTeacherReply(teacherReply);
+    appointment.setRejectReason(null);
     appointment.setApprovedAt(LocalDateTime.now());
     appointment.setUpdatedAt(LocalDateTime.now());
 
@@ -239,16 +238,20 @@ public class LocalAppointmentService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public void teacherReject(Long appointmentId, String teacherAccount, String teacherReply) {
+  public void teacherReject(Long appointmentId, String teacherAccount, String rejectReason) {
     Appointment appointment = appointmentRepository.findByIdAndTeacherAccount(appointmentId, teacherAccount)
         .orElseThrow(() -> new RuntimeException("预约记录不存在"));
 
     if (!"PENDING".equals(appointment.getStatus())) {
       throw new RuntimeException("只有待审核预约才能拒绝");
     }
+    if (rejectReason == null || rejectReason.isBlank()) {
+      throw new RuntimeException("拒绝原因不能为空");
+    }
 
     appointment.setStatus("REJECTED");
-    appointment.setTeacherReply(teacherReply);
+    appointment.setRejectReason(rejectReason);
+    appointment.setTeacherReply(null);
     appointment.setUpdatedAt(LocalDateTime.now());
 
     appointmentRepository.save(appointment);
@@ -323,6 +326,7 @@ public class LocalAppointmentService {
       vo.setPurpose(item.getPurpose());
       vo.setRemark(item.getRemark());
       vo.setTeacherReply(item.getTeacherReply());
+      vo.setRejectReason(item.getRejectReason());
       vo.setStatus(item.getStatus());
 
       vo.setCreatedAt(item.getCreatedAt() == null ? null : item.getCreatedAt().format(dateTimeFormatter));

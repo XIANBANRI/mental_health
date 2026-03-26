@@ -15,6 +15,7 @@
                     placeholder="请选择预约日期"
                     :clearable="false"
                     :disabled-date="disabledPastDate"
+                    @change="handleDateChange"
                 />
                 <el-button type="primary" @click="loadAvailableList">
                   查询当天值班老师
@@ -253,6 +254,21 @@ export default {
       return map[weekDay] || "-";
     },
 
+    async handleDateChange() {
+      this.availableList = [];
+      this.currentRow = {};
+      this.dialogVisible = false;
+      this.applyForm = {
+        studentId: this.getStudentId(),
+        scheduleId: null,
+        appointmentDate: this.queryDate,
+        purpose: "",
+        remark: ""
+      };
+
+      await this.loadAvailableList();
+    },
+
     async loadMyAppointments() {
       const studentId = this.getStudentId();
       if (!studentId) {
@@ -313,9 +329,11 @@ export default {
         if (result.code === 200) {
           this.availableList = result.data || [];
         } else {
+          this.availableList = [];
           this.$message.error(result.message || "查询失败");
         }
       } catch (e) {
+        this.availableList = [];
         this.$message.error("查询失败，请稍后重试");
       } finally {
         this.loading = false;
@@ -329,9 +347,25 @@ export default {
         return;
       }
 
+      if (!this.queryDate) {
+        this.$message.warning("请先选择预约日期");
+        return;
+      }
+
       const today = this.formatDate(new Date());
       if (this.queryDate < today) {
         this.$message.warning("不能预约今天之前的日期");
+        return;
+      }
+
+      if (!row || !row.scheduleId) {
+        this.$message.warning("请先查询当天值班老师");
+        return;
+      }
+
+      const exists = this.availableList.some(item => item.scheduleId === row.scheduleId);
+      if (!exists) {
+        this.$message.warning("当前老师排班已变化，请重新查询当天值班老师");
         return;
       }
 
@@ -369,7 +403,15 @@ export default {
           return;
         }
 
-        if (this.hasSameTimeAppointment(this.currentRow)) {
+        const matchedRow = this.availableList.find(
+            item => item.scheduleId === this.applyForm.scheduleId
+        );
+        if (!matchedRow) {
+          this.$message.warning("当前排班数据已失效，请重新查询当天值班老师后再预约");
+          return;
+        }
+
+        if (this.hasSameTimeAppointment(matchedRow)) {
           this.$message.warning("同一天同一时间段只能预约一个老师");
           return;
         }
@@ -388,7 +430,9 @@ export default {
             this.$message.error(result.message || "预约提交失败");
           }
         } catch (e) {
-          this.$message.error("预约提交失败，请稍后重试");
+          this.$message.error(
+              e?.response?.data?.message || "预约提交失败，请稍后重试"
+          );
         } finally {
           this.submitLoading = false;
         }

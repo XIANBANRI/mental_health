@@ -75,7 +75,7 @@ public class AppointmentRequestConsumer {
           localAppointmentService.teacherReject(
               request.getAppointmentId(),
               request.getTeacherAccount(),
-              request.getTeacherReply()
+              request.getRejectReason()
           );
           response.setSuccess(true);
           response.setMessage("拒绝成功");

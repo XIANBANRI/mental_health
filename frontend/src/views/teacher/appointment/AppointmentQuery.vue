@@ -32,7 +32,6 @@
           <el-select v-model="queryForm.status" placeholder="全部" clearable style="width: 160px">
             <el-option label="待处理" value="PENDING" />
             <el-option label="已通过" value="APPROVED" />
-            <el-option label="已拒绝" value="REJECTED" />
           </el-select>
         </el-form-item>
 
@@ -58,9 +57,15 @@
         <el-table-column prop="purpose" label="预约原因" min-width="140" show-overflow-tooltip />
         <el-table-column prop="remark" label="学生备注" min-width="140" show-overflow-tooltip />
 
-        <el-table-column label="会诊记录" min-width="220" show-overflow-tooltip>
+        <el-table-column label="会诊记录" min-width="180" show-overflow-tooltip>
           <template #default="scope">
             {{ scope.row.offlineRecord || "暂无" }}
+          </template>
+        </el-table-column>
+
+        <el-table-column label="拒绝原因" min-width="180" show-overflow-tooltip>
+          <template #default="scope">
+            {{ scope.row.rejectReason || "暂无" }}
           </template>
         </el-table-column>
 
@@ -96,7 +101,7 @@
                   v-if="scope.row.status === 'PENDING'"
                   type="danger"
                   size="small"
-                  @click="rejectAppointment(scope.row)"
+                  @click="openRejectDialog(scope.row)"
               >
                 拒绝
               </el-button>
@@ -119,15 +124,6 @@
                 完成
               </el-button>
 
-              <el-button
-                  v-if="scope.row.status === 'COMPLETED'"
-                  type="info"
-                  size="small"
-                  disabled
-              >
-                已完成
-              </el-button>
-
               <el-button size="small" @click="loadAssessmentRecord(scope.row)">
                 测试记录
               </el-button>
@@ -137,12 +133,7 @@
       </el-table>
     </el-card>
 
-    <el-dialog
-        v-model="recordDialogVisible"
-        :title="recordDialogTitle"
-        width="560px"
-        destroy-on-close
-    >
+    <el-dialog v-model="recordDialogVisible" :title="recordDialogTitle" width="560px" destroy-on-close>
       <el-form :model="recordForm" label-width="100px">
         <el-form-item label="学生学号">
           <el-input v-model="recordForm.studentId" disabled />
@@ -170,10 +161,38 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="rejectDialogVisible" title="填写拒绝原因" width="560px" destroy-on-close>
+      <el-form :model="rejectForm" label-width="100px">
+        <el-form-item label="学生学号">
+          <el-input v-model="rejectForm.studentId" disabled />
+        </el-form-item>
+
+        <el-form-item label="学生姓名">
+          <el-input v-model="rejectForm.studentName" disabled />
+        </el-form-item>
+
+        <el-form-item label="拒绝原因">
+          <el-input
+              v-model="rejectForm.rejectReason"
+              type="textarea"
+              :rows="5"
+              maxlength="500"
+              show-word-limit
+              placeholder="请输入拒绝原因"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="rejectDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="submitReject">确认拒绝</el-button>
+      </template>
+    </el-dialog>
+
     <el-dialog
         v-model="assessmentDialogVisible"
         title="学生心理测试记录"
-        width="1100px"
+        width="1450px"
         destroy-on-close
     >
       <div class="student-info" v-if="assessmentRecords.length > 0">
@@ -194,20 +213,42 @@
           border
           style="width: 100%"
           v-loading="assessmentLoading"
+          row-key="semester"
       >
-        <el-table-column prop="semester" label="学期" width="110" />
-        <el-table-column prop="k10Score" label="K10分数" width="100" />
-        <el-table-column prop="k10Status" label="K10状态" width="120" />
-        <el-table-column prop="who5Score" label="WHO-5分数" width="110" />
-        <el-table-column prop="who5Status" label="WHO-5状态" width="130" />
-        <el-table-column prop="phq9Score" label="PHQ-9分数" width="110" />
-        <el-table-column prop="phq9Status" label="PHQ-9状态" width="130" />
-        <el-table-column prop="gad7Score" label="GAD-7分数" width="110" />
-        <el-table-column prop="gad7Status" label="GAD-7状态" width="130" />
-        <el-table-column prop="healthTotalScore" label="总分" width="90" />
-        <el-table-column prop="healthStatus" label="健康状态" width="120" />
-        <el-table-column prop="healthSummary" label="测评结论" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="submittedAt" label="提交时间" min-width="180" />
+        <el-table-column type="expand" width="60">
+          <template #default="{ row }">
+            <div class="expand-wrap">
+              <div class="expand-title">本学期测试详情</div>
+
+              <el-table :data="row.details || []" border size="small" style="width: 100%">
+                <el-table-column prop="scaleCode" label="量表编码" width="120" />
+                <el-table-column prop="scaleName" label="量表名称" min-width="180" />
+                <el-table-column prop="rawScore" label="得分" width="90" />
+                <el-table-column label="等级" width="120">
+                  <template #default="{ row: detail }">
+                    <el-tag :type="getResultLevelTag(detail.resultLevel)">
+                      {{ detail.resultLevel || "暂无" }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="resultSummary" label="结果说明" min-width="260" show-overflow-tooltip />
+                <el-table-column prop="suggestion" label="建议" min-width="320" show-overflow-tooltip />
+                <el-table-column prop="submittedAt" label="提交时间" width="180" />
+              </el-table>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="semester" label="学期" width="140" />
+        <el-table-column prop="testedCount" label="已测数量" width="110" />
+        <el-table-column prop="scoreSummary" label="分数汇总" min-width="560" show-overflow-tooltip />
+        <el-table-column label="学期总等级" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag :type="getSemesterLevelTag(row.semesterLevel)">
+              {{ row.semesterLevel || "暂无" }}
+            </el-tag>
+          </template>
+        </el-table-column>
       </el-table>
     </el-dialog>
   </div>
@@ -222,7 +263,7 @@ const loading = ref(false)
 const appointmentList = ref([])
 
 const recordDialogVisible = ref(false)
-const currentRow = ref(null)
+const rejectDialogVisible = ref(false)
 
 const assessmentDialogVisible = ref(false)
 const assessmentLoading = ref(false)
@@ -239,6 +280,13 @@ const recordForm = reactive({
   studentId: "",
   studentName: "",
   offlineRecord: ""
+})
+
+const rejectForm = reactive({
+  id: null,
+  studentId: "",
+  studentName: "",
+  rejectReason: ""
 })
 
 const teacherAccount = computed(() => {
@@ -269,6 +317,32 @@ const getStatusTag = (status) => {
     CANCELLED: "info"
   }
   return map[status] || "info"
+}
+
+const getSemesterLevelTag = (level) => {
+  if (!level) return "info"
+  if (level === "正常") return "success"
+  if (level === "关注") return "warning"
+  if (level === "预警") return "danger"
+  if (level === "危险") return "danger"
+  return "info"
+}
+
+const getResultLevelTag = (level) => {
+  if (!level) return "info"
+  if (level.includes("无") || level.includes("正常") || level.includes("优秀") || level.includes("良好")) {
+    return "success"
+  }
+  if (level.includes("轻") || level.includes("一般")) {
+    return "warning"
+  }
+  if (level.includes("中")) {
+    return "danger"
+  }
+  if (level.includes("重") || level.includes("严重") || level.includes("较差")) {
+    return "danger"
+  }
+  return "info"
 }
 
 const loadAppointmentList = async () => {
@@ -319,7 +393,8 @@ const approveAppointment = async (row) => {
       id: row.id,
       teacherAccount: teacherAccount.value,
       status: "APPROVED",
-      offlineRecord: ""
+      offlineRecord: "",
+      rejectReason: ""
     })
 
     if (result?.code === 200 || result?.success === true) {
@@ -335,31 +410,42 @@ const approveAppointment = async (row) => {
   }
 }
 
-const rejectAppointment = async (row) => {
-  try {
-    await ElMessageBox.confirm("确认拒绝该预约吗？", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    })
+const openRejectDialog = (row) => {
+  rejectForm.id = row.id
+  rejectForm.studentId = row.studentId || ""
+  rejectForm.studentName = row.studentName || ""
+  rejectForm.rejectReason = row.rejectReason || ""
+  rejectDialogVisible.value = true
+}
 
+const submitReject = async () => {
+  if (!rejectForm.id) {
+    ElMessage.error("记录ID不能为空")
+    return
+  }
+  if (!rejectForm.rejectReason.trim()) {
+    ElMessage.warning("请填写拒绝原因")
+    return
+  }
+
+  try {
     const result = await request.post("/api/teacher/appointment/updateStatus", {
-      id: row.id,
+      id: rejectForm.id,
       teacherAccount: teacherAccount.value,
       status: "REJECTED",
-      offlineRecord: ""
+      offlineRecord: "",
+      rejectReason: rejectForm.rejectReason.trim()
     })
 
     if (result?.code === 200 || result?.success === true) {
-      ElMessage.success(result?.message || "预约已拒绝")
+      ElMessage.success(result?.message || "已拒绝预约")
+      rejectDialogVisible.value = false
       loadAppointmentList()
     } else {
       ElMessage.error(result?.message || "操作失败")
     }
   } catch (error) {
-    if (error !== "cancel") {
-      ElMessage.error(error?.response?.data?.message || error?.message || "操作失败")
-    }
+    ElMessage.error(error?.response?.data?.message || error?.message || "操作失败")
   }
 }
 
@@ -369,7 +455,6 @@ const openRecordDialog = (row) => {
     return
   }
 
-  currentRow.value = row
   recordForm.id = row.id
   recordForm.studentId = row.studentId || ""
   recordForm.studentName = row.studentName || ""
@@ -393,7 +478,8 @@ const saveRecord = async () => {
       id: recordForm.id,
       teacherAccount: teacherAccount.value,
       status: "APPROVED",
-      offlineRecord: recordForm.offlineRecord.trim()
+      offlineRecord: recordForm.offlineRecord.trim(),
+      rejectReason: ""
     })
 
     if (result?.code === 200 || result?.success === true) {
@@ -427,7 +513,8 @@ const completeRecord = async (row) => {
       id: row.id,
       teacherAccount: teacherAccount.value,
       status: "COMPLETED",
-      offlineRecord: offlineRecord.trim()
+      offlineRecord: offlineRecord.trim(),
+      rejectReason: ""
     })
 
     if (result?.code === 200 || result?.success === true) {
@@ -505,5 +592,17 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.expand-wrap {
+  padding: 8px 12px 4px;
+  background: #fafafa;
+}
+
+.expand-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 12px;
 }
 </style>

@@ -8,17 +8,21 @@ public class AssessmentScaleDetailVO {
   private String scaleCode;
   private String scaleName;
   private String description;
+  private Long versionId;
+  private Integer versionNo;
   private List<AssessmentQuestionVO> questions;
 
   public AssessmentScaleDetailVO() {
   }
 
   public AssessmentScaleDetailVO(Long scaleId, String scaleCode, String scaleName,
-      String description, List<AssessmentQuestionVO> questions) {
+      String description, Long versionId, Integer versionNo, List<AssessmentQuestionVO> questions) {
     this.scaleId = scaleId;
     this.scaleCode = scaleCode;
     this.scaleName = scaleName;
     this.description = description;
+    this.versionId = versionId;
+    this.versionNo = versionNo;
     this.questions = questions;
   }
 
@@ -52,6 +56,22 @@ public class AssessmentScaleDetailVO {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public Long getVersionId() {
+    return versionId;
+  }
+
+  public void setVersionId(Long versionId) {
+    this.versionId = versionId;
+  }
+
+  public Integer getVersionNo() {
+    return versionNo;
+  }
+
+  public void setVersionNo(Integer versionNo) {
+    this.versionNo = versionNo;
   }
 
   public List<AssessmentQuestionVO> getQuestions() {

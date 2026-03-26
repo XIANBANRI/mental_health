@@ -44,6 +44,7 @@ public class AssessmentGatewayService {
     request.setStudentId(submitRequest.getStudentId());
     request.setSemester(submitRequest.getSemester());
     request.setScaleId(submitRequest.getScaleId());
+    request.setVersionId(submitRequest.getVersionId());
     request.setAnswers(submitRequest.getAnswers());
 
     AssessmentResponseMessage response = call(request);

@@ -4,7 +4,6 @@ import com.sl.mentalhealth.vo.AssessmentRecordVO;
 import com.sl.mentalhealth.vo.AssessmentScaleDetailVO;
 import com.sl.mentalhealth.vo.AssessmentScaleVO;
 import com.sl.mentalhealth.vo.AssessmentSubmitResultVO;
-
 import java.util.List;
 
 public class AssessmentResponseMessage {

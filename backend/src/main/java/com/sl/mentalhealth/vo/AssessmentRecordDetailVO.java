@@ -1,16 +1,10 @@
 package com.sl.mentalhealth.vo;
 
-public class AssessmentSubmitResultVO {
+public class AssessmentRecordDetailVO {
 
   private Long recordId;
-  private String semester;
-
-  private Long scaleId;
   private String scaleCode;
   private String scaleName;
-  private Long versionId;
-  private Integer versionNo;
-
   private Integer rawScore;
   private String resultLevel;
   private String resultSummary;
@@ -23,22 +17,6 @@ public class AssessmentSubmitResultVO {
 
   public void setRecordId(Long recordId) {
     this.recordId = recordId;
-  }
-
-  public String getSemester() {
-    return semester;
-  }
-
-  public void setSemester(String semester) {
-    this.semester = semester;
-  }
-
-  public Long getScaleId() {
-    return scaleId;
-  }
-
-  public void setScaleId(Long scaleId) {
-    this.scaleId = scaleId;
   }
 
   public String getScaleCode() {
@@ -55,22 +33,6 @@ public class AssessmentSubmitResultVO {
 
   public void setScaleName(String scaleName) {
     this.scaleName = scaleName;
-  }
-
-  public Long getVersionId() {
-    return versionId;
-  }
-
-  public void setVersionId(Long versionId) {
-    this.versionId = versionId;
-  }
-
-  public Integer getVersionNo() {
-    return versionNo;
-  }
-
-  public void setVersionNo(Integer versionNo) {
-    this.versionNo = versionNo;
   }
 
   public Integer getRawScore() {

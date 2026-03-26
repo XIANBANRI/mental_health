@@ -1,24 +1,27 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.dto.AssessmentSubmitAnswer;
-import com.sl.mentalhealth.entity.AssessmentAnswer;
-import com.sl.mentalhealth.entity.AssessmentOption;
-import com.sl.mentalhealth.entity.AssessmentQuestion;
-import com.sl.mentalhealth.entity.AssessmentRecord;
-import com.sl.mentalhealth.entity.AssessmentResultRule;
 import com.sl.mentalhealth.entity.AssessmentScale;
-import com.sl.mentalhealth.entity.AssessmentTotalRule;
+import com.sl.mentalhealth.entity.AssessmentScaleVersion;
+import com.sl.mentalhealth.entity.AssessmentVersionOption;
+import com.sl.mentalhealth.entity.AssessmentVersionQuestion;
+import com.sl.mentalhealth.entity.AssessmentVersionRule;
+import com.sl.mentalhealth.entity.StudentAssessmentAnswer;
+import com.sl.mentalhealth.entity.StudentAssessmentRecord;
+import com.sl.mentalhealth.entity.StudentAssessmentSemesterSummary;
 import com.sl.mentalhealth.kafka.message.AssessmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentResponseMessage;
-import com.sl.mentalhealth.repository.AssessmentAnswerRepository;
-import com.sl.mentalhealth.repository.AssessmentOptionRepository;
-import com.sl.mentalhealth.repository.AssessmentQuestionRepository;
-import com.sl.mentalhealth.repository.AssessmentRecordRepository;
-import com.sl.mentalhealth.repository.AssessmentResultRuleRepository;
 import com.sl.mentalhealth.repository.AssessmentScaleRepository;
-import com.sl.mentalhealth.repository.AssessmentTotalRuleRepository;
+import com.sl.mentalhealth.repository.AssessmentScaleVersionRepository;
+import com.sl.mentalhealth.repository.AssessmentVersionOptionRepository;
+import com.sl.mentalhealth.repository.AssessmentVersionQuestionRepository;
+import com.sl.mentalhealth.repository.AssessmentVersionRuleRepository;
+import com.sl.mentalhealth.repository.StudentAssessmentAnswerRepository;
+import com.sl.mentalhealth.repository.StudentAssessmentRecordRepository;
+import com.sl.mentalhealth.repository.StudentAssessmentSemesterSummaryRepository;
 import com.sl.mentalhealth.vo.AssessmentOptionVO;
 import com.sl.mentalhealth.vo.AssessmentQuestionVO;
+import com.sl.mentalhealth.vo.AssessmentRecordDetailVO;
 import com.sl.mentalhealth.vo.AssessmentRecordVO;
 import com.sl.mentalhealth.vo.AssessmentScaleDetailVO;
 import com.sl.mentalhealth.vo.AssessmentScaleVO;
@@ -27,12 +30,13 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,31 +51,35 @@ public class LocalAssessmentService {
   public static final String ACTION_GET_RECORDS = "GET_RECORDS";
 
   private static final String DEFAULT_SEMESTER = "第1学期";
-  private static final String STATUS_DONE = "已完成";
-  private static final String STATUS_UNDONE = "未完成";
+  private static final String STATUS_COMPLETED = "COMPLETED";
+  private static final DateTimeFormatter DATE_TIME_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   private final AssessmentScaleRepository scaleRepository;
-  private final AssessmentQuestionRepository questionRepository;
-  private final AssessmentOptionRepository optionRepository;
-  private final AssessmentRecordRepository recordRepository;
-  private final AssessmentAnswerRepository answerRepository;
-  private final AssessmentResultRuleRepository resultRuleRepository;
-  private final AssessmentTotalRuleRepository totalRuleRepository;
+  private final AssessmentScaleVersionRepository scaleVersionRepository;
+  private final AssessmentVersionQuestionRepository versionQuestionRepository;
+  private final AssessmentVersionOptionRepository versionOptionRepository;
+  private final AssessmentVersionRuleRepository versionRuleRepository;
+  private final StudentAssessmentRecordRepository studentAssessmentRecordRepository;
+  private final StudentAssessmentAnswerRepository studentAssessmentAnswerRepository;
+  private final StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository;
 
   public LocalAssessmentService(AssessmentScaleRepository scaleRepository,
-      AssessmentQuestionRepository questionRepository,
-      AssessmentOptionRepository optionRepository,
-      AssessmentRecordRepository recordRepository,
-      AssessmentAnswerRepository answerRepository,
-      AssessmentResultRuleRepository resultRuleRepository,
-      AssessmentTotalRuleRepository totalRuleRepository) {
+      AssessmentScaleVersionRepository scaleVersionRepository,
+      AssessmentVersionQuestionRepository versionQuestionRepository,
+      AssessmentVersionOptionRepository versionOptionRepository,
+      AssessmentVersionRuleRepository versionRuleRepository,
+      StudentAssessmentRecordRepository studentAssessmentRecordRepository,
+      StudentAssessmentAnswerRepository studentAssessmentAnswerRepository,
+      StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository) {
     this.scaleRepository = scaleRepository;
-    this.questionRepository = questionRepository;
-    this.optionRepository = optionRepository;
-    this.recordRepository = recordRepository;
-    this.answerRepository = answerRepository;
-    this.resultRuleRepository = resultRuleRepository;
-    this.totalRuleRepository = totalRuleRepository;
+    this.scaleVersionRepository = scaleVersionRepository;
+    this.versionQuestionRepository = versionQuestionRepository;
+    this.versionOptionRepository = versionOptionRepository;
+    this.versionRuleRepository = versionRuleRepository;
+    this.studentAssessmentRecordRepository = studentAssessmentRecordRepository;
+    this.studentAssessmentAnswerRepository = studentAssessmentAnswerRepository;
+    this.studentAssessmentSemesterSummaryRepository = studentAssessmentSemesterSummaryRepository;
   }
 
   @Transactional
@@ -87,19 +95,33 @@ public class LocalAssessmentService {
 
   private AssessmentResponseMessage listScales(String requestId) {
     List<AssessmentScaleVO> list = scaleRepository.findByStatusOrderByIdAsc(1).stream()
-        .map(s -> new AssessmentScaleVO(
-            s.getId(),
-            s.getScaleCode(),
-            s.getScaleName(),
-            s.getScaleType(),
-            s.getDescription(),
-            s.getQuestionCount()
-        ))
+        .filter(scale -> !Objects.equals(scale.getDeletedFlag(), 1))
+        .filter(scale -> scale.getCurrentVersionId() != null)
+        .map(this::buildScaleVO)
         .collect(Collectors.toList());
 
     AssessmentResponseMessage response = success(requestId, "查询成功");
     response.setScales(list);
     return response;
+  }
+
+  private AssessmentScaleVO buildScaleVO(AssessmentScale scale) {
+    Integer versionNo = null;
+    if (scale.getCurrentVersionId() != null) {
+      versionNo = scaleVersionRepository.findById(scale.getCurrentVersionId())
+          .map(AssessmentScaleVersion::getVersionNo)
+          .orElse(null);
+    }
+    return new AssessmentScaleVO(
+        scale.getId(),
+        scale.getScaleCode(),
+        scale.getScaleName(),
+        scale.getScaleType(),
+        scale.getDescription(),
+        scale.getQuestionCount(),
+        scale.getCurrentVersionId(),
+        versionNo
+    );
   }
 
   private AssessmentResponseMessage getDetail(String requestId, Long scaleId) {
@@ -108,39 +130,56 @@ public class LocalAssessmentService {
     }
 
     Optional<AssessmentScale> optionalScale = scaleRepository.findById(scaleId);
-    if (optionalScale.isEmpty()) {
-      return fail(requestId, "量表不存在");
+    if (optionalScale.isEmpty() || Objects.equals(optionalScale.get().getDeletedFlag(), 1)
+        || !Objects.equals(optionalScale.get().getStatus(), 1)) {
+      return fail(requestId, "量表不存在或已停用");
     }
 
     AssessmentScale scale = optionalScale.get();
-    List<AssessmentQuestion> questions = questionRepository.findByScaleIdOrderByQuestionNoAsc(scaleId);
+    Long versionId = scale.getCurrentVersionId();
+    if (versionId == null) {
+      return fail(requestId, "当前量表没有可用版本");
+    }
 
-    List<Long> questionIds = questions.stream().map(AssessmentQuestion::getId).toList();
-    List<AssessmentOption> options = questionIds.isEmpty()
+    Optional<AssessmentScaleVersion> optionalVersion = scaleVersionRepository.findById(versionId);
+    if (optionalVersion.isEmpty()) {
+      return fail(requestId, "量表当前版本不存在");
+    }
+
+    AssessmentScaleVersion version = optionalVersion.get();
+    List<AssessmentVersionQuestion> questions =
+        versionQuestionRepository.findByVersionIdOrderByQuestionNoAsc(versionId);
+    if (questions.isEmpty()) {
+      return fail(requestId, "量表题目不存在");
+    }
+
+    List<Long> questionIds = questions.stream().map(AssessmentVersionQuestion::getId).toList();
+    List<AssessmentVersionOption> options = questionIds.isEmpty()
         ? Collections.emptyList()
-        : optionRepository.findByQuestionIdInOrderByQuestionIdAscOptionNoAsc(questionIds);
+        : versionOptionRepository.findByVersionQuestionIdInOrderByVersionQuestionIdAscOptionNoAsc(questionIds);
 
     Map<Long, List<AssessmentOptionVO>> optionMap = options.stream()
         .collect(Collectors.groupingBy(
-            AssessmentOption::getQuestionId,
+            AssessmentVersionOption::getVersionQuestionId,
             LinkedHashMap::new,
             Collectors.mapping(
-                o -> new AssessmentOptionVO(
-                    o.getId(),
-                    o.getOptionNo(),
-                    o.getOptionText(),
-                    o.getOptionScore()
+                option -> new AssessmentOptionVO(
+                    option.getId(),
+                    option.getOptionNo(),
+                    option.getOptionText(),
+                    option.getOptionScore()
                 ),
                 Collectors.toList()
             )
         ));
 
     List<AssessmentQuestionVO> questionVOList = questions.stream()
-        .map(q -> new AssessmentQuestionVO(
-            q.getId(),
-            q.getQuestionNo(),
-            q.getQuestionText(),
-            optionMap.getOrDefault(q.getId(), new ArrayList<>())
+        .map(question -> new AssessmentQuestionVO(
+            question.getId(),
+            question.getQuestionNo(),
+            question.getQuestionText(),
+            question.getRequiredFlag(),
+            optionMap.getOrDefault(question.getId(), new ArrayList<>())
         ))
         .collect(Collectors.toList());
 
@@ -149,6 +188,8 @@ public class LocalAssessmentService {
         scale.getScaleCode(),
         scale.getScaleName(),
         scale.getDescription(),
+        version.getId(),
+        version.getVersionNo(),
         questionVOList
     );
 
@@ -162,6 +203,7 @@ public class LocalAssessmentService {
     String studentId = trimToNull(request.getStudentId());
     String semester = trimToNull(request.getSemester());
     Long scaleId = request.getScaleId();
+    Long versionId = request.getVersionId();
     List<AssessmentSubmitAnswer> answers = request.getAnswers();
 
     if (studentId == null) {
@@ -169,6 +211,9 @@ public class LocalAssessmentService {
     }
     if (scaleId == null) {
       return fail(requestId, "量表ID不能为空");
+    }
+    if (versionId == null) {
+      return fail(requestId, "版本ID不能为空");
     }
     if (answers == null || answers.isEmpty()) {
       return fail(requestId, "答案不能为空");
@@ -178,316 +223,298 @@ public class LocalAssessmentService {
     }
 
     Optional<AssessmentScale> optionalScale = scaleRepository.findById(scaleId);
-    if (optionalScale.isEmpty()) {
-      return fail(requestId, "量表不存在");
+    if (optionalScale.isEmpty() || Objects.equals(optionalScale.get().getDeletedFlag(), 1)
+        || !Objects.equals(optionalScale.get().getStatus(), 1)) {
+      return fail(requestId, "量表不存在或已停用");
     }
-
     AssessmentScale scale = optionalScale.get();
-    String scaleCode = normalizeScaleCode(scale.getScaleCode());
-    if (!isSupportedScale(scaleCode)) {
-      return fail(requestId, "当前仅支持K10、WHO5、PHQ9、GAD7四个量表");
+
+    if (!Objects.equals(scale.getCurrentVersionId(), versionId)) {
+      return fail(requestId, "提交的量表版本不是当前版本，请刷新后重试");
     }
 
-    List<AssessmentQuestion> questions = questionRepository.findByScaleIdOrderByQuestionNoAsc(scaleId);
+    Optional<AssessmentScaleVersion> optionalVersion = scaleVersionRepository.findById(versionId);
+    if (optionalVersion.isEmpty()) {
+      return fail(requestId, "量表版本不存在");
+    }
+    AssessmentScaleVersion version = optionalVersion.get();
+    if (!Objects.equals(version.getScaleId(), scaleId)) {
+      return fail(requestId, "量表与版本不匹配");
+    }
+    if (!"ACTIVE".equalsIgnoreCase(version.getVersionStatus())) {
+      return fail(requestId, "量表版本未启用");
+    }
+
+    List<AssessmentVersionQuestion> questions =
+        versionQuestionRepository.findByVersionIdOrderByQuestionNoAsc(versionId);
     if (questions.isEmpty()) {
       return fail(requestId, "量表题目不存在");
     }
 
-    Map<Long, AssessmentQuestion> questionMap = questions.stream()
-        .collect(Collectors.toMap(AssessmentQuestion::getId, q -> q));
-
     Map<Long, AssessmentSubmitAnswer> submitAnswerMap = new HashMap<>();
-    for (AssessmentSubmitAnswer item : answers) {
-      if (item.getQuestionId() == null || item.getOptionId() == null) {
+    for (AssessmentSubmitAnswer answer : answers) {
+      if (answer.getVersionQuestionId() == null || answer.getVersionOptionId() == null) {
         return fail(requestId, "答案数据不完整");
       }
-      if (submitAnswerMap.containsKey(item.getQuestionId())) {
+      if (submitAnswerMap.containsKey(answer.getVersionQuestionId())) {
         return fail(requestId, "存在重复题目提交");
       }
-      submitAnswerMap.put(item.getQuestionId(), item);
+      submitAnswerMap.put(answer.getVersionQuestionId(), answer);
     }
 
-    if (submitAnswerMap.size() != questions.size()) {
+    long requiredCount = questions.stream()
+        .filter(question -> !Objects.equals(question.getRequiredFlag(), 0))
+        .count();
+    if (submitAnswerMap.size() < requiredCount) {
       return fail(requestId, "题目未全部完成");
     }
 
-    List<Long> questionIds = questions.stream().map(AssessmentQuestion::getId).toList();
-    List<AssessmentOption> optionList = optionRepository.findByQuestionIdInOrderByQuestionIdAscOptionNoAsc(questionIds);
-    Map<Long, AssessmentOption> optionMap = optionList.stream()
-        .collect(Collectors.toMap(AssessmentOption::getId, o -> o));
+    List<Long> questionIds = questions.stream().map(AssessmentVersionQuestion::getId).toList();
+    List<AssessmentVersionOption> optionList = versionOptionRepository
+        .findByVersionQuestionIdInOrderByVersionQuestionIdAscOptionNoAsc(questionIds);
+    Map<Long, AssessmentVersionOption> optionMap = optionList.stream()
+        .collect(Collectors.toMap(AssessmentVersionOption::getId, option -> option));
 
     int totalScore = 0;
-    List<AssessmentAnswer> answerEntities = new ArrayList<>();
+    List<StudentAssessmentAnswer> answerEntities = new ArrayList<>();
+    LocalDateTime now = LocalDateTime.now();
 
-    for (AssessmentQuestion question : questions) {
-      AssessmentSubmitAnswer item = submitAnswerMap.get(question.getId());
-      if (item == null) {
+    for (AssessmentVersionQuestion question : questions) {
+      AssessmentSubmitAnswer submitAnswer = submitAnswerMap.get(question.getId());
+      if (submitAnswer == null) {
+        if (Objects.equals(question.getRequiredFlag(), 0)) {
+          continue;
+        }
         return fail(requestId, "题目未全部完成");
       }
 
-      AssessmentOption option = optionMap.get(item.getOptionId());
+      AssessmentVersionOption option = optionMap.get(submitAnswer.getVersionOptionId());
       if (option == null) {
         return fail(requestId, "选项不存在");
       }
-
-      if (!Objects.equals(option.getQuestionId(), question.getId())) {
+      if (!Objects.equals(option.getVersionQuestionId(), question.getId())) {
         return fail(requestId, "选项与题目不匹配");
       }
 
       totalScore += option.getOptionScore();
 
-      AssessmentAnswer answer = new AssessmentAnswer();
-      answer.setQuestionId(question.getId());
-      answer.setOptionId(option.getId());
-      answer.setAnswerScore(option.getOptionScore());
-      answer.setCreatedAt(LocalDateTime.now());
-      answerEntities.add(answer);
+      StudentAssessmentAnswer answerEntity = new StudentAssessmentAnswer();
+      answerEntity.setVersionQuestionId(question.getId());
+      answerEntity.setQuestionNo(question.getQuestionNo());
+      answerEntity.setQuestionText(question.getQuestionText());
+      answerEntity.setVersionOptionId(option.getId());
+      answerEntity.setOptionNo(option.getOptionNo());
+      answerEntity.setOptionText(option.getOptionText());
+      answerEntity.setAnswerScore(option.getOptionScore());
+      answerEntity.setCreatedAt(now);
+      answerEntities.add(answerEntity);
     }
 
-    Optional<AssessmentResultRule> optionalRule =
-        resultRuleRepository.findFirstByScaleIdAndMinScoreLessThanEqualAndMaxScoreGreaterThanEqual(
-            scaleId, totalScore, totalScore
-        );
+    Optional<AssessmentVersionRule> optionalRule = versionRuleRepository
+        .findFirstByVersionIdAndMinScoreLessThanEqualAndMaxScoreGreaterThanEqual(
+            versionId, totalScore, totalScore);
 
-    String resultLevel = optionalRule.map(AssessmentResultRule::getResultLevel).orElse("未分级");
-    String resultSummary = optionalRule.map(AssessmentResultRule::getResultSummary).orElse("暂无结果说明");
-    String suggestion = optionalRule.map(AssessmentResultRule::getSuggestion).orElse("");
+    String resultLevel = optionalRule.map(AssessmentVersionRule::getResultLevel).orElse("未分级");
+    String resultSummary = optionalRule.map(AssessmentVersionRule::getResultSummary).orElse("暂无结果说明");
+    String suggestion = optionalRule.map(AssessmentVersionRule::getSuggestion).orElse("");
 
-    Optional<AssessmentRecord> optionalRecord = recordRepository.findByStudentIdAndSemester(studentId, semester);
-    AssessmentRecord record;
-    if (optionalRecord.isPresent()) {
-      record = optionalRecord.get();
-    } else {
-      record = buildEmptyRecord(studentId, semester);
+    StudentAssessmentRecord record = studentAssessmentRecordRepository
+        .findFirstByStudentIdAndSemesterAndScaleId(studentId, semester, scale.getId())
+        .orElseGet(StudentAssessmentRecord::new);
+
+    boolean isNewRecord = (record.getId() == null);
+
+    if (isNewRecord) {
+      record.setStudentId(studentId);
+      record.setSemester(semester);
+      record.setScaleId(scale.getId());
+      record.setCreatedAt(now);
     }
 
-    LocalDateTime now = LocalDateTime.now();
-
-    if (record.getId() == null) {
-      record.setSubmittedAt(now);
-      record.setUpdatedAt(now);
-      record = recordRepository.save(record);
-    }
-
-    answerRepository.deleteByRecordIdAndQuestionIdIn(record.getId(), questionIds);
-
-    applyScaleResult(record, scaleCode, totalScore, resultLevel, resultSummary);
-    recalculateHealthResult(record);
-
+    record.setScaleVersionId(version.getId());
+    record.setScaleCode(scale.getScaleCode());
+    record.setScaleName(scale.getScaleName());
+    record.setRawScore(totalScore);
+    record.setResultLevel(resultLevel);
+    record.setResultSummary(resultSummary);
+    record.setSuggestion(suggestion);
+    record.setStatus(STATUS_COMPLETED);
     record.setSubmittedAt(now);
     record.setUpdatedAt(now);
-    record = recordRepository.save(record);
 
-    for (AssessmentAnswer answer : answerEntities) {
-      answer.setRecordId(record.getId());
+    record = studentAssessmentRecordRepository.save(record);
+
+    if (!isNewRecord) {
+      studentAssessmentAnswerRepository.deleteByRecordId(record.getId());
     }
-    answerRepository.saveAll(answerEntities);
 
-    AssessmentSubmitResultVO result = buildSubmitResultVO(
-        record, scale, totalScore, resultLevel, resultSummary, suggestion
-    );
+    for (StudentAssessmentAnswer answerEntity : answerEntities) {
+      answerEntity.setRecordId(record.getId());
+    }
+    studentAssessmentAnswerRepository.saveAll(answerEntities);
 
+    refreshSemesterSummary(studentId, semester, now);
+
+    AssessmentSubmitResultVO submitResultVO = buildSubmitResultVO(record, version.getVersionNo());
     AssessmentResponseMessage response = success(requestId, "提交成功");
-    response.setSubmitResult(result);
+    response.setSubmitResult(submitResultVO);
     return response;
+  }
+
+  private void refreshSemesterSummary(String studentId, String semester, LocalDateTime now) {
+    List<StudentAssessmentRecord> records = studentAssessmentRecordRepository
+        .findByStudentIdAndSemesterOrderBySubmittedAtAscIdAsc(studentId, semester);
+
+    StudentAssessmentSemesterSummary summary = studentAssessmentSemesterSummaryRepository
+        .findByStudentIdAndSemester(studentId, semester)
+        .orElseGet(StudentAssessmentSemesterSummary::new);
+
+    summary.setStudentId(studentId);
+    summary.setSemester(semester);
+    summary.setTestedCount(records.size());
+    summary.setScoreSummary(buildScoreSummary(records));
+
+    int publishedScaleCount = getPublishedScaleCount();
+    summary.setSemesterLevel(calculateSemesterLevel(records, publishedScaleCount));
+
+    summary.setLastTestedAt(records.stream()
+        .map(StudentAssessmentRecord::getSubmittedAt)
+        .filter(Objects::nonNull)
+        .max(LocalDateTime::compareTo)
+        .orElse(now));
+
+    if (summary.getCreatedAt() == null) {
+      summary.setCreatedAt(now);
+    }
+    summary.setUpdatedAt(now);
+
+    studentAssessmentSemesterSummaryRepository.save(summary);
+  }
+
+  private int getPublishedScaleCount() {
+    return (int) scaleRepository.findByStatusOrderByIdAsc(1).stream()
+        .filter(scale -> !Objects.equals(scale.getDeletedFlag(), 1))
+        .filter(scale -> scale.getCurrentVersionId() != null)
+        .count();
+  }
+
+  private String buildScoreSummary(List<StudentAssessmentRecord> records) {
+    return records.stream()
+        .sorted(Comparator.comparing(
+            StudentAssessmentRecord::getSubmittedAt,
+            Comparator.nullsLast(LocalDateTime::compareTo)
+        ))
+        .map(record -> record.getScaleCode() + ":" + record.getRawScore())
+        .collect(Collectors.joining(", "));
+  }
+
+  private String calculateSemesterLevel(List<StudentAssessmentRecord> records, int publishedScaleCount) {
+    if (records == null || records.isEmpty()) {
+      return "未完成";
+    }
+
+    if (records.size() < publishedScaleCount) {
+      return "未完成";
+    }
+
+    boolean hasDanger = records.stream()
+        .map(StudentAssessmentRecord::getResultLevel)
+        .filter(Objects::nonNull)
+        .anyMatch(this::isDangerLevel);
+
+    if (hasDanger) {
+      return "危险";
+    }
+
+    boolean hasLightRisk = records.stream()
+        .map(StudentAssessmentRecord::getResultLevel)
+        .filter(Objects::nonNull)
+        .anyMatch(this::isLightRiskLevel);
+
+    if (hasLightRisk) {
+      return "轻危";
+    }
+
+    return "无";
+  }
+
+  private boolean isDangerLevel(String level) {
+    return level.contains("中度") || level.contains("重度") || level.contains("严重");
+  }
+
+  private boolean isLightRiskLevel(String level) {
+    return level.contains("轻度") || level.contains("轻微");
   }
 
   private AssessmentResponseMessage getRecords(String requestId, String studentId) {
-    studentId = trimToNull(studentId);
-    if (studentId == null) {
+    String finalStudentId = trimToNull(studentId);
+    if (finalStudentId == null) {
       return fail(requestId, "学号不能为空");
     }
 
-    List<AssessmentRecord> records = recordRepository.findByStudentIdOrderBySubmittedAtDescIdDesc(studentId);
-    List<AssessmentRecordVO> list = records.stream()
-        .map(this::buildRecordVO)
+    List<StudentAssessmentSemesterSummary> summaries = studentAssessmentSemesterSummaryRepository
+        .findByStudentIdOrderByLastTestedAtDescIdDesc(finalStudentId);
+
+    List<AssessmentRecordVO> records = summaries.stream()
+        .map(summary -> buildSemesterRecordVO(
+            summary,
+            studentAssessmentRecordRepository.findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(
+                finalStudentId, summary.getSemester())
+        ))
         .collect(Collectors.toList());
 
     AssessmentResponseMessage response = success(requestId, "查询成功");
-    response.setRecords(list);
+    response.setRecords(records);
     return response;
   }
 
-  private AssessmentRecord buildEmptyRecord(String studentId, String semester) {
-    AssessmentRecord record = new AssessmentRecord();
-    record.setStudentId(studentId);
-    record.setSemester(semester);
-
-    record.setK10Status(STATUS_UNDONE);
-    record.setWho5Status(STATUS_UNDONE);
-    record.setPhq9Status(STATUS_UNDONE);
-    record.setGad7Status(STATUS_UNDONE);
-
-    record.setHealthStatus(STATUS_UNDONE);
-    record.setHealthSummary("四项量表未全部完成，暂不生成综合总分");
-    return record;
+  private AssessmentRecordVO buildSemesterRecordVO(StudentAssessmentSemesterSummary summary,
+      List<StudentAssessmentRecord> detailRecords) {
+    AssessmentRecordVO vo = new AssessmentRecordVO();
+    vo.setSummaryId(summary.getId());
+    vo.setSemester(summary.getSemester());
+    vo.setTestedCount(summary.getTestedCount());
+    vo.setScoreSummary(summary.getScoreSummary());
+    vo.setSemesterLevel(summary.getSemesterLevel());
+    vo.setLastTestedAt(summary.getLastTestedAt() == null
+        ? null
+        : DATE_TIME_FORMATTER.format(summary.getLastTestedAt()));
+    vo.setDetails(detailRecords.stream().map(this::buildRecordDetailVO).collect(Collectors.toList()));
+    return vo;
   }
 
-  private void applyScaleResult(AssessmentRecord record, String scaleCode,
-      Integer totalScore, String resultLevel, String resultSummary) {
-    switch (scaleCode) {
-      case "K10" -> {
-        record.setK10Score(totalScore);
-        record.setK10Status(STATUS_DONE);
-        record.setK10Level(resultLevel);
-        record.setK10Summary(resultSummary);
-      }
-      case "WHO5" -> {
-        record.setWho5Score(totalScore);
-        record.setWho5Status(STATUS_DONE);
-        record.setWho5Level(resultLevel);
-        record.setWho5Summary(resultSummary);
-      }
-      case "PHQ9" -> {
-        record.setPhq9Score(totalScore);
-        record.setPhq9Status(STATUS_DONE);
-        record.setPhq9Level(resultLevel);
-        record.setPhq9Summary(resultSummary);
-      }
-      case "GAD7" -> {
-        record.setGad7Score(totalScore);
-        record.setGad7Status(STATUS_DONE);
-        record.setGad7Level(resultLevel);
-        record.setGad7Summary(resultSummary);
-      }
-      default -> throw new IllegalArgumentException("不支持的量表编码");
-    }
+  private AssessmentRecordDetailVO buildRecordDetailVO(StudentAssessmentRecord record) {
+    AssessmentRecordDetailVO vo = new AssessmentRecordDetailVO();
+    vo.setRecordId(record.getId());
+    vo.setScaleCode(record.getScaleCode());
+    vo.setScaleName(record.getScaleName());
+    vo.setRawScore(record.getRawScore());
+    vo.setResultLevel(record.getResultLevel());
+    vo.setResultSummary(record.getResultSummary());
+    vo.setSuggestion(record.getSuggestion());
+    vo.setSubmittedAt(record.getSubmittedAt() == null
+        ? null
+        : DATE_TIME_FORMATTER.format(record.getSubmittedAt()));
+    return vo;
   }
 
-  private void recalculateHealthResult(AssessmentRecord record) {
-    if (!allScalesCompleted(record)) {
-      record.setHealthTotalScore(null);
-      record.setHealthStatus(STATUS_UNDONE);
-      record.setHealthSummary("四项量表未全部完成，暂不生成综合总分");
-      return;
-    }
-
-    double k10Risk = ((record.getK10Score() - 10) / 40.0) * 100.0;
-    double who5Risk = ((25 - record.getWho5Score()) / 25.0) * 100.0;
-    double phq9Risk = (record.getPhq9Score() / 27.0) * 100.0;
-    double gad7Risk = (record.getGad7Score() / 21.0) * 100.0;
-
-    int total = (int) Math.round((k10Risk + who5Risk + phq9Risk + gad7Risk) / 4.0);
-    if (total < 0) {
-      total = 0;
-    }
-    if (total > 100) {
-      total = 100;
-    }
-
-    record.setHealthTotalScore(total);
-
-    Optional<AssessmentTotalRule> ruleOptional =
-        totalRuleRepository.findFirstByMinScoreLessThanEqualAndMaxScoreGreaterThanEqual(total, total);
-
-    if (ruleOptional.isPresent()) {
-      AssessmentTotalRule rule = ruleOptional.get();
-      record.setHealthStatus(rule.getHealthStatus());
-      record.setHealthSummary(rule.getHealthSummary());
-    } else {
-      record.setHealthStatus("未分级");
-      record.setHealthSummary("暂无综合结果说明");
-    }
-  }
-
-  private boolean allScalesCompleted(AssessmentRecord record) {
-    return STATUS_DONE.equals(record.getK10Status())
-        && STATUS_DONE.equals(record.getWho5Status())
-        && STATUS_DONE.equals(record.getPhq9Status())
-        && STATUS_DONE.equals(record.getGad7Status())
-        && record.getK10Score() != null
-        && record.getWho5Score() != null
-        && record.getPhq9Score() != null
-        && record.getGad7Score() != null;
-  }
-
-  private int countCompletedScales(AssessmentRecord record) {
-    int count = 0;
-    if (STATUS_DONE.equals(record.getK10Status())) {
-      count++;
-    }
-    if (STATUS_DONE.equals(record.getWho5Status())) {
-      count++;
-    }
-    if (STATUS_DONE.equals(record.getPhq9Status())) {
-      count++;
-    }
-    if (STATUS_DONE.equals(record.getGad7Status())) {
-      count++;
-    }
-    return count;
-  }
-
-  private AssessmentSubmitResultVO buildSubmitResultVO(AssessmentRecord record,
-      AssessmentScale scale, Integer scaleScore, String resultLevel,
-      String resultSummary, String suggestion) {
+  private AssessmentSubmitResultVO buildSubmitResultVO(StudentAssessmentRecord record, Integer versionNo) {
     AssessmentSubmitResultVO vo = new AssessmentSubmitResultVO();
     vo.setRecordId(record.getId());
     vo.setSemester(record.getSemester());
-
-    vo.setScaleId(scale.getId());
-    vo.setScaleCode(scale.getScaleCode());
-    vo.setScaleName(scale.getScaleName());
-    vo.setScaleScore(scaleScore);
-    vo.setScaleStatus(STATUS_DONE);
-    vo.setScaleResultLevel(resultLevel);
-    vo.setScaleResultSummary(resultSummary);
-    vo.setSuggestion(suggestion);
-
-    vo.setCompletedCount(countCompletedScales(record));
-    vo.setTotalScaleCount(4);
-
-    vo.setHealthTotalScore(record.getHealthTotalScore());
-    vo.setHealthStatus(record.getHealthStatus());
-    vo.setHealthSummary(record.getHealthSummary());
+    vo.setScaleId(record.getScaleId());
+    vo.setScaleCode(record.getScaleCode());
+    vo.setScaleName(record.getScaleName());
+    vo.setVersionId(record.getScaleVersionId());
+    vo.setVersionNo(versionNo);
+    vo.setRawScore(record.getRawScore());
+    vo.setResultLevel(record.getResultLevel());
+    vo.setResultSummary(record.getResultSummary());
+    vo.setSuggestion(record.getSuggestion());
+    vo.setSubmittedAt(record.getSubmittedAt() == null
+        ? null
+        : DATE_TIME_FORMATTER.format(record.getSubmittedAt()));
     return vo;
-  }
-
-  private AssessmentRecordVO buildRecordVO(AssessmentRecord record) {
-    AssessmentRecordVO vo = new AssessmentRecordVO();
-    vo.setRecordId(record.getId());
-    vo.setSemester(record.getSemester());
-
-    vo.setK10Score(record.getK10Score());
-    vo.setK10Status(defaultStatus(record.getK10Status()));
-    vo.setK10Level(record.getK10Level());
-    vo.setK10Summary(record.getK10Summary());
-
-    vo.setWho5Score(record.getWho5Score());
-    vo.setWho5Status(defaultStatus(record.getWho5Status()));
-    vo.setWho5Level(record.getWho5Level());
-    vo.setWho5Summary(record.getWho5Summary());
-
-    vo.setPhq9Score(record.getPhq9Score());
-    vo.setPhq9Status(defaultStatus(record.getPhq9Status()));
-    vo.setPhq9Level(record.getPhq9Level());
-    vo.setPhq9Summary(record.getPhq9Summary());
-
-    vo.setGad7Score(record.getGad7Score());
-    vo.setGad7Status(defaultStatus(record.getGad7Status()));
-    vo.setGad7Level(record.getGad7Level());
-    vo.setGad7Summary(record.getGad7Summary());
-
-    vo.setHealthTotalScore(record.getHealthTotalScore());
-    vo.setHealthStatus(defaultStatus(record.getHealthStatus()));
-    vo.setHealthSummary(record.getHealthSummary());
-    vo.setSubmittedAt(record.getSubmittedAt());
-    return vo;
-  }
-
-  private String defaultStatus(String status) {
-    return status == null || status.trim().isEmpty() ? STATUS_UNDONE : status;
-  }
-
-  private boolean isSupportedScale(String scaleCode) {
-    return "K10".equals(scaleCode)
-        || "WHO5".equals(scaleCode)
-        || "PHQ9".equals(scaleCode)
-        || "GAD7".equals(scaleCode);
-  }
-
-  private String normalizeScaleCode(String scaleCode) {
-    return scaleCode == null ? "" : scaleCode.trim().toUpperCase(Locale.ROOT);
   }
 
   private String trimToNull(String value) {

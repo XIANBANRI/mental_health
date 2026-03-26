@@ -8,18 +8,23 @@ public class AssessmentScaleVO {
   private String scaleType;
   private String description;
   private Integer questionCount;
+  private Long currentVersionId;
+  private Integer currentVersionNo;
 
   public AssessmentScaleVO() {
   }
 
   public AssessmentScaleVO(Long id, String scaleCode, String scaleName,
-      String scaleType, String description, Integer questionCount) {
+      String scaleType, String description, Integer questionCount,
+      Long currentVersionId, Integer currentVersionNo) {
     this.id = id;
     this.scaleCode = scaleCode;
     this.scaleName = scaleName;
     this.scaleType = scaleType;
     this.description = description;
     this.questionCount = questionCount;
+    this.currentVersionId = currentVersionId;
+    this.currentVersionNo = currentVersionNo;
   }
 
   public Long getId() {
@@ -68,5 +73,21 @@ public class AssessmentScaleVO {
 
   public void setQuestionCount(Integer questionCount) {
     this.questionCount = questionCount;
+  }
+
+  public Long getCurrentVersionId() {
+    return currentVersionId;
+  }
+
+  public void setCurrentVersionId(Long currentVersionId) {
+    this.currentVersionId = currentVersionId;
+  }
+
+  public Integer getCurrentVersionNo() {
+    return currentVersionNo;
+  }
+
+  public void setCurrentVersionNo(Integer currentVersionNo) {
+    this.currentVersionNo = currentVersionNo;
   }
 }

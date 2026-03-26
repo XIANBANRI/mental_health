@@ -26,6 +26,7 @@ public class AppointmentVO {
   private String purpose;
   private String remark;
   private String teacherReply;
+  private String rejectReason;
   private String status;
 
   private String createdAt;

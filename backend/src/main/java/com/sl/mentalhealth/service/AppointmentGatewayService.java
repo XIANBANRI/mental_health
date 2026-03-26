@@ -8,13 +8,12 @@ import com.sl.mentalhealth.kafka.message.AppointmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AppointmentResponseMessage;
 import com.sl.mentalhealth.vo.AppointmentVO;
 import com.sl.mentalhealth.vo.AvailableAppointmentVO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -114,7 +113,7 @@ public class AppointmentGatewayService {
     request.setRequestId(UUID.randomUUID().toString());
     request.setAppointmentId(req.getAppointmentId());
     request.setTeacherAccount(req.getTeacherAccount());
-    request.setTeacherReply(req.getTeacherReply());
+    request.setRejectReason(req.getTeacherReply());
 
     AppointmentResponseMessage response = sendAndWait(request);
     if (!response.isSuccess()) {

@@ -61,6 +61,7 @@ CREATE TABLE `appointment` (
   `purpose` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '预约目的',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '学生备注',
   `teacher_reply` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师回复',
+  `reject_reason` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '拒绝原因',
   `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING待审核 APPROVED已通过 REJECTED已拒绝 CANCELLED已取消 COMPLETED已完成',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -76,7 +77,7 @@ CREATE TABLE `appointment` (
   KEY `idx_appointment_status` (`status`),
   CONSTRAINT `fk_appointment_schedule` FOREIGN KEY (`schedule_id`) REFERENCES `teacher_schedule` (`id`),
   CONSTRAINT `fk_appointment_teacher` FOREIGN KEY (`teacher_account`) REFERENCES `teacher` (`account`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='学生心理预约表';
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='学生心理预约表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,42 +86,8 @@ CREATE TABLE `appointment` (
 
 LOCK TABLES `appointment` WRITE;
 /*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
-INSERT INTO `appointment` VALUES (1,'APT1773729908706','2023010101','teacher02',3,'2026-03-17','15:00:00','17:00:00','学习压力','无',NULL,'CANCELLED','2026-03-17 14:45:09','2026-03-18 12:37:51',NULL,'2026-03-18 12:37:51',NULL),(2,'APT1773808704307','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无','',NULL,'CANCELLED','2026-03-18 12:38:24','2026-03-18 12:38:33',NULL,'2026-03-18 12:38:33',NULL),(3,'APT1773808742764','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无\n','',NULL,'CANCELLED','2026-03-18 12:39:03','2026-03-18 12:39:10',NULL,'2026-03-18 12:39:10',NULL),(4,'APT1773996887002','2023010101','teacher01',2,'2026-03-25','09:00:00','11:00:00','wu','','ok','COMPLETED','2026-03-20 16:54:47','2026-03-20 16:54:47','2026-03-20 16:55:21',NULL,'2026-03-20 16:55:47'),(5,'APT1774001073764','2023010101','teacher02',3,'2026-03-24','15:00:00','17:00:00','wu','','','APPROVED','2026-03-20 18:04:34','2026-03-20 18:04:34','2026-03-20 18:05:47',NULL,NULL),(6,'APT1774064432466','2023010101','teacher01',1,'2026-03-23','14:00:00','17:00:00','学习压力','','ok','COMPLETED','2026-03-21 11:40:32','2026-03-21 11:40:32','2026-03-21 11:42:48',NULL,'2026-03-21 11:43:01'),(7,'APT1774170387110','2023010101','teacher01',7,'2026-03-22','08:00:00','12:00:00','1','','','COMPLETED','2026-03-22 17:06:27','2026-03-22 17:06:27','2026-03-22 17:08:11',NULL,'2026-03-22 19:40:28'),(8,'APT1774179655370','2023010101','teacher01',7,'2026-03-22','08:00:00','12:00:00','无','','','APPROVED','2026-03-22 19:40:55','2026-03-22 19:40:55','2026-03-22 19:45:28',NULL,NULL);
+INSERT INTO `appointment` VALUES (1,'APT1773729908706','2023010101','teacher02',3,'2026-03-17','15:00:00','17:00:00','学习压力','无',NULL,NULL,'CANCELLED','2026-03-17 14:45:09','2026-03-18 12:37:51',NULL,'2026-03-18 12:37:51',NULL),(2,'APT1773808704307','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无','',NULL,NULL,'CANCELLED','2026-03-18 12:38:24','2026-03-18 12:38:33',NULL,'2026-03-18 12:38:33',NULL),(3,'APT1773808742764','2023010101','teacher01',2,'2026-03-18','09:00:00','11:00:00','无\n','',NULL,NULL,'CANCELLED','2026-03-18 12:39:03','2026-03-18 12:39:10',NULL,'2026-03-18 12:39:10',NULL),(4,'APT1773996887002','2023010101','teacher01',2,'2026-03-25','09:00:00','11:00:00','wu','','ok',NULL,'COMPLETED','2026-03-20 16:54:47','2026-03-20 16:54:47','2026-03-20 16:55:21',NULL,'2026-03-20 16:55:47'),(5,'APT1774001073764','2023010101','teacher02',3,'2026-03-24','15:00:00','17:00:00','wu','','',NULL,'APPROVED','2026-03-20 18:04:34','2026-03-20 18:04:34','2026-03-20 18:05:47',NULL,NULL),(6,'APT1774064432466','2023010101','teacher01',1,'2026-03-23','14:00:00','17:00:00','学习压力','','ok',NULL,'COMPLETED','2026-03-21 11:40:32','2026-03-21 11:40:32','2026-03-21 11:42:48',NULL,'2026-03-21 11:43:01'),(7,'APT1774170387110','2023010101','teacher01',7,'2026-03-22','08:00:00','12:00:00','1','','',NULL,'COMPLETED','2026-03-22 17:06:27','2026-03-22 17:06:27','2026-03-22 17:08:11',NULL,'2026-03-22 19:40:28'),(8,'APT1774179655370','2023010101','teacher01',7,'2026-03-22','08:00:00','12:00:00','无','','没啥问题',NULL,'COMPLETED','2026-03-22 19:40:55','2026-03-22 19:40:55','2026-03-22 19:45:28',NULL,'2026-03-26 11:50:35'),(9,'APT1774496177337','2023010101','teacher01',1,'2026-03-30','14:00:00','17:00:00','wu','',NULL,NULL,'REJECTED','2026-03-26 11:36:17','2026-03-26 11:36:17',NULL,NULL,NULL),(10,'APT1774500675584','2023010101','teacher02',4,'2026-03-26','09:00:00','12:00:00','w','',NULL,NULL,'PENDING','2026-03-26 12:51:16','2026-03-26 12:51:16',NULL,NULL,NULL),(11,'APT1774500700747','2023010101','teacher01',1,'2026-03-30','14:00:00','17:00:00','wu1','',NULL,'先完成心理测试','REJECTED','2026-03-26 12:51:41','2026-03-26 12:51:41',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `assessment_answer`
---
-
-DROP TABLE IF EXISTS `assessment_answer`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `assessment_answer` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `record_id` bigint NOT NULL,
-  `question_id` bigint NOT NULL,
-  `option_id` bigint NOT NULL,
-  `answer_score` int NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_answer_record` (`record_id`),
-  KEY `fk_answer_question` (`question_id`),
-  KEY `fk_answer_option` (`option_id`),
-  CONSTRAINT `fk_answer_option` FOREIGN KEY (`option_id`) REFERENCES `assessment_option` (`id`),
-  CONSTRAINT `fk_answer_question` FOREIGN KEY (`question_id`) REFERENCES `assessment_question` (`id`),
-  CONSTRAINT `fk_answer_record` FOREIGN KEY (`record_id`) REFERENCES `assessment_record` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评作答明细表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `assessment_answer`
---
-
-LOCK TABLES `assessment_answer` WRITE;
-/*!40000 ALTER TABLE `assessment_answer` DISABLE KEYS */;
-INSERT INTO `assessment_answer` VALUES (20,1,78,507,2,'2026-03-15 11:01:55'),(21,1,79,508,2,'2026-03-15 11:01:55'),(22,1,80,509,2,'2026-03-15 11:01:55'),(23,1,81,510,2,'2026-03-15 11:01:55'),(24,1,82,511,2,'2026-03-15 11:01:55'),(25,1,83,512,2,'2026-03-15 11:01:55'),(26,1,84,513,2,'2026-03-15 11:01:55'),(27,1,85,540,2,'2026-03-16 16:08:10'),(28,1,86,529,1,'2026-03-16 16:08:10'),(29,1,87,528,1,'2026-03-16 16:08:10'),(30,1,88,527,1,'2026-03-16 16:08:10'),(31,1,89,526,1,'2026-03-16 16:08:10'),(32,1,90,525,1,'2026-03-16 16:08:10'),(33,1,91,524,1,'2026-03-16 16:08:10'),(34,1,92,523,1,'2026-03-16 16:08:10'),(35,1,93,522,1,'2026-03-16 16:08:10'),(36,1,94,521,1,'2026-03-16 16:08:10'),(37,1,64,426,5,'2026-03-16 16:08:32'),(38,1,65,427,5,'2026-03-16 16:08:32'),(39,1,66,428,5,'2026-03-16 16:08:32'),(40,1,67,429,5,'2026-03-16 16:08:32'),(41,1,68,430,5,'2026-03-16 16:08:32'),(42,1,69,433,0,'2026-03-16 16:08:55'),(43,1,70,434,0,'2026-03-16 16:08:55'),(44,1,71,435,0,'2026-03-16 16:08:55'),(45,1,72,436,0,'2026-03-16 16:08:55'),(46,1,73,437,0,'2026-03-16 16:08:55'),(47,1,74,438,0,'2026-03-16 16:08:55'),(48,1,75,439,0,'2026-03-16 16:08:55'),(49,1,76,440,0,'2026-03-16 16:08:55'),(50,1,77,441,0,'2026-03-16 16:08:55'),(51,2,85,540,2,'2026-03-16 16:09:35'),(52,2,86,539,2,'2026-03-16 16:09:35'),(53,2,87,538,2,'2026-03-16 16:09:35'),(54,2,88,537,2,'2026-03-16 16:09:35'),(55,2,89,536,2,'2026-03-16 16:09:35'),(56,2,90,535,2,'2026-03-16 16:09:35'),(57,2,91,534,2,'2026-03-16 16:09:35'),(58,2,92,533,2,'2026-03-16 16:09:35'),(59,2,93,532,2,'2026-03-16 16:09:35'),(60,2,94,531,2,'2026-03-16 16:09:35'),(61,3,85,530,1,'2026-03-21 11:39:01'),(62,3,86,529,1,'2026-03-21 11:39:01'),(63,3,87,528,1,'2026-03-21 11:39:01'),(64,3,88,527,1,'2026-03-21 11:39:01'),(65,3,89,526,1,'2026-03-21 11:39:01'),(66,3,90,525,1,'2026-03-21 11:39:01'),(67,3,91,524,1,'2026-03-21 11:39:01'),(68,3,92,523,1,'2026-03-21 11:39:01'),(69,3,93,522,1,'2026-03-21 11:39:01'),(70,3,94,521,1,'2026-03-21 11:39:01');
-/*!40000 ALTER TABLE `assessment_answer` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -184,87 +151,6 @@ INSERT INTO `assessment_question` VALUES (64,14,1,'过去两周，我感觉心�
 UNLOCK TABLES;
 
 --
--- Table structure for table `assessment_record`
---
-
-DROP TABLE IF EXISTS `assessment_record`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `assessment_record` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `student_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学生学号',
-  `semester` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '第1学期' COMMENT '学期',
-  `k10_score` int DEFAULT NULL COMMENT 'K10原始分',
-  `k10_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `k10_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10等级',
-  `k10_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'K10结果说明',
-  `who5_score` int DEFAULT NULL COMMENT 'WHO5原始分',
-  `who5_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `who5_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5等级',
-  `who5_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'WHO5结果说明',
-  `phq9_score` int DEFAULT NULL COMMENT 'PHQ9原始分',
-  `phq9_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `phq9_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9等级',
-  `phq9_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PHQ9结果说明',
-  `gad7_score` int DEFAULT NULL COMMENT 'GAD7原始分',
-  `gad7_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '已完成/未完成',
-  `gad7_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7等级',
-  `gad7_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'GAD7结果说明',
-  `health_total_score` int DEFAULT NULL COMMENT '综合总分(0~100)',
-  `health_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '未完成' COMMENT '健康/预警/风险较高/高风险/未完成',
-  `health_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '四项量表未全部完成，暂不生成综合总分' COMMENT '综合结果说明',
-  `submitted_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '最近提交时间',
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_student_semester` (`student_id`,`semester`),
-  KEY `idx_record_student_id` (`student_id`),
-  KEY `idx_record_semester` (`semester`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评汇总记录表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `assessment_record`
---
-
-LOCK TABLES `assessment_record` WRITE;
-/*!40000 ALTER TABLE `assessment_record` DISABLE KEYS */;
-INSERT INTO `assessment_record` VALUES (1,'2023010101','第1学期',11,'已完成','低','心理困扰水平较低',25,'已完成','正常','当前幸福感总体正常',0,'已完成','无或极轻','当前抑郁症状较少',14,'已完成','中度','存在中度焦虑风险',17,'健康','整体心理状态健康，风险较低','2026-03-16 16:08:55','2026-03-16 16:08:55'),(2,'2023010101','第2学期',20,'已完成','中等','存在一定心理困扰',NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成','四项量表未全部完成，暂不生成综合总分','2026-03-16 16:09:35','2026-03-16 16:09:35'),(3,'2023010101','第3学期',10,'已完成','低','心理困扰水平较低',NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成',NULL,NULL,NULL,'未完成','四项量表未全部完成，暂不生成综合总分','2026-03-21 11:39:01','2026-03-21 11:39:01');
-/*!40000 ALTER TABLE `assessment_record` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `assessment_result_rule`
---
-
-DROP TABLE IF EXISTS `assessment_result_rule`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `assessment_result_rule` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `scale_id` bigint NOT NULL,
-  `min_score` int NOT NULL,
-  `max_score` int NOT NULL,
-  `result_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `result_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `suggestion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_rule_scale` (`scale_id`),
-  CONSTRAINT `fk_rule_scale` FOREIGN KEY (`scale_id`) REFERENCES `assessment_scale` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='单量表结果判定规则表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `assessment_result_rule`
---
-
-LOCK TABLES `assessment_result_rule` WRITE;
-/*!40000 ALTER TABLE `assessment_result_rule` DISABLE KEYS */;
-INSERT INTO `assessment_result_rule` VALUES (13,4,10,15,'低','心理困扰水平较低','建议保持当前状态','2026-03-15 02:29:57'),(14,4,16,21,'中等','存在一定心理困扰','建议关注近期压力事件，必要时复测','2026-03-15 02:29:57'),(15,4,22,29,'高','心理困扰水平较高','建议预约心理咨询','2026-03-15 02:29:57'),(16,4,30,50,'很高','心理困扰水平很高','建议尽快寻求专业帮助','2026-03-15 02:29:57'),(50,14,0,12,'较差','当前幸福感偏低，建议进一步评估情绪状态','建议继续做 PHQ-9 或联系心理老师','2026-03-15 02:29:57'),(51,14,13,25,'正常','当前幸福感总体正常','建议保持规律作息并定期复测','2026-03-15 02:29:57'),(52,15,0,4,'无或极轻','当前抑郁症状较少','建议保持规律生活并持续关注情绪变化','2026-03-15 02:29:57'),(53,15,5,9,'轻度','存在轻度抑郁倾向','建议一到两周后复测，并关注睡眠与压力','2026-03-15 02:29:57'),(54,15,10,14,'中度','存在中度抑郁风险','建议预约心理咨询或联系辅导员','2026-03-15 02:29:57'),(55,15,15,19,'中重度','抑郁风险较高','建议尽快进行专业心理评估','2026-03-15 02:29:57'),(56,15,20,27,'重度','抑郁风险高','建议尽快联系专业心理老师或医疗机构','2026-03-15 02:29:57'),(57,16,0,4,'无或极轻','当前焦虑症状较少','建议保持稳定作息和运动','2026-03-15 02:29:57'),(58,16,5,9,'轻度','存在轻度焦虑倾向','建议关注压力来源并进行自我调节','2026-03-15 02:29:57'),(59,16,10,14,'中度','存在中度焦虑风险','建议进一步咨询心理老师','2026-03-15 02:29:57'),(60,16,15,21,'重度','焦虑风险较高','建议尽快接受专业评估','2026-03-15 02:29:57');
-/*!40000 ALTER TABLE `assessment_result_rule` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `assessment_scale`
 --
 
@@ -297,7 +183,7 @@ CREATE TABLE `assessment_scale` (
 
 LOCK TABLES `assessment_scale` WRITE;
 /*!40000 ALTER TABLE `assessment_scale` DISABLE KEYS */;
-INSERT INTO `assessment_scale` VALUES (4,'K10','K10 心理困扰量表','distress','10题总体心理困扰筛查',10,10,50,1,0,2,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(14,'WHO5','WHO-5 幸福感指数','wellbeing','5题快速幸福感/心理状态筛查',5,0,25,1,0,4,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(15,'PHQ9','PHQ-9 抑郁筛查','depression','9题抑郁症状筛查',9,0,27,1,0,3,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(16,'GAD7','GAD-7 焦虑筛查','anxiety','7题焦虑症状筛查',6,0,22,1,0,12,'system','2026-03-15 02:29:57','2026-03-24 17:04:05'),(17,'HAMA-14','汉密尔顿焦虑量表','anxious','测量是否焦虑',14,0,56,0,1,9,'admin','2026-03-24 16:22:00','2026-03-24 17:01:24'),(18,'HAMD-14','HAMD焦虑','anxious','汉密尔顿焦虑测试',14,0,56,1,0,10,'admin','2026-03-24 17:02:40','2026-03-24 17:02:40');
+INSERT INTO `assessment_scale` VALUES (4,'K10','K10 心理困扰量表','distress','10题总体心理困扰筛查',10,10,50,0,1,2,'system','2026-03-15 02:29:57','2026-03-25 15:41:21'),(14,'WHO5','WHO-5 幸福感指数','wellbeing','5题快速幸福感/心理状态筛查',5,0,25,1,0,4,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(15,'PHQ9','PHQ-9 抑郁筛查','depression','9题抑郁症状筛查',9,0,27,1,0,3,'system','2026-03-15 02:29:57','2026-03-24 16:15:45'),(16,'GAD7','GAD-7 焦虑筛查','anxiety','7题焦虑症状筛查',6,0,22,1,0,12,'system','2026-03-15 02:29:57','2026-03-24 17:04:05'),(17,'HAMA-14','汉密尔顿焦虑量表','anxious','测量是否焦虑',14,0,56,0,1,9,'admin','2026-03-24 16:22:00','2026-03-24 17:01:24'),(18,'HAMD-14','HAMD焦虑','anxious','汉密尔顿焦虑测试',14,0,56,1,0,10,'admin','2026-03-24 17:02:40','2026-03-24 17:02:40');
 /*!40000 ALTER TABLE `assessment_scale` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -332,37 +218,8 @@ CREATE TABLE `assessment_scale_version` (
 
 LOCK TABLES `assessment_scale_version` WRITE;
 /*!40000 ALTER TABLE `assessment_scale_version` DISABLE KEYS */;
-INSERT INTO `assessment_scale_version` VALUES (1,16,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(2,4,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(3,15,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(4,14,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(8,17,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 16:22:00','2026-03-24 16:22:00'),(9,17,2,'INACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 16:54:14','2026-03-24 17:01:24'),(10,18,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 17:02:40','2026-03-24 17:02:40'),(11,16,2,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:03:11','2026-03-24 17:03:11'),(12,16,3,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:04:05','2026-03-24 17:04:05');
+INSERT INTO `assessment_scale_version` VALUES (1,16,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(2,4,1,'INACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-25 15:41:22'),(3,15,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(4,14,1,'ACTIVE',NULL,NULL,'旧量表迁移初始化V1','system','2026-03-24 16:15:45','2026-03-24 16:15:45'),(8,17,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 16:22:00','2026-03-24 16:22:00'),(9,17,2,'INACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 16:54:14','2026-03-24 17:01:24'),(10,18,1,'ACTIVE','汉密尔顿焦虑量表 HAMA-14.xlsx','焦虑等级评估表汉密尔顿焦虑量表（HAMA-14）评分判定表.xlsx','首次导入','admin','2026-03-24 17:02:40','2026-03-24 17:02:40'),(11,16,2,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:03:11','2026-03-24 17:03:11'),(12,16,3,'ACTIVE',NULL,NULL,'管理员修改版本','admin','2026-03-24 17:04:05','2026-03-24 17:04:05');
 /*!40000 ALTER TABLE `assessment_scale_version` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `assessment_total_rule`
---
-
-DROP TABLE IF EXISTS `assessment_total_rule`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `assessment_total_rule` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `min_score` int NOT NULL,
-  `max_score` int NOT NULL,
-  `health_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '健康/预警/风险较高/高风险',
-  `health_summary` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `suggestion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='综合总分判定规则表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `assessment_total_rule`
---
-
-LOCK TABLES `assessment_total_rule` WRITE;
-/*!40000 ALTER TABLE `assessment_total_rule` DISABLE KEYS */;
-INSERT INTO `assessment_total_rule` VALUES (1,0,24,'健康','整体心理状态健康，风险较低','建议保持规律作息、运动与良好社交','2026-03-15 02:29:57'),(2,25,49,'预警','存在一定心理波动，建议持续关注','建议近期复测，并关注学习、人际与睡眠情况','2026-03-15 02:29:57'),(3,50,74,'风险较高','综合风险较高，建议及时干预','建议预约心理咨询或联系辅导员','2026-03-15 02:29:57'),(4,75,100,'高风险','综合风险很高，建议尽快寻求专业帮助','建议尽快联系心理老师或专业医疗机构','2026-03-15 02:29:57');
-/*!40000 ALTER TABLE `assessment_total_rule` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -543,8 +400,124 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES ('2023010101','张三','计算机与人工智能学院','软件工程2301班','2023级','123456','13800138001'),('2023010102','李四','计算机与人工智能学院','软件工程2301班','2023级','123456aA!','13800138002'),('2023010109','张航','计算机与人工智能学院','软件工程2303班','2023级','123456','13800138011'),('2023020201','王五','文学院','汉语言文学2302班','2023级','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','2023级','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','2023级','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','2023级','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','2023级','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','2023级','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','2023级','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','2023级','123456aA!','13800138010');
+INSERT INTO `student` VALUES ('2023010101','张三','计算机与人工智能学院','软件工程2301班','2023级','1234567','13800138001'),('2023010102','李四','计算机与人工智能学院','软件工程2301班','2023级','123456aA!','13800138002'),('2023010109','张航','计算机与人工智能学院','软件工程2303班','2023级','123456','13800138011'),('2023020201','王五','文学院','汉语言文学2302班','2023级','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','2023级','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','2023级','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','2023级','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','2023级','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','2023级','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','2023级','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','2023级','123456aA!','13800138010');
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `student_assessment_answer`
+--
+
+DROP TABLE IF EXISTS `student_assessment_answer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `student_assessment_answer` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `record_id` bigint NOT NULL COMMENT '测评主记录ID',
+  `version_question_id` bigint NOT NULL COMMENT '版本题目ID',
+  `question_no` int NOT NULL COMMENT '题号快照',
+  `question_text` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '题目内容快照',
+  `version_option_id` bigint NOT NULL COMMENT '版本选项ID',
+  `option_no` int NOT NULL COMMENT '选项序号快照',
+  `option_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选项内容快照',
+  `answer_score` int NOT NULL COMMENT '该题得分',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_student_assessment_answer_record_id` (`record_id`),
+  KEY `idx_student_assessment_answer_question_id` (`version_question_id`),
+  KEY `idx_student_assessment_answer_option_id` (`version_option_id`),
+  CONSTRAINT `fk_student_assessment_answer_option` FOREIGN KEY (`version_option_id`) REFERENCES `assessment_version_option` (`id`),
+  CONSTRAINT `fk_student_assessment_answer_question` FOREIGN KEY (`version_question_id`) REFERENCES `assessment_version_question` (`id`),
+  CONSTRAINT `fk_student_assessment_answer_record` FOREIGN KEY (`record_id`) REFERENCES `student_assessment_record` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生单量表作答明细表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `student_assessment_answer`
+--
+
+LOCK TABLES `student_assessment_answer` WRITE;
+/*!40000 ALTER TABLE `student_assessment_answer` DISABLE KEYS */;
+INSERT INTO `student_assessment_answer` VALUES (81,10,11,1,'过去两周，我感觉心情愉快、精神较好',52,2,'偶尔',1,'2026-03-25 18:25:59'),(82,10,12,2,'过去两周，我感觉平静、放松',58,2,'偶尔',1,'2026-03-25 18:25:59'),(83,10,13,3,'过去两周，我感觉精力充沛、做事有劲头',64,2,'偶尔',1,'2026-03-25 18:25:59'),(84,10,14,4,'过去两周，我起床后感觉休息充分',70,2,'偶尔',1,'2026-03-25 18:25:59'),(85,10,15,5,'过去两周，我的日常生活里有让我感兴趣的事情',76,2,'偶尔',1,'2026-03-25 18:25:59'),(86,11,16,1,'过去两周，做事兴趣下降或提不起劲',81,1,'完全没有',0,'2026-03-26 11:39:35'),(87,11,17,2,'过去两周，情绪低落、沮丧或感到无望',85,1,'完全没有',0,'2026-03-26 11:39:35'),(88,11,18,3,'过去两周，入睡困难、易醒或睡得过多',89,1,'完全没有',0,'2026-03-26 11:39:35'),(89,11,19,4,'过去两周，感到疲惫或缺乏精力',93,1,'完全没有',0,'2026-03-26 11:39:35'),(90,11,20,5,'过去两周，食欲差或吃得过多',97,1,'完全没有',0,'2026-03-26 11:39:35'),(91,11,21,6,'过去两周，对自己评价很差，觉得自己失败或让家人失望',101,1,'完全没有',0,'2026-03-26 11:39:35'),(92,11,22,7,'过去两周，难以集中注意力，如学习或阅读时难专心',105,1,'完全没有',0,'2026-03-26 11:39:35'),(93,11,23,8,'过去两周，动作或说话明显变慢，或坐立不安比平时更明显',109,1,'完全没有',0,'2026-03-26 11:39:35'),(94,11,24,9,'过去两周，出现过伤害自己或认为不如消失的想法',113,1,'完全没有',0,'2026-03-26 11:39:35'),(95,12,80,1,'过去两周，无法停止担忧或控制担忧',493,4,'几乎每天',3,'2026-03-26 11:40:55'),(96,12,81,2,'过去两周，过度担心各种事情',497,4,'几乎每天',3,'2026-03-26 11:40:55'),(97,12,82,3,'过去两周，难以放松下来',501,4,'几乎每天',3,'2026-03-26 11:40:55'),(98,12,83,4,'过去两周，坐立不安，难以安静坐着',505,4,'几乎每天',3,'2026-03-26 11:40:55'),(99,12,84,5,'过去两周，容易烦躁或被激怒',509,4,'几乎每天',3,'2026-03-26 11:40:55'),(100,12,85,6,'过去两周，总担心会有糟糕的事情发生',513,4,'几乎每天',3,'2026-03-26 11:40:55'),(115,14,11,1,'过去两周，我感觉心情愉快、精神较好',51,1,'从未',0,'2026-03-26 13:24:31'),(116,14,12,2,'过去两周，我感觉平静、放松',58,2,'偶尔',1,'2026-03-26 13:24:31'),(117,14,13,3,'过去两周，我感觉精力充沛、做事有劲头',65,3,'少于一半时间',2,'2026-03-26 13:24:31'),(118,14,14,4,'过去两周，我起床后感觉休息充分',72,4,'超过一半时间',3,'2026-03-26 13:24:31'),(119,14,15,5,'过去两周，我的日常生活里有让我感兴趣的事情',78,4,'超过一半时间',3,'2026-03-26 13:24:31'),(120,15,11,1,'过去两周，我感觉心情愉快、精神较好',51,1,'从未',0,'2026-03-26 13:45:58'),(121,15,12,2,'过去两周，我感觉平静、放松',57,1,'从未',0,'2026-03-26 13:45:58'),(122,15,13,3,'过去两周，我感觉精力充沛、做事有劲头',63,1,'从未',0,'2026-03-26 13:45:58'),(123,15,14,4,'过去两周，我起床后感觉休息充分',72,4,'超过一半时间',3,'2026-03-26 13:45:58'),(124,15,15,5,'过去两周，我的日常生活里有让我感兴趣的事情',79,5,'大部分时间',4,'2026-03-26 13:45:58'),(125,13,60,1,'焦虑心境',400,5,'惊恐、濒死感',4,'2026-03-26 13:52:48'),(126,13,61,2,'紧张感',405,5,'极度紧张失控',4,'2026-03-26 13:52:48'),(127,13,62,3,'害怕',410,5,'严重恐惧',4,'2026-03-26 13:52:48'),(128,13,63,4,'失眠',415,5,'彻夜不眠',4,'2026-03-26 13:52:48'),(129,13,64,5,'认知功能',420,5,'严重认知障碍',4,'2026-03-26 13:52:48'),(130,13,65,6,'抑郁心境',425,5,'严重抑郁',4,'2026-03-26 13:52:48'),(131,13,66,7,'肌肉系统症状',430,5,'严重肌肉症状',4,'2026-03-26 13:52:48'),(132,13,67,8,'感觉系统症状',435,5,'严重障碍',4,'2026-03-26 13:52:48'),(133,13,68,9,'心血管症状',440,5,'胸痛、血压波动',4,'2026-03-26 13:52:48'),(134,13,69,10,'呼吸系统症状',445,5,'过度换气',4,'2026-03-26 13:52:48'),(135,13,70,11,'胃肠道症状',450,5,'呕吐、吞咽困难',4,'2026-03-26 13:52:48'),(136,13,71,12,'泌尿生殖症状',455,5,'严重不适',4,'2026-03-26 13:52:48'),(137,13,72,13,'自主神经症状',460,5,'严重紊乱',4,'2026-03-26 13:52:48'),(138,13,73,14,'会谈行为表现',465,5,'无法配合',4,'2026-03-26 13:52:48');
+/*!40000 ALTER TABLE `student_assessment_answer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `student_assessment_record`
+--
+
+DROP TABLE IF EXISTS `student_assessment_record`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `student_assessment_record` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `student_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学生学号',
+  `semester` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '第1学期' COMMENT '学期',
+  `scale_id` bigint NOT NULL COMMENT '量表ID',
+  `scale_version_id` bigint NOT NULL COMMENT '量表版本ID',
+  `scale_code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '量表编码快照',
+  `scale_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '量表名称快照',
+  `raw_score` int NOT NULL COMMENT '本次原始总分',
+  `result_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '结果等级',
+  `result_summary` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '结果说明',
+  `suggestion` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '建议',
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'COMPLETED' COMMENT 'COMPLETED已完成',
+  `submitted_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_student_assessment_record_student_id` (`student_id`),
+  KEY `idx_student_assessment_record_semester` (`semester`),
+  KEY `idx_student_assessment_record_scale_id` (`scale_id`),
+  KEY `idx_student_assessment_record_scale_version_id` (`scale_version_id`),
+  KEY `idx_student_assessment_record_submitted_at` (`submitted_at`),
+  CONSTRAINT `fk_student_assessment_record_scale` FOREIGN KEY (`scale_id`) REFERENCES `assessment_scale` (`id`),
+  CONSTRAINT `fk_student_assessment_record_scale_version` FOREIGN KEY (`scale_version_id`) REFERENCES `assessment_scale_version` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生单量表测评记录表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `student_assessment_record`
+--
+
+LOCK TABLES `student_assessment_record` WRITE;
+/*!40000 ALTER TABLE `student_assessment_record` DISABLE KEYS */;
+INSERT INTO `student_assessment_record` VALUES (10,'2023010101','第1学期',14,4,'WHO5','WHO-5 幸福感指数',5,'较差','当前幸福感偏低，建议进一步评估情绪状态','建议继续做 PHQ-9 或联系心理老师','COMPLETED','2026-03-25 18:25:59','2026-03-25 18:25:44','2026-03-25 18:25:59'),(11,'2023010101','第1学期',15,3,'PHQ9','PHQ-9 抑郁筛查',0,'无或极轻','当前抑郁症状较少','建议保持规律生活并持续关注情绪变化','COMPLETED','2026-03-26 11:39:35','2026-03-26 11:39:35','2026-03-26 11:39:35'),(12,'2023010101','第1学期',16,12,'GAD7','GAD-7 焦虑筛查',18,'重度','焦虑风险较高','建议尽快接受专业评估','COMPLETED','2026-03-26 11:40:55','2026-03-26 11:40:55','2026-03-26 11:40:55'),(13,'2023010101','第1学期',18,10,'HAMD-14','HAMD焦虑',56,'重度焦虑','焦虑风险极高','建议尽快接受专业心理评估与临床干预','COMPLETED','2026-03-26 13:52:48','2026-03-26 11:41:30','2026-03-26 13:52:48'),(14,'2023010101','第2学期',14,4,'WHO5','WHO-5 幸福感指数',9,'较差','当前幸福感偏低，建议进一步评估情绪状态','建议继续做 PHQ-9 或联系心理老师','COMPLETED','2026-03-26 13:24:31','2026-03-26 13:24:31','2026-03-26 13:24:31'),(15,'2023010101','第3学期',14,4,'WHO5','WHO-5 幸福感指数',7,'较差','当前幸福感偏低，建议进一步评估情绪状态','建议继续做 PHQ-9 或联系心理老师','COMPLETED','2026-03-26 13:45:58','2026-03-26 13:45:58','2026-03-26 13:45:58');
+/*!40000 ALTER TABLE `student_assessment_record` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `student_assessment_semester_summary`
+--
+
+DROP TABLE IF EXISTS `student_assessment_semester_summary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `student_assessment_semester_summary` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `student_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学生学号',
+  `semester` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学期',
+  `tested_count` int NOT NULL DEFAULT '0' COMMENT '已测数量',
+  `score_summary` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '分数汇总，如 PHQ9:10, GAD7:8, WHO5:16',
+  `semester_level` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '学期总等级：危险/轻危/无',
+  `last_tested_at` datetime DEFAULT NULL COMMENT '最后测试时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_student_semester` (`student_id`,`semester`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_semester` (`semester`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生学期测评汇总表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `student_assessment_semester_summary`
+--
+
+LOCK TABLES `student_assessment_semester_summary` WRITE;
+/*!40000 ALTER TABLE `student_assessment_semester_summary` DISABLE KEYS */;
+INSERT INTO `student_assessment_semester_summary` VALUES (3,'2023010101','第1学期',4,'WHO5:5, PHQ9:0, GAD7:18, HAMD-14:56','危险','2026-03-26 13:52:48','2026-03-25 18:25:44','2026-03-26 13:52:48'),(4,'2023010101','第2学期',1,'WHO5:9','未完成','2026-03-26 13:24:31','2026-03-26 13:24:31','2026-03-26 13:24:31'),(5,'2023010101','第3学期',1,'WHO5:7','未完成','2026-03-26 13:45:58','2026-03-26 13:45:58','2026-03-26 13:45:58');
+/*!40000 ALTER TABLE `student_assessment_semester_summary` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -627,4 +600,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-24 17:09:12
+-- Dump completed on 2026-03-26 14:05:52

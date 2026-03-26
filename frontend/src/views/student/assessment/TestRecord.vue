@@ -114,6 +114,42 @@ const getSemesterTagType = (level) => {
   return "info"
 }
 
+const getSemesterOrder = (semester) => {
+  if (!semester) return 999
+
+  const text = String(semester).trim()
+
+  const orderMap = {
+    "第1学期": 1,
+    "第2学期": 2,
+    "第3学期": 3,
+    "第4学期": 4,
+    "第5学期": 5,
+    "第6学期": 6,
+    "第7学期": 7,
+    "第8学期": 8
+  }
+
+  if (orderMap[text]) {
+    return orderMap[text]
+  }
+
+  const match = text.match(/第\s*(\d+)\s*学期/)
+  if (match) {
+    return Number(match[1])
+  }
+
+  return 999
+}
+
+const sortRecordList = (list) => {
+  return [...list].sort((a, b) => {
+    const orderA = getSemesterOrder(a.semester)
+    const orderB = getSemesterOrder(b.semester)
+    return orderA - orderB
+  })
+}
+
 const loadRecords = async () => {
   const studentId = localStorage.getItem("studentId")
   if (!studentId) {
@@ -125,11 +161,14 @@ const loadRecords = async () => {
   try {
     const res = await request.get(`/api/student/assessment/records/${studentId}`)
     if (res?.success) {
-      recordList.value = res.data || []
+      const rawList = res.data || []
+      recordList.value = sortRecordList(rawList)
     } else {
+      recordList.value = []
       ElMessage.error(res?.message || "测试记录加载失败")
     }
   } catch (error) {
+    recordList.value = []
     ElMessage.error(error?.response?.data?.message || error?.message || "测试记录加载失败")
   } finally {
     loading.value = false

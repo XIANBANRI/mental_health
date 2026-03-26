@@ -5,9 +5,7 @@ import lombok.Data;
 @Data
 public class AppointmentRequestMessage {
 
-
   private String operation;
-
   private String requestId;
 
   // 学生端
@@ -23,4 +21,5 @@ public class AppointmentRequestMessage {
   private String teacherAccount;
   private String status;
   private String teacherReply;
+  private String rejectReason;
 }

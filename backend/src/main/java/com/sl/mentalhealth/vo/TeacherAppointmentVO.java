@@ -20,6 +20,7 @@ public class TeacherAppointmentVO {
   private String purpose;
   private String remark;
   private String offlineRecord;
+  private String rejectReason;
   private Boolean recordCompleted;
   private String status;
   private String createdAt;

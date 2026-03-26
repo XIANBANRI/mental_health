@@ -4,10 +4,10 @@ import com.sl.mentalhealth.dto.TeacherAppointmentQueryRequest;
 import com.sl.mentalhealth.dto.TeacherAppointmentUpdateStatusRequest;
 import com.sl.mentalhealth.dto.TeacherAssessmentRecordQueryRequest;
 import com.sl.mentalhealth.entity.Appointment;
-import com.sl.mentalhealth.entity.AssessmentRecord;
 import com.sl.mentalhealth.entity.Student;
+import com.sl.mentalhealth.entity.StudentAssessmentRecord;
 import com.sl.mentalhealth.repository.AppointmentRepository;
-import com.sl.mentalhealth.repository.AssessmentRecordRepository;
+import com.sl.mentalhealth.repository.StudentAssessmentRecordRepository;
 import com.sl.mentalhealth.repository.StudentRepository;
 import com.sl.mentalhealth.repository.TeacherRepository;
 import com.sl.mentalhealth.vo.TeacherAppointmentVO;
@@ -15,7 +15,12 @@ import com.sl.mentalhealth.vo.TeacherAssessmentRecordVO;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -25,7 +30,7 @@ import org.springframework.util.StringUtils;
 public class LocalTeacherAppointmentService {
 
   private final AppointmentRepository appointmentRepository;
-  private final AssessmentRecordRepository assessmentRecordRepository;
+  private final StudentAssessmentRecordRepository studentAssessmentRecordRepository;
   private final TeacherRepository teacherRepository;
   private final StudentRepository studentRepository;
 
@@ -37,8 +42,8 @@ public class LocalTeacherAppointmentService {
     validateTeacher(request.getTeacherAccount());
 
     String status = safe(request.getStatus());
-    if ("COMPLETED".equals(status) || "CANCELLED".equals(status)) {
-      throw new RuntimeException("预约查询不显示已完成或已取消记录，请到预约记录中查看");
+    if ("COMPLETED".equals(status) || "CANCELLED".equals(status) || "REJECTED".equals(status)) {
+      throw new RuntimeException("预约查询不显示已完成、已取消或已拒绝记录，请到预约记录中查看");
     }
 
     LocalDate appointmentDate = parseDate(request.getAppointmentDate());
@@ -50,7 +55,15 @@ public class LocalTeacherAppointmentService {
         appointmentDate
     );
 
-    return list.stream().map(this::toAppointmentVO).toList();
+    return list.stream()
+        .filter(item -> {
+          String itemStatus = safe(item.getStatus());
+          return !"COMPLETED".equals(itemStatus)
+              && !"CANCELLED".equals(itemStatus)
+              && !"REJECTED".equals(itemStatus);
+        })
+        .map(this::toAppointmentVO)
+        .toList();
   }
 
   public List<TeacherAppointmentVO> record(TeacherAppointmentQueryRequest request) {
@@ -88,11 +101,12 @@ public class LocalTeacherAppointmentService {
 
     String currentStatus = safe(appointment.getStatus());
     String newOfflineRecord = safe(request.getOfflineRecord());
+    String newRejectReason = safe(request.getRejectReason());
     LocalDateTime now = LocalDateTime.now();
 
     switch (targetStatus) {
       case "APPROVED" -> handleApproved(appointment, currentStatus, newOfflineRecord, now);
-      case "REJECTED" -> handleRejected(appointment, currentStatus);
+      case "REJECTED" -> handleRejected(appointment, currentStatus, newRejectReason);
       case "COMPLETED" -> handleCompleted(appointment, currentStatus, newOfflineRecord, now);
       default -> throw new RuntimeException("不支持的状态操作");
     }
@@ -110,6 +124,7 @@ public class LocalTeacherAppointmentService {
     if ("PENDING".equals(currentStatus)) {
       appointment.setStatus("APPROVED");
       appointment.setApprovedAt(now);
+      appointment.setRejectReason(null);
       return;
     }
 
@@ -124,11 +139,17 @@ public class LocalTeacherAppointmentService {
     appointment.setTeacherReply(newOfflineRecord);
   }
 
-  private void handleRejected(Appointment appointment, String currentStatus) {
+  private void handleRejected(Appointment appointment, String currentStatus, String rejectReason) {
     if (!"PENDING".equals(currentStatus)) {
       throw new RuntimeException("只有待处理预约才能拒绝");
     }
+    if (!StringUtils.hasText(rejectReason)) {
+      throw new RuntimeException("拒绝原因不能为空");
+    }
+
     appointment.setStatus("REJECTED");
+    appointment.setRejectReason(rejectReason);
+    appointment.setTeacherReply(null);
   }
 
   private void handleCompleted(
@@ -165,37 +186,128 @@ public class LocalTeacherAppointmentService {
     Student student = studentRepository.findByStudentId(studentId)
         .orElseThrow(() -> new RuntimeException("未找到对应学生信息"));
 
-    List<AssessmentRecord> records =
-        assessmentRecordRepository.findByStudentIdOrderBySubmittedAtDesc(studentId);
+    List<StudentAssessmentRecord> records =
+        studentAssessmentRecordRepository.findByStudentIdOrderBySubmittedAtDescIdDesc(studentId);
 
-    return records.stream().map(item -> new TeacherAssessmentRecordVO(
-        item.getId(),
-        student.getStudentId(),
-        student.getName(),
-        student.getCollege(),
-        student.getClassName(),
-        item.getSemester(),
-        item.getK10Score(),
-        item.getK10Status(),
-        item.getK10Level(),
-        item.getK10Summary(),
-        item.getWho5Score(),
-        item.getWho5Status(),
-        item.getWho5Level(),
-        item.getWho5Summary(),
-        item.getPhq9Score(),
-        item.getPhq9Status(),
-        item.getPhq9Level(),
-        item.getPhq9Summary(),
-        item.getGad7Score(),
-        item.getGad7Status(),
-        item.getGad7Level(),
-        item.getGad7Summary(),
-        item.getHealthTotalScore(),
-        item.getHealthStatus(),
-        item.getHealthSummary(),
-        item.getSubmittedAt() == null ? "" : item.getSubmittedAt().format(DATE_TIME_FORMATTER)
-    )).toList();
+    Map<String, List<StudentAssessmentRecord>> semesterGroup = records.stream()
+        .collect(Collectors.groupingBy(
+            item -> safe(item.getSemester()),
+            LinkedHashMap::new,
+            Collectors.toList()
+        ));
+
+    List<TeacherAssessmentRecordVO> result = new ArrayList<>();
+
+    for (Map.Entry<String, List<StudentAssessmentRecord>> entry : semesterGroup.entrySet()) {
+      String semester = entry.getKey();
+      List<StudentAssessmentRecord> semesterRecords = entry.getValue();
+
+      semesterRecords.sort((a, b) -> {
+        if (a.getSubmittedAt() == null && b.getSubmittedAt() == null) {
+          return Long.compare(
+              b.getId() == null ? 0L : b.getId(),
+              a.getId() == null ? 0L : a.getId()
+          );
+        }
+        if (a.getSubmittedAt() == null) {
+          return 1;
+        }
+        if (b.getSubmittedAt() == null) {
+          return -1;
+        }
+        int compare = b.getSubmittedAt().compareTo(a.getSubmittedAt());
+        if (compare != 0) {
+          return compare;
+        }
+        return Long.compare(
+            b.getId() == null ? 0L : b.getId(),
+            a.getId() == null ? 0L : a.getId()
+        );
+      });
+
+      List<TeacherAssessmentRecordVO.DetailItem> details = semesterRecords.stream()
+          .map(item -> new TeacherAssessmentRecordVO.DetailItem(
+              safe(item.getScaleCode()),
+              safe(item.getScaleName()),
+              item.getRawScore(),
+              safe(item.getResultLevel()),
+              safe(item.getResultSummary()),
+              safe(item.getSuggestion()),
+              formatDateTime(item.getSubmittedAt())
+          ))
+          .toList();
+
+      String scoreSummary = semesterRecords.stream()
+          .map(item -> safe(item.getScaleCode()) + ":" + (item.getRawScore() == null ? 0 : item.getRawScore()))
+          .collect(Collectors.joining("，"));
+
+      TeacherAssessmentRecordVO vo = new TeacherAssessmentRecordVO();
+      vo.setStudentId(student.getStudentId());
+      vo.setStudentName(student.getName());
+      vo.setCollege(student.getCollege());
+      vo.setClassName(student.getClassName());
+      vo.setSemester(semester);
+      vo.setTestedCount(semesterRecords.size());
+      vo.setScoreSummary(scoreSummary);
+      vo.setSemesterLevel(calculateSemesterLevel(semesterRecords));
+      vo.setDetails(details);
+
+      result.add(vo);
+    }
+
+    result.sort(Comparator.comparing(
+        TeacherAssessmentRecordVO::getSemester,
+        Comparator.nullsLast(String::compareTo)
+    ));
+
+    return result;
+  }
+
+  private String calculateSemesterLevel(List<StudentAssessmentRecord> records) {
+    int maxRisk = records.stream()
+        .mapToInt(this::riskWeight)
+        .max()
+        .orElse(0);
+
+    return switch (maxRisk) {
+      case 0 -> "正常";
+      case 1 -> "关注";
+      case 2 -> "预警";
+      default -> "危险";
+    };
+  }
+
+  private int riskWeight(StudentAssessmentRecord item) {
+    String level = safe(item.getResultLevel());
+    String scaleCode = safe(item.getScaleCode()).toUpperCase();
+
+    if ("WHO5".equals(scaleCode) || "WHO-5".equals(scaleCode)) {
+      if (level.contains("优秀") || level.contains("良好")) {
+        return 0;
+      }
+      if (level.contains("一般")) {
+        return 1;
+      }
+      if (level.contains("较差")) {
+        return 3;
+      }
+      return 1;
+    }
+
+    if (level.contains("无") || level.contains("正常") || level.contains("极轻")) {
+      return 0;
+    }
+    if (level.contains("轻")) {
+      return 1;
+    }
+    if (level.contains("中")) {
+      return 2;
+    }
+    if (level.contains("重") || level.contains("严重")) {
+      return 3;
+    }
+
+    return 1;
   }
 
   private TeacherAppointmentVO toAppointmentVO(Appointment appointment) {
@@ -223,6 +335,7 @@ public class LocalTeacherAppointmentService {
         safe(appointment.getPurpose()),
         safe(appointment.getRemark()),
         safe(appointment.getTeacherReply()),
+        safe(appointment.getRejectReason()),
         recordCompleted,
         safe(appointment.getStatus()),
         formatDateTime(appointment.getCreatedAt()),

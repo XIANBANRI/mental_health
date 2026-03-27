@@ -13,7 +13,7 @@
         </el-avatar>
 
         <div class="avatar-actions">
-          <div class="avatar-title">辅导员头像</div>
+          <!-- 这里已删除：辅导员头像 -->
           <div class="avatar-tip">支持 jpg / jpeg / png / webp，大小不超过 5MB</div>
 
           <el-upload

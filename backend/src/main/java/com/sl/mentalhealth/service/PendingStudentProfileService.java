@@ -1,10 +1,9 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.kafka.message.StudentProfileResponseMessage;
-import org.springframework.stereotype.Service;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PendingStudentProfileService {

@@ -5,12 +5,14 @@ public class StudentProfileResponseMessage {
   private String requestId;
   private Boolean success;
   private String message;
+
   private String studentId;
   private String name;
   private String className;
   private String college;
   private String grade;
   private String phone;
+  private String avatarUrl;
   private String counselorName;
   private String counselorPhone;
 
@@ -19,7 +21,7 @@ public class StudentProfileResponseMessage {
 
   public StudentProfileResponseMessage(String requestId, Boolean success, String message,
       String studentId, String name, String className, String college, String grade,
-      String phone, String counselorName, String counselorPhone) {
+      String phone, String avatarUrl, String counselorName, String counselorPhone) {
     this.requestId = requestId;
     this.success = success;
     this.message = message;
@@ -29,6 +31,7 @@ public class StudentProfileResponseMessage {
     this.college = college;
     this.grade = grade;
     this.phone = phone;
+    this.avatarUrl = avatarUrl;
     this.counselorName = counselorName;
     this.counselorPhone = counselorPhone;
   }
@@ -103,6 +106,14 @@ public class StudentProfileResponseMessage {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl;
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 
   public String getCounselorName() {

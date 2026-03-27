@@ -14,8 +14,10 @@ public class PendingTeacherProfileService {
   private final Map<String, CompletableFuture<TeacherProfileResponseMessage>> pendingMap =
       new ConcurrentHashMap<>();
 
-  public void put(String requestId, CompletableFuture<TeacherProfileResponseMessage> future) {
+  public CompletableFuture<TeacherProfileResponseMessage> create(String requestId) {
+    CompletableFuture<TeacherProfileResponseMessage> future = new CompletableFuture<>();
     pendingMap.put(requestId, future);
+    return future;
   }
 
   public void complete(String requestId, TeacherProfileResponseMessage response) {
@@ -25,26 +27,25 @@ public class PendingTeacherProfileService {
     }
   }
 
-  public TeacherProfileResponseMessage waitResponse(String requestId, long timeoutSeconds) {
-    CompletableFuture<TeacherProfileResponseMessage> future = new CompletableFuture<>();
-    put(requestId, future);
+  public void remove(String requestId) {
+    pendingMap.remove(requestId);
+  }
 
-    try {
-      return future.get(timeoutSeconds, TimeUnit.SECONDS);
-    } catch (TimeoutException e) {
-      pendingMap.remove(requestId);
-      TeacherProfileResponseMessage response = new TeacherProfileResponseMessage();
-      response.setRequestId(requestId);
-      response.setSuccess(false);
-      response.setMessage("老师信息查询超时");
-      return response;
-    } catch (Exception e) {
-      pendingMap.remove(requestId);
-      TeacherProfileResponseMessage response = new TeacherProfileResponseMessage();
-      response.setRequestId(requestId);
-      response.setSuccess(false);
-      response.setMessage("老师信息查询失败");
-      return response;
-    }
+  public TeacherProfileResponseMessage buildTimeoutResponse(String requestId) {
+    TeacherProfileResponseMessage response = new TeacherProfileResponseMessage();
+    response.setRequestId(requestId);
+    response.setSuccess(false);
+    response.setMessage("老师信息处理超时");
+    response.setData(null);
+    return response;
+  }
+
+  public TeacherProfileResponseMessage buildErrorResponse(String requestId, String message) {
+    TeacherProfileResponseMessage response = new TeacherProfileResponseMessage();
+    response.setRequestId(requestId);
+    response.setSuccess(false);
+    response.setMessage(message);
+    response.setData(null);
+    return response;
   }
 }

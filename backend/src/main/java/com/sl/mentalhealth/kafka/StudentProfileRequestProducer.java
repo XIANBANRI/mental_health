@@ -19,8 +19,8 @@ public class StudentProfileRequestProducer {
   }
 
   public void send(StudentProfileRequestMessage message) {
-    log.info("Producer发送学生信息查询请求, requestId={}, studentId={}",
-        message.getRequestId(), message.getStudentId());
+    log.info("Producer发送学生档案请求, action={}, requestId={}, studentId={}",
+        message.getAction(), message.getRequestId(), message.getStudentId());
 
     kafkaTemplate.send(KafkaTopics.STUDENT_PROFILE_REQUEST, message.getRequestId(), message);
   }

@@ -8,6 +8,7 @@ public class StudentProfileResponseVO {
   private String college;
   private String grade;
   private String phone;
+  private String avatarUrl;
   private String counselorName;
   private String counselorPhone;
 
@@ -15,13 +16,15 @@ public class StudentProfileResponseVO {
   }
 
   public StudentProfileResponseVO(String studentId, String name, String className,
-      String college, String grade, String phone, String counselorName, String counselorPhone) {
+      String college, String grade, String phone, String avatarUrl,
+      String counselorName, String counselorPhone) {
     this.studentId = studentId;
     this.name = name;
     this.className = className;
     this.college = college;
     this.grade = grade;
     this.phone = phone;
+    this.avatarUrl = avatarUrl;
     this.counselorName = counselorName;
     this.counselorPhone = counselorPhone;
   }
@@ -72,6 +75,14 @@ public class StudentProfileResponseVO {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl;
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 
   public String getCounselorName() {

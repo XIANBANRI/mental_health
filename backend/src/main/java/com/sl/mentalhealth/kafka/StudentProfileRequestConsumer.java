@@ -28,13 +28,13 @@ public class StudentProfileRequestConsumer {
       containerFactory = "studentProfileRequestKafkaListenerContainerFactory"
   )
   public void onMessage(StudentProfileRequestMessage message) {
-    log.info("Consumer收到学生信息查询请求, requestId={}, studentId={}",
-        message.getRequestId(), message.getStudentId());
+    log.info("Consumer收到学生档案请求, action={}, requestId={}, studentId={}",
+        message.getAction(), message.getRequestId(), message.getStudentId());
 
-    StudentProfileResponseMessage response = localStudentProfileService.queryProfile(message);
+    StudentProfileResponseMessage response = localStudentProfileService.handle(message);
     studentProfileResponseProducer.send(response);
 
-    log.info("Consumer发送学生信息查询响应, requestId={}, success={}",
+    log.info("Consumer发送学生档案响应, requestId={}, success={}",
         response.getRequestId(), response.getSuccess());
   }
 }

@@ -153,7 +153,7 @@ const loadCounselorProfile = async () => {
   }
 
   try {
-    const result = await request.post("/counselor/profile/get", {
+    const result = await request.post("/api/counselor/profile", {
       account
     })
 

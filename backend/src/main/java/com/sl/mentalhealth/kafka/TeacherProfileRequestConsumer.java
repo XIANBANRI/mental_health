@@ -25,11 +25,19 @@ public class TeacherProfileRequestConsumer {
     response.setRequestId(message.getRequestId());
 
     try {
-      TeacherProfileResponseVO data =
-          localTeacherProfileService.getTeacherProfile(message.getTeacherAccount());
+      TeacherProfileResponseVO data;
 
-      response.setSuccess(true);
-      response.setMessage("查询成功");
+      if (TeacherProfileRequestMessage.ACTION_UPDATE_AVATAR.equals(message.getAction())) {
+        data = localTeacherProfileService.updateAvatar(
+            message.getTeacherAccount(), message.getAvatarUrl());
+        response.setSuccess(true);
+        response.setMessage("头像上传成功");
+      } else {
+        data = localTeacherProfileService.getTeacherProfile(message.getTeacherAccount());
+        response.setSuccess(true);
+        response.setMessage("查询成功");
+      }
+
       response.setData(data);
     } catch (Exception e) {
       response.setSuccess(false);

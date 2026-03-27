@@ -34,4 +34,8 @@ public final class KafkaTopics {
 
   public static final String ASSESSMENT_SCALE_MANAGE_REQUEST = "mh.assessment-scale.manage.request";
   public static final String ASSESSMENT_SCALE_MANAGE_RESPONSE = "mh.assessment-scale.manage.response";
+
+  public static final String COUNSELOR_STUDENT_REQUEST = "mh.counselor.student.request";
+  public static final String COUNSELOR_STUDENT_RESPONSE = "mh.counselor.student.response";
+
 }

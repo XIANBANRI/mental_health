@@ -38,6 +38,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+import com.sl.mentalhealth.kafka.message.CounselorStudentRequestMessage;
+import com.sl.mentalhealth.kafka.message.CounselorStudentResponseMessage;
 
 @Configuration
 public class KafkaConfig {
@@ -1003,4 +1005,97 @@ public class KafkaConfig {
     factory.setConsumerFactory(assessmentScaleManageResponseConsumerFactory());
     return factory;
   }
+
+  @Bean
+  public NewTopic counselorStudentRequestTopic() {
+    return new NewTopic(KafkaTopics.COUNSELOR_STUDENT_REQUEST, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic counselorStudentResponseTopic() {
+    return new NewTopic(KafkaTopics.COUNSELOR_STUDENT_RESPONSE, 1, (short) 1);
+  }
+
+  @Bean
+  public ProducerFactory<String, CounselorStudentRequestMessage> counselorStudentRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "counselorStudentRequestKafkaTemplate")
+  public KafkaTemplate<String, CounselorStudentRequestMessage> counselorStudentRequestKafkaTemplate() {
+    return new KafkaTemplate<>(counselorStudentRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, CounselorStudentResponseMessage> counselorStudentResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "counselorStudentResponseKafkaTemplate")
+  public KafkaTemplate<String, CounselorStudentResponseMessage> counselorStudentResponseKafkaTemplate() {
+    return new KafkaTemplate<>(counselorStudentResponseProducerFactory());
+  }
+
+  @Bean
+  public ConsumerFactory<String, CounselorStudentRequestMessage> counselorStudentRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-counselor-student-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<CounselorStudentRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(CounselorStudentRequestMessage.class);
+    deserializer.addTrustedPackages("com.sl.mentalhealth.kafka.message");
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "counselorStudentRequestKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, CounselorStudentRequestMessage>
+  counselorStudentRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, CounselorStudentRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(counselorStudentRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, CounselorStudentResponseMessage> counselorStudentResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-counselor-student-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<CounselorStudentResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(CounselorStudentResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "counselorStudentResponseKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, CounselorStudentResponseMessage>
+  counselorStudentResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, CounselorStudentResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(counselorStudentResponseConsumerFactory());
+    return factory;
+  }
+
 }

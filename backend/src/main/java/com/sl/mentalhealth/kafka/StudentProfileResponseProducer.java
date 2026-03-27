@@ -19,7 +19,7 @@ public class StudentProfileResponseProducer {
   }
 
   public void send(StudentProfileResponseMessage message) {
-    log.info("Producer发送学生信息查询响应, requestId={}, success={}",
+    log.info("Producer发送学生档案响应, requestId={}, success={}",
         message.getRequestId(), message.getSuccess());
 
     kafkaTemplate.send(KafkaTopics.STUDENT_PROFILE_RESPONSE, message.getRequestId(), message);

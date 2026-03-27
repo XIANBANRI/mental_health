@@ -26,6 +26,13 @@ public class LocalStudentProfileService {
     this.counselorClassMappingRepository = counselorClassMappingRepository;
   }
 
+  public StudentProfileResponseMessage handle(StudentProfileRequestMessage request) {
+    if (StudentProfileRequestMessage.ACTION_UPDATE_AVATAR.equals(request.getAction())) {
+      return updateAvatar(request);
+    }
+    return queryProfile(request);
+  }
+
   public StudentProfileResponseMessage queryProfile(StudentProfileRequestMessage request) {
     String requestId = request.getRequestId();
     String studentId = request.getStudentId();
@@ -33,21 +40,80 @@ public class LocalStudentProfileService {
     if (studentId == null || studentId.trim().isEmpty()) {
       return new StudentProfileResponseMessage(
           requestId, false, "学号不能为空",
-          null, null, null, null, null, null, null, null
+          null, null, null, null, null, null, null, null, null
       );
     }
 
-    Optional<Student> optional = studentRepository.findById(studentId);
+    Optional<Student> optional = studentRepository.findById(studentId.trim());
 
     if (optional.isEmpty()) {
       return new StudentProfileResponseMessage(
           requestId, false, "学生不存在",
-          studentId, null, null, null, null, null, null, null
+          studentId, null, null, null, null, null, null, null, null
       );
     }
 
     Student student = optional.get();
+    CounselorContact counselorContact = resolveCounselorContact(student);
 
+    return buildSuccess(requestId, "查询成功", student, counselorContact);
+  }
+
+  public StudentProfileResponseMessage updateAvatar(StudentProfileRequestMessage request) {
+    String requestId = request.getRequestId();
+    String studentId = request.getStudentId();
+    String avatarUrl = request.getAvatarUrl();
+
+    if (studentId == null || studentId.trim().isEmpty()) {
+      return new StudentProfileResponseMessage(
+          requestId, false, "学号不能为空",
+          null, null, null, null, null, null, null, null, null
+      );
+    }
+
+    if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+      return new StudentProfileResponseMessage(
+          requestId, false, "头像地址不能为空",
+          studentId, null, null, null, null, null, null, null, null
+      );
+    }
+
+    Optional<Student> optional = studentRepository.findById(studentId.trim());
+
+    if (optional.isEmpty()) {
+      return new StudentProfileResponseMessage(
+          requestId, false, "学生不存在",
+          studentId, null, null, null, null, null, null, null, null
+      );
+    }
+
+    Student student = optional.get();
+    student.setAvatarUrl(avatarUrl.trim());
+    studentRepository.save(student);
+
+    CounselorContact counselorContact = resolveCounselorContact(student);
+    return buildSuccess(requestId, "头像上传成功", student, counselorContact);
+  }
+
+  private StudentProfileResponseMessage buildSuccess(String requestId, String message,
+      Student student, CounselorContact counselorContact) {
+    return new StudentProfileResponseMessage(
+        requestId,
+        true,
+        message,
+        student.getStudentId(),
+        student.getName(),
+        student.getClassName(),
+        student.getCollege(),
+        student.getGrade(),
+        student.getPhone(),
+        student.getAvatarUrl(),
+        counselorContact.name(),
+        counselorContact.phone()
+    );
+  }
+
+  private CounselorContact resolveCounselorContact(Student student) {
     String counselorName = null;
     String counselorPhone = null;
 
@@ -72,18 +138,9 @@ public class LocalStudentProfileService {
       }
     }
 
-    return new StudentProfileResponseMessage(
-        requestId,
-        true,
-        "查询成功",
-        student.getStudentId(),
-        student.getName(),
-        student.getClassName(),
-        student.getCollege(),
-        student.getGrade(),
-        student.getPhone(),
-        counselorName,
-        counselorPhone
-    );
+    return new CounselorContact(counselorName, counselorPhone);
+  }
+
+  private record CounselorContact(String name, String phone) {
   }
 }

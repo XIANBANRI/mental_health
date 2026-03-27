@@ -25,7 +25,7 @@ public class StudentProfileResponseConsumer {
       containerFactory = "studentProfileResponseKafkaListenerContainerFactory"
   )
   public void onMessage(StudentProfileResponseMessage message) {
-    log.info("收到学生信息查询响应消息, requestId={}, success={}",
+    log.info("收到学生档案响应消息, requestId={}, success={}",
         message.getRequestId(), message.getSuccess());
 
     pendingStudentProfileService.complete(message.getRequestId(), message);

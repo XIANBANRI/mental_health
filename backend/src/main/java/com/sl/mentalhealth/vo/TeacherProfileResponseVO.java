@@ -13,4 +13,5 @@ public class TeacherProfileResponseVO {
   private String teacherName;
   private String phone;
   private String officeLocation;
+  private String avatarUrl;
 }

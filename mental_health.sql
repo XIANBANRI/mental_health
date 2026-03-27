@@ -330,6 +330,7 @@ CREATE TABLE `counselor` (
   `college` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '学院',
   `grade` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '负责年级，如2023级',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '手机号',
+  `avatar_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '辅导员头像地址',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='辅导员表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -340,7 +341,7 @@ CREATE TABLE `counselor` (
 
 LOCK TABLES `counselor` WRITE;
 /*!40000 ALTER TABLE `counselor` DISABLE KEYS */;
-INSERT INTO `counselor` VALUES ('counselor01','李老师','counselor@01','计算机与人工智能学院','2023级','13700137001'),('counselor02','王老师','counselor@02','文学院','2022级','13700137002'),('counselor03','张老师','counselor@03','医学院','2022级','13700137003'),('counselor04','赵老师','counselor@04','商学院','2023级','13700137004'),('counselor05','陈老师','counselor@05','外国语学院','2023级','13700137005');
+INSERT INTO `counselor` VALUES ('counselor01','李老师','counselor@01','计算机与人工智能学院','2023级','13700137001','/files/avatar/counselor/counselor01_1774590542697_988b66ff65b5.png'),('counselor02','王老师','counselor@02','文学院','2022级','13700137002',NULL),('counselor03','张老师','counselor@03','医学院','2022级','13700137003',NULL),('counselor04','赵老师','counselor@04','商学院','2023级','13700137004',NULL),('counselor05','陈老师','counselor@05','外国语学院','2023级','13700137005',NULL);
 /*!40000 ALTER TABLE `counselor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,6 +390,7 @@ CREATE TABLE `student` (
   `grade` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '年级，如2023级',
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
+  `avatar_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '头像访问地址',
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `uk_student_phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生表';
@@ -400,7 +402,7 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES ('2023010101','张三','计算机与人工智能学院','软件工程2301班','2023级','1234567','13800138001'),('2023010102','李四','计算机与人工智能学院','软件工程2301班','2023级','123456aA!','13800138002'),('2023010109','张航','计算机与人工智能学院','软件工程2303班','2023级','123456','13800138011'),('2023020201','王五','文学院','汉语言文学2302班','2023级','123456aA!','13800138003'),('2023020202','赵六','文学院','汉语言文学2302班','2023级','123456aA!','13800138004'),('2023030301','孙七','医学院','临床医学2303班','2023级','123456aA!','13800138005'),('2023030302','周八','医学院','临床医学2303班','2023级','123456aA!','13800138006'),('2023040401','吴九','商学院','财务管理2304班','2023级','123456aA!','13800138007'),('2023040402','郑十','商学院','财务管理2304班','2023级','123456aA!','13800138008'),('2023050501','钱一','外国语学院','英语2305班','2023级','123456aA!','13800138009'),('2023050502','冯二','外国语学院','英语2305班','2023级','123456aA!','13800138010');
+INSERT INTO `student` VALUES ('2023010101','张三','计算机与人工智能学院','软件工程2301班','2023级','1234567','13800138001','/files/avatar/student/2023010101_1774587582688_cde5aa4a4cda.png'),('2023010102','李四','计算机与人工智能学院','软件工程2301班','2023级','123456aA!','13800138002',NULL),('2023010109','张航','计算机与人工智能学院','软件工程2303班','2023级','123456','13800138011',NULL),('2023020201','王五','文学院','汉语言文学2302班','2023级','123456aA!','13800138003',NULL),('2023020202','赵六','文学院','汉语言文学2302班','2023级','123456aA!','13800138004',NULL),('2023030301','孙七','医学院','临床医学2303班','2023级','123456aA!','13800138005',NULL),('2023030302','周八','医学院','临床医学2303班','2023级','123456aA!','13800138006',NULL),('2023040401','吴九','商学院','财务管理2304班','2023级','123456aA!','13800138007',NULL),('2023040402','郑十','商学院','财务管理2304班','2023级','123456aA!','13800138008',NULL),('2023050501','钱一','外国语学院','英语2305班','2023级','123456aA!','13800138009',NULL),('2023050502','冯二','外国语学院','英语2305班','2023级','123456aA!','13800138010',NULL);
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -533,6 +535,7 @@ CREATE TABLE `teacher` (
   `teacher_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '老师姓名',
   `office_location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '办公地点',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
+  `avatar_url` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '教师头像地址',
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='教师表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -543,7 +546,7 @@ CREATE TABLE `teacher` (
 
 LOCK TABLES `teacher` WRITE;
 /*!40000 ALTER TABLE `teacher` DISABLE KEYS */;
-INSERT INTO `teacher` VALUES ('teacher01','teacher@01','张老师','计算机学院2号楼301室','13900139001'),('teacher02','teacher@02','李老师','文学院1号楼405室','13900139002'),('teacher03','teacher@03','王老师','医学院3号楼208室','13900139003'),('teacher04','teacher@04','赵老师','商学院4号楼102室','13900139004'),('teacher05','teacher@05','陈老师','外国语学院5号楼503室','13900139005');
+INSERT INTO `teacher` VALUES ('teacher01','teacher@01','张老师','计算机学院2号楼301室','13900139001','/files/avatar/teacher/teacher01_1774588711431_55712c983d0b.png'),('teacher02','teacher@02','李老师','文学院1号楼405室','13900139002',NULL),('teacher03','teacher@03','王老师','医学院3号楼208室','13900139003',NULL),('teacher04','teacher@04','赵老师','商学院4号楼102室','13900139004',NULL),('teacher05','teacher@05','陈老师','外国语学院5号楼503室','13900139005',NULL);
 /*!40000 ALTER TABLE `teacher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -600,4 +603,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-26 14:05:52
+-- Dump completed on 2026-03-27 13:59:03

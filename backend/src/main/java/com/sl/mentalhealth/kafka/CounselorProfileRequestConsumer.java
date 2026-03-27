@@ -29,27 +29,51 @@ public class CounselorProfileRequestConsumer {
     CounselorProfileResponseMessage response;
 
     try {
-      CounselorProfileResponseVO data = localCounselorProfileService.getProfile(request.getAccount());
-      if (data == null) {
-        response = new CounselorProfileResponseMessage(
-            request.getCorrelationId(),
-            false,
-            "未找到辅导员信息",
-            null
-        );
+      CounselorProfileResponseVO data;
+
+      if (CounselorProfileRequestMessage.ACTION_UPDATE_AVATAR.equals(request.getAction())) {
+        data = localCounselorProfileService.updateAvatar(
+            request.getAccount(), request.getAvatarUrl());
+
+        if (data == null) {
+          response = new CounselorProfileResponseMessage(
+              request.getCorrelationId(),
+              false,
+              "未找到辅导员信息",
+              null
+          );
+        } else {
+          response = new CounselorProfileResponseMessage(
+              request.getCorrelationId(),
+              true,
+              "头像上传成功",
+              data
+          );
+        }
       } else {
-        response = new CounselorProfileResponseMessage(
-            request.getCorrelationId(),
-            true,
-            "查询成功",
-            data
-        );
+        data = localCounselorProfileService.getProfile(request.getAccount());
+
+        if (data == null) {
+          response = new CounselorProfileResponseMessage(
+              request.getCorrelationId(),
+              false,
+              "未找到辅导员信息",
+              null
+          );
+        } else {
+          response = new CounselorProfileResponseMessage(
+              request.getCorrelationId(),
+              true,
+              "查询成功",
+              data
+          );
+        }
       }
     } catch (Exception e) {
       response = new CounselorProfileResponseMessage(
           request.getCorrelationId(),
           false,
-          "查询辅导员信息失败：" + e.getMessage(),
+          "处理辅导员信息失败：" + e.getMessage(),
           null
       );
     }

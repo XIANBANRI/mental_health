@@ -18,3 +18,16 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+app:
+  upload:
+    avatar-root-dir: E:/mental_health/backend/uploads/avatar
+  kafka:
+    student-profile-timeout-seconds: 10
+    teacher-profile-timeout-seconds: 8
+    counselor-profile-timeout-seconds: 10

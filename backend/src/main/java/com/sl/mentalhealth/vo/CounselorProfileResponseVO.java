@@ -7,6 +7,7 @@ public class CounselorProfileResponseVO {
   private String college;
   private String grade;
   private String phone;
+  private String avatarUrl;
 
   public CounselorProfileResponseVO() {
   }
@@ -49,5 +50,13 @@ public class CounselorProfileResponseVO {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl;
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 }

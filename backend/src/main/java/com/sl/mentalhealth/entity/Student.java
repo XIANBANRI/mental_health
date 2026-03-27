@@ -31,6 +31,9 @@ public class Student {
   @Column(name = "grade")
   private String grade;
 
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
   public Student() {
   }
 
@@ -88,5 +91,13 @@ public class Student {
 
   public void setGrade(String grade) {
     this.grade = grade;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl;
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 }

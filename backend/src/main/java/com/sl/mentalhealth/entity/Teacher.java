@@ -25,6 +25,9 @@ public class Teacher {
   @Column(name = "phone")
   private String phone;
 
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
   public String getAccount() {
     return account;
   }
@@ -63,5 +66,13 @@ public class Teacher {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl;
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
   }
 }

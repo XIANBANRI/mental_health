@@ -38,4 +38,7 @@ public final class KafkaTopics {
   public static final String COUNSELOR_STUDENT_REQUEST = "mh.counselor.student.request";
   public static final String COUNSELOR_STUDENT_RESPONSE = "mh.counselor.student.response";
 
+  public static final String COUNSELOR_WARNING_REQUEST = "mh.counselor.warning.request";
+  public static final String COUNSELOR_WARNING_RESPONSE = "mh.counselor.warning.response";
+
 }

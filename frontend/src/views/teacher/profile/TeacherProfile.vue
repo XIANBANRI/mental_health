@@ -13,7 +13,6 @@
         </el-avatar>
 
         <div class="avatar-actions">
-          <div class="avatar-title">教师头像</div>
           <div class="avatar-tip">支持 jpg / jpeg / png / webp，大小不超过 5MB</div>
 
           <el-upload

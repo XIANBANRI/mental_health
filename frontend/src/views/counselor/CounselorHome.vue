@@ -38,14 +38,9 @@
             <span>趋势报告</span>
           </el-menu-item>
 
-          <el-menu-item index="/counselor/appointment">
-            <el-icon><Calendar /></el-icon>
-            <span>预约情况</span>
-          </el-menu-item>
-
           <el-menu-item index="/counselor/profile">
             <el-icon><Document /></el-icon>
-            <span>个人信息</span>
+            <span>个人信息查询</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -92,7 +87,6 @@ import {
   House,
   User,
   TrendCharts,
-  Calendar,
   Document,
   ArrowDown
 } from "@element-plus/icons-vue"
@@ -281,7 +275,6 @@ onMounted(() => {
   align-items: center;
   cursor: pointer;
   color: #409eff;
-  font-weight: 500;
 }
 
 .dropdown-icon {
@@ -289,8 +282,8 @@ onMounted(() => {
 }
 
 .main-content {
-  background: #f5f7fa;
   padding: 20px;
   box-sizing: border-box;
+  background: #f5f7fa;
 }
 </style>

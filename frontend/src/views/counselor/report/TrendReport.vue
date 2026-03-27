@@ -1,49 +1,320 @@
 <template>
-  <el-card class="page-card">
-    <template #header>
-      <span>趋势报告</span>
-    </template>
+  <div class="trend-report-page">
+    <el-card class="filter-card" shadow="never">
+      <div class="filter-bar">
+        <div class="filter-left">
+          <span class="filter-label">学期：</span>
+          <el-select
+              v-model="selectedSemester"
+              placeholder="请选择学期"
+              style="width: 180px"
+              @change="handleSemesterChange"
+          >
+            <el-option
+                v-for="item in semesterOptions"
+                :key="item"
+                :label="item"
+                :value="item"
+            />
+          </el-select>
+        </div>
 
-    <el-table :data="reportList" border style="width: 100%">
-      <el-table-column prop="month" label="月份" width="120" />
-      <el-table-column prop="testCount" label="测评人数" width="120" />
-      <el-table-column prop="warningCount" label="预警人数" width="120" />
-      <el-table-column prop="appointmentCount" label="预约人数" width="120" />
-      <el-table-column prop="summary" label="趋势概述" />
-    </el-table>
-  </el-card>
+        <div class="filter-right">
+          <el-button type="primary" @click="loadReport">刷新</el-button>
+        </div>
+      </div>
+    </el-card>
+
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="24">
+        <el-card shadow="never" class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>各班级危险人数统计</span>
+            </div>
+          </template>
+          <div v-loading="loading" ref="barChartRef" class="chart-box"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="24">
+        <el-card shadow="never" class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>8个学期危险总人数趋势</span>
+            </div>
+          </template>
+          <div v-loading="loading" ref="lineChartRef" class="chart-box"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
-<script setup>
-import { ref } from "vue"
+<script>
+import * as echarts from 'echarts'
+import { queryCounselorTrendReport } from '@/api/counselorTrendReport'
 
-const reportList = ref([
-  {
-    month: "2026-01",
-    testCount: 210,
-    warningCount: 12,
-    appointmentCount: 18,
-    summary: "整体情况稳定，少数学生存在中高风险趋势。"
+export default {
+  name: 'TrendReport',
+  data() {
+    return {
+      loading: false,
+      semesterOptions: [],
+      selectedSemester: '第1学期',
+      barChart: [],
+      lineChart: [],
+      barInstance: null,
+      lineInstance: null
+    }
   },
-  {
-    month: "2026-02",
-    testCount: 226,
-    warningCount: 15,
-    appointmentCount: 21,
-    summary: "预警人数小幅上升，预约咨询需求增加。"
+  mounted() {
+    this.loadReport()
+    window.addEventListener('resize', this.handleResize)
   },
-  {
-    month: "2026-03",
-    testCount: 248,
-    warningCount: 9,
-    appointmentCount: 14,
-    summary: "整体风险有所下降，干预效果较明显。"
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize)
+    if (this.barInstance) {
+      this.barInstance.dispose()
+      this.barInstance = null
+    }
+    if (this.lineInstance) {
+      this.lineInstance.dispose()
+      this.lineInstance = null
+    }
+  },
+  methods: {
+    getCounselorAccount() {
+      const loginUser =
+          JSON.parse(localStorage.getItem('loginUser') || 'null') ||
+          JSON.parse(sessionStorage.getItem('loginUser') || 'null') ||
+          JSON.parse(localStorage.getItem('userInfo') || 'null') ||
+          JSON.parse(sessionStorage.getItem('userInfo') || 'null')
+
+      if (loginUser) {
+        return (
+            loginUser.account ||
+            loginUser.counselorAccount ||
+            loginUser.username ||
+            ''
+        )
+      }
+
+      return localStorage.getItem('counselorAccount') ||
+          sessionStorage.getItem('counselorAccount') ||
+          ''
+    },
+
+    async loadReport() {
+      const counselorAccount = this.getCounselorAccount()
+      if (!counselorAccount) {
+        this.$message.error('未获取到辅导员账号，请重新登录')
+        return
+      }
+
+      this.loading = true
+      try {
+        const res = await queryCounselorTrendReport({
+          counselorAccount,
+          semester: this.selectedSemester
+        })
+
+        if (res.code !== 200) {
+          this.$message.error(res.message || '查询失败')
+          return
+        }
+
+        const data = res.data || {}
+        this.semesterOptions = data.semesterOptions || [
+          '第1学期',
+          '第2学期',
+          '第3学期',
+          '第4学期',
+          '第5学期',
+          '第6学期',
+          '第7学期',
+          '第8学期'
+        ]
+        this.selectedSemester = data.selectedSemester || this.selectedSemester
+        this.barChart = data.barChart || []
+        this.lineChart = data.lineChart || []
+
+        this.$nextTick(() => {
+          this.renderBarChart()
+          this.renderLineChart()
+        })
+      } catch (e) {
+        console.error(e)
+        this.$message.error('趋势报告加载失败')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleSemesterChange() {
+      this.loadReport()
+    },
+
+    renderBarChart() {
+      const dom = this.$refs.barChartRef
+      if (!dom) return
+
+      if (!this.barInstance) {
+        this.barInstance = echarts.init(dom)
+      }
+
+      const classNames = this.barChart.map(item => item.className)
+      const dangerCounts = this.barChart.map(item => item.dangerCount)
+
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        grid: {
+          left: '5%',
+          right: '5%',
+          top: 30,
+          bottom: 60,
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: classNames,
+          axisLabel: {
+            interval: 0,
+            rotate: classNames.length > 6 ? 25 : 0
+          }
+        },
+        yAxis: {
+          type: 'value',
+          minInterval: 1,
+          name: '危险人数'
+        },
+        series: [
+          {
+            name: '危险人数',
+            type: 'bar',
+            barMaxWidth: 50,
+            data: dangerCounts,
+            label: {
+              show: true,
+              position: 'top'
+            }
+          }
+        ]
+      }
+
+      this.barInstance.setOption(option, true)
+    },
+
+    renderLineChart() {
+      const dom = this.$refs.lineChartRef
+      if (!dom) return
+
+      if (!this.lineInstance) {
+        this.lineInstance = echarts.init(dom)
+      }
+
+      const semesters = this.lineChart.map(item => item.semester)
+      const dangerCounts = this.lineChart.map(item => item.dangerCount)
+
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        grid: {
+          left: '5%',
+          right: '5%',
+          top: 30,
+          bottom: 40,
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: semesters
+        },
+        yAxis: {
+          type: 'value',
+          minInterval: 1,
+          name: '危险总人数'
+        },
+        series: [
+          {
+            name: '危险总人数',
+            type: 'line',
+            smooth: true,
+            data: dangerCounts,
+            label: {
+              show: true
+            }
+          }
+        ]
+      }
+
+      this.lineInstance.setOption(option, true)
+    },
+
+    handleResize() {
+      if (this.barInstance) {
+        this.barInstance.resize()
+      }
+      if (this.lineInstance) {
+        this.lineInstance.resize()
+      }
+    }
   }
-])
+}
 </script>
 
 <style scoped>
-.page-card {
+.trend-report-page {
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.filter-card {
+  margin-bottom: 20px;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #606266;
+}
+
+.chart-row {
+  margin-bottom: 20px;
+}
+
+.chart-card {
   border-radius: 8px;
+}
+
+.card-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.chart-box {
+  width: 100%;
+  height: 420px;
 }
 </style>

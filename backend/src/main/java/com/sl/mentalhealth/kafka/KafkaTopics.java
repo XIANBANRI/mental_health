@@ -41,4 +41,7 @@ public final class KafkaTopics {
   public static final String COUNSELOR_WARNING_REQUEST = "mh.counselor.warning.request";
   public static final String COUNSELOR_WARNING_RESPONSE = "mh.counselor.warning.response";
 
+  public static final String COUNSELOR_TREND_REPORT_REQUEST = "counselor-trend-report-request";
+  public static final String COUNSELOR_TREND_REPORT_RESPONSE = "counselor-trend-report-response";
+
 }

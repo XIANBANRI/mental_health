@@ -2,7 +2,10 @@ package com.sl.mentalhealth.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 @Entity
 @Table(name = "assessment_version_option")
 public class AssessmentVersionOption {
@@ -11,58 +14,23 @@ public class AssessmentVersionOption {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Setter
   @Column(name = "version_question_id", nullable = false)
   private Long versionQuestionId;
 
+  @Setter
   @Column(name = "option_no", nullable = false)
   private Integer optionNo;
 
+  @Setter
   @Column(name = "option_text", nullable = false, length = 255)
   private String optionText;
 
+  @Setter
   @Column(name = "option_score", nullable = false)
   private Integer optionScore;
 
   @Column(name = "created_at", insertable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  public Long getId() {
-    return id;
-  }
-
-  public Long getVersionQuestionId() {
-    return versionQuestionId;
-  }
-
-  public void setVersionQuestionId(Long versionQuestionId) {
-    this.versionQuestionId = versionQuestionId;
-  }
-
-  public Integer getOptionNo() {
-    return optionNo;
-  }
-
-  public void setOptionNo(Integer optionNo) {
-    this.optionNo = optionNo;
-  }
-
-  public String getOptionText() {
-    return optionText;
-  }
-
-  public void setOptionText(String optionText) {
-    this.optionText = optionText;
-  }
-
-  public Integer getOptionScore() {
-    return optionScore;
-  }
-
-  public void setOptionScore(Integer optionScore) {
-    this.optionScore = optionScore;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
 }

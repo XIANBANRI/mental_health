@@ -12,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/counselor")
 @CrossOrigin
-public class CounselorProfileController {
+public class
+CounselorProfileController {
 
   private final CounselorProfileGatewayService counselorProfileGatewayService;
   private final AvatarStorageService avatarStorageService;

@@ -1,7 +1,9 @@
 package com.sl.mentalhealth.dto;
 
 import java.util.List;
+import lombok.Data;
 
+@Data
 public class AssessmentSubmitRequest {
 
   private String studentId;
@@ -10,43 +12,4 @@ public class AssessmentSubmitRequest {
   private Long versionId;
   private List<AssessmentSubmitAnswer> answers;
 
-  public String getStudentId() {
-    return studentId;
-  }
-
-  public void setStudentId(String studentId) {
-    this.studentId = studentId;
-  }
-
-  public String getSemester() {
-    return semester;
-  }
-
-  public void setSemester(String semester) {
-    this.semester = semester;
-  }
-
-  public Long getScaleId() {
-    return scaleId;
-  }
-
-  public void setScaleId(Long scaleId) {
-    this.scaleId = scaleId;
-  }
-
-  public Long getVersionId() {
-    return versionId;
-  }
-
-  public void setVersionId(Long versionId) {
-    this.versionId = versionId;
-  }
-
-  public List<AssessmentSubmitAnswer> getAnswers() {
-    return answers;
-  }
-
-  public void setAnswers(List<AssessmentSubmitAnswer> answers) {
-    this.answers = answers;
-  }
 }

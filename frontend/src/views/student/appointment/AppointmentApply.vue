@@ -77,9 +77,6 @@
           </el-table>
 
           <div class="tips-area" v-if="availableList.length > 0">
-            <el-text type="info">
-              温馨提示：每个时段请勿重复预约，同一天同一时间段只能预约一个老师。
-            </el-text>
           </div>
         </el-card>
       </el-col>

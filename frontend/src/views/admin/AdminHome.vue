@@ -52,12 +52,12 @@
           </div>
 
           <div class="header-right">
-            <span class="info-item">账号：{{ admin.username }}</span>
+            <span class="info-item">账号：{{ admin.account || "-" }}</span>
             <span class="info-item">角色：系统管理员</span>
 
             <el-dropdown @command="handleCommand">
               <span class="user-dropdown">
-                姓名：{{ admin.name }}
+                操作
                 <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
               </span>
               <template #dropdown>
@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue"
+import { computed, onMounted, reactive } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { ElMessage, ElMessageBox } from "element-plus"
 import {
@@ -88,40 +88,61 @@ import {
   Document,
   ArrowDown
 } from "@element-plus/icons-vue"
+import request from "@/utils/request"
 
 const router = useRouter()
 const route = useRoute()
 
-const getAdminDisplayName = (username) => {
-  const storageName = localStorage.getItem("adminName")
-  if (storageName && storageName.trim()) {
-    return storageName
-  }
+const activeMenu = computed(() => route.path)
 
-  if (username === "admin") {
-    return "管理员1"
-  }
-
-  if (username === "operator") {
-    return "管理员2"
-  }
-
-  return "系统管理员"
-}
-
-const admin = computed(() => {
-  const username =
-      localStorage.getItem("adminAccount") ||
-      localStorage.getItem("username") ||
-      "admin"
-
-  return {
-    username,
-    name: getAdminDisplayName(username)
-  }
+const admin = reactive({
+  account: "",
+  name: ""
 })
 
-const activeMenu = computed(() => route.path)
+const getCurrentAdminAccount = () => {
+  return (
+      localStorage.getItem("adminAccount") ||
+      localStorage.getItem("username") ||
+      ""
+  )
+}
+
+const fetchAdminProfile = async () => {
+  const account = getCurrentAdminAccount()
+
+  if (!account) {
+    admin.account = ""
+    admin.name = ""
+    return
+  }
+
+  try {
+    const result = await request.get("/api/admin/profile", {
+      params: { account }
+    })
+
+    const data = result?.data || {}
+
+    admin.account = data.account || account
+    admin.name = data.name || ""
+
+    if (data.account) {
+      localStorage.setItem("adminAccount", data.account)
+    }
+    if (data.name) {
+      localStorage.setItem("adminName", data.name)
+    }
+  } catch (error) {
+    admin.account = account
+    admin.name = localStorage.getItem("adminName") || ""
+    ElMessage.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "获取管理员信息失败"
+    )
+  }
+}
 
 const clearLoginCache = () => {
   localStorage.removeItem("token")
@@ -140,14 +161,19 @@ const handleCommand = async (command) => {
         cancelButtonText: "取消",
         type: "warning"
       })
+
       clearLoginCache()
       ElMessage.success("已退出登录")
       router.push("/")
     } catch (e) {
-      return
+      // 用户取消
     }
   }
 }
+
+onMounted(() => {
+  fetchAdminProfile()
+})
 </script>
 
 <style scoped>

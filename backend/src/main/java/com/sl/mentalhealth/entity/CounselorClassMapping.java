@@ -6,7 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "counselor_class_mapping")
 public class CounselorClassMapping {
@@ -24,27 +26,4 @@ public class CounselorClassMapping {
   public CounselorClassMapping() {
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getCounselorAccount() {
-    return counselorAccount;
-  }
-
-  public void setCounselorAccount(String counselorAccount) {
-    this.counselorAccount = counselorAccount;
-  }
-
-  public String getClassName() {
-    return className;
-  }
-
-  public void setClassName(String className) {
-    this.className = className;
-  }
 }

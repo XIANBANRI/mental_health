@@ -21,13 +21,13 @@ public class Appointment {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "appointment_no", nullable = false, unique = true, length = 50)
+  @Column(name = "appointment_no")
   private String appointmentNo;
 
-  @Column(name = "student_account", nullable = false, length = 50)
+  @Column(name = "student_account")
   private String studentAccount;
 
-  @Column(name = "teacher_account", nullable = false, length = 50)
+  @Column(name = "teacher_account")
   private String teacherAccount;
 
   @Column(name = "schedule_id", nullable = false)

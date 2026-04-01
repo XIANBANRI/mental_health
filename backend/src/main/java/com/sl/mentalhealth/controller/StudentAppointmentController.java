@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/appointment")
 @RequiredArgsConstructor
-public class AppointmentController {
+public class StudentAppointmentController {
 
   private final AppointmentGatewayService appointmentGatewayService;
 

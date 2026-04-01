@@ -35,12 +35,12 @@
 
           <el-menu-item index="/admin/test/input">
             <el-icon><EditPen /></el-icon>
-            <span>测试输入</span>
+            <span>测试集输入</span>
           </el-menu-item>
 
           <el-menu-item index="/admin/profile">
             <el-icon><Document /></el-icon>
-            <span>个人信息</span>
+            <span>个人信息查询</span>
           </el-menu-item>
         </el-menu>
       </el-aside>

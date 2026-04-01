@@ -2,7 +2,10 @@ package com.sl.mentalhealth.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 @Entity
 @Table(name = "assessment_scale_version")
 public class AssessmentScaleVersion {
@@ -11,24 +14,31 @@ public class AssessmentScaleVersion {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Setter
   @Column(name = "scale_id", nullable = false)
   private Long scaleId;
 
+  @Setter
   @Column(name = "version_no", nullable = false)
   private Integer versionNo;
 
+  @Setter
   @Column(name = "version_status", nullable = false, length = 20)
   private String versionStatus;
 
+  @Setter
   @Column(name = "source_question_file_name", length = 255)
   private String sourceQuestionFileName;
 
+  @Setter
   @Column(name = "source_rule_file_name", length = 255)
   private String sourceRuleFileName;
 
+  @Setter
   @Column(name = "version_remark", length = 255)
   private String versionRemark;
 
+  @Setter
   @Column(name = "created_by", length = 50)
   private String createdBy;
 
@@ -38,71 +48,4 @@ public class AssessmentScaleVersion {
   @Column(name = "updated_at", insertable = false, updatable = false)
   private LocalDateTime updatedAt;
 
-  public Long getId() {
-    return id;
-  }
-
-  public Long getScaleId() {
-    return scaleId;
-  }
-
-  public void setScaleId(Long scaleId) {
-    this.scaleId = scaleId;
-  }
-
-  public Integer getVersionNo() {
-    return versionNo;
-  }
-
-  public void setVersionNo(Integer versionNo) {
-    this.versionNo = versionNo;
-  }
-
-  public String getVersionStatus() {
-    return versionStatus;
-  }
-
-  public void setVersionStatus(String versionStatus) {
-    this.versionStatus = versionStatus;
-  }
-
-  public String getSourceQuestionFileName() {
-    return sourceQuestionFileName;
-  }
-
-  public void setSourceQuestionFileName(String sourceQuestionFileName) {
-    this.sourceQuestionFileName = sourceQuestionFileName;
-  }
-
-  public String getSourceRuleFileName() {
-    return sourceRuleFileName;
-  }
-
-  public void setSourceRuleFileName(String sourceRuleFileName) {
-    this.sourceRuleFileName = sourceRuleFileName;
-  }
-
-  public String getVersionRemark() {
-    return versionRemark;
-  }
-
-  public void setVersionRemark(String versionRemark) {
-    this.versionRemark = versionRemark;
-  }
-
-  public String getCreatedBy() {
-    return createdBy;
-  }
-
-  public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
 }

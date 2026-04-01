@@ -76,11 +76,17 @@ public class AdminAssessmentScaleController {
 
   @PostMapping("/update")
   public Result<?> update(@RequestBody AssessmentScaleUpdateRequest request) {
-    AssessmentScaleManageResponseMessage response = assessmentScaleManageGatewayService.update(request);
-    if (Boolean.TRUE.equals(response.getSuccess())) {
-      return Result.success(response.getMessage(), response.getData());
+    try {
+      assessmentScaleExcelParserService.validateRuleList(request.getRules());
+
+      AssessmentScaleManageResponseMessage response = assessmentScaleManageGatewayService.update(request);
+      if (Boolean.TRUE.equals(response.getSuccess())) {
+        return Result.success(response.getMessage(), response.getData());
+      }
+      return Result.error(response.getMessage());
+    } catch (Exception e) {
+      return Result.error(e.getMessage());
     }
-    return Result.error(response.getMessage());
   }
 
   @PostMapping("/enable/{scaleId}")

@@ -10,11 +10,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/student/assessment")
-public class AssessmentController {
+public class StudentAssessmentController {
 
   private final AssessmentGatewayService assessmentGatewayService;
 
-  public AssessmentController(AssessmentGatewayService assessmentGatewayService) {
+  public StudentAssessmentController(AssessmentGatewayService assessmentGatewayService) {
     this.assessmentGatewayService = assessmentGatewayService;
   }
 

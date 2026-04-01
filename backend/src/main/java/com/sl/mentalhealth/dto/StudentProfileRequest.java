@@ -1,14 +1,9 @@
 package com.sl.mentalhealth.dto;
 
+import lombok.Data;
+@Data
 public class StudentProfileRequest {
 
   private String studentId;
 
-  public String getStudentId() {
-    return studentId;
-  }
-
-  public void setStudentId(String studentId) {
-    this.studentId = studentId;
-  }
 }

@@ -1,5 +1,8 @@
 package com.sl.mentalhealth.dto;
 
+import lombok.Data;
+
+@Data
 public class CounselorProfileRequest {
 
   private String account;
@@ -11,11 +14,4 @@ public class CounselorProfileRequest {
     this.account = account;
   }
 
-  public String getAccount() {
-    return account;
-  }
-
-  public void setAccount(String account) {
-    this.account = account;
-  }
 }

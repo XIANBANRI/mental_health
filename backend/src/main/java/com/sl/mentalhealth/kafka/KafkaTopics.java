@@ -44,4 +44,7 @@ public final class KafkaTopics {
   public static final String COUNSELOR_TREND_REPORT_REQUEST = "counselor-trend-report-request";
   public static final String COUNSELOR_TREND_REPORT_RESPONSE = "counselor-trend-report-response";
 
+  public static final String ADMIN_PROFILE_REQUEST = "admin-profile-request";
+  public static final String ADMIN_PROFILE_RESPONSE = "admin-profile-response";
+
 }

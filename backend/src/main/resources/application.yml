@@ -31,3 +31,4 @@ app:
     student-profile-timeout-seconds: 10
     teacher-profile-timeout-seconds: 8
     counselor-profile-timeout-seconds: 10
+    admin-profile-timeout-seconds: 10

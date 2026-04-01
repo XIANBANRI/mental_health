@@ -33,6 +33,10 @@ public class AvatarStorageService {
     return storeAvatar("counselor", account, file, "辅导员账号不能为空");
   }
 
+  public StorageResult saveAdminAvatar(String account, MultipartFile file) {
+    return storeAvatar("admin", account, file, "管理员账号不能为空");
+  }
+
   private StorageResult storeAvatar(String roleFolder, String ownerId, MultipartFile file,
       String emptyMessage) {
     if (ownerId == null || ownerId.trim().isEmpty()) {

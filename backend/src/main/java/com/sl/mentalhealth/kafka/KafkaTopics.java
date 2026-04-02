@@ -47,4 +47,10 @@ public final class KafkaTopics {
   public static final String ADMIN_PROFILE_REQUEST = "admin-profile-request";
   public static final String ADMIN_PROFILE_RESPONSE = "admin-profile-response";
 
+  public static final String ADMIN_TEACHER_MANAGE_REQUEST = "admin.teacher.manage.request";
+  public static final String ADMIN_TEACHER_MANAGE_RESPONSE = "admin.teacher.manage.response";
+
+  public static final String ADMIN_COUNSELOR_MANAGE_REQUEST = "admin.counselor.manage.request";
+  public static final String ADMIN_COUNSELOR_MANAGE_RESPONSE = "admin.counselor.manage.response";
+
 }

@@ -11,4 +11,6 @@ public interface CounselorClassMappingRepository
   Optional<CounselorClassMapping> findFirstByClassName(String className);
 
   List<CounselorClassMapping> findByCounselorAccountOrderByClassNameAsc(String counselorAccount);
+
+  void deleteByCounselorAccount(String counselorAccount);
 }

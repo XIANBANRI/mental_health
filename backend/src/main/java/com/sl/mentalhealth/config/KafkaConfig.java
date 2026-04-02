@@ -46,6 +46,10 @@ import com.sl.mentalhealth.kafka.message.CounselorTrendReportRequestMessage;
 import com.sl.mentalhealth.kafka.message.CounselorTrendReportResponseMessage;
 import com.sl.mentalhealth.kafka.message.AdminProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.AdminProfileResponseMessage;
+import com.sl.mentalhealth.kafka.message.AdminTeacherManageRequestMessage;
+import com.sl.mentalhealth.kafka.message.AdminTeacherManageResponseMessage;
+import com.sl.mentalhealth.kafka.message.AdminCounselorManageRequestMessage;
+import com.sl.mentalhealth.kafka.message.AdminCounselorManageResponseMessage;
 
 @Configuration
 public class KafkaConfig {
@@ -1379,6 +1383,195 @@ public class KafkaConfig {
     return factory;
   }
 
+  @Bean
+  public NewTopic adminTeacherManageRequestTopic() {
+    return new NewTopic(KafkaTopics.ADMIN_TEACHER_MANAGE_REQUEST, 1, (short) 1);
+  }
 
+  @Bean
+  public NewTopic adminTeacherManageResponseTopic() {
+    return new NewTopic(KafkaTopics.ADMIN_TEACHER_MANAGE_RESPONSE, 1, (short) 1);
+  }
 
+  @Bean
+  public ProducerFactory<String, AdminTeacherManageRequestMessage> adminTeacherManageRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "adminTeacherManageRequestKafkaTemplate")
+  public KafkaTemplate<String, AdminTeacherManageRequestMessage> adminTeacherManageRequestKafkaTemplate() {
+    return new KafkaTemplate<>(adminTeacherManageRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, AdminTeacherManageResponseMessage> adminTeacherManageResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "adminTeacherManageResponseKafkaTemplate")
+  public KafkaTemplate<String, AdminTeacherManageResponseMessage> adminTeacherManageResponseKafkaTemplate() {
+    return new KafkaTemplate<>(adminTeacherManageResponseProducerFactory());
+  }
+
+  @Bean
+  public ConsumerFactory<String, AdminTeacherManageRequestMessage> adminTeacherManageRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-admin-teacher-manage-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<AdminTeacherManageRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(AdminTeacherManageRequestMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "adminTeacherManageRequestKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, AdminTeacherManageRequestMessage>
+  adminTeacherManageRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, AdminTeacherManageRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(adminTeacherManageRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, AdminTeacherManageResponseMessage> adminTeacherManageResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-admin-teacher-manage-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<AdminTeacherManageResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(AdminTeacherManageResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "adminTeacherManageResponseKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, AdminTeacherManageResponseMessage>
+  adminTeacherManageResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, AdminTeacherManageResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(adminTeacherManageResponseConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public NewTopic adminCounselorManageRequestTopic() {
+    return new NewTopic(KafkaTopics.ADMIN_COUNSELOR_MANAGE_REQUEST, 1, (short) 1);
+  }
+
+  @Bean
+  public NewTopic adminCounselorManageResponseTopic() {
+    return new NewTopic(KafkaTopics.ADMIN_COUNSELOR_MANAGE_RESPONSE, 1, (short) 1);
+  }
+
+  @Bean
+  public ProducerFactory<String, AdminCounselorManageRequestMessage> adminCounselorManageRequestProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "adminCounselorManageRequestKafkaTemplate")
+  public KafkaTemplate<String, AdminCounselorManageRequestMessage> adminCounselorManageRequestKafkaTemplate() {
+    return new KafkaTemplate<>(adminCounselorManageRequestProducerFactory());
+  }
+
+  @Bean
+  public ProducerFactory<String, AdminCounselorManageResponseMessage> adminCounselorManageResponseProducerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(props);
+  }
+
+  @Bean(name = "adminCounselorManageResponseKafkaTemplate")
+  public KafkaTemplate<String, AdminCounselorManageResponseMessage> adminCounselorManageResponseKafkaTemplate() {
+    return new KafkaTemplate<>(adminCounselorManageResponseProducerFactory());
+  }
+
+  @Bean
+  public ConsumerFactory<String, AdminCounselorManageRequestMessage> adminCounselorManageRequestConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-admin-counselor-manage-request-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<AdminCounselorManageRequestMessage> deserializer =
+        new JacksonJsonDeserializer<>(AdminCounselorManageRequestMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.dto",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "adminCounselorManageRequestKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, AdminCounselorManageRequestMessage>
+  adminCounselorManageRequestKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, AdminCounselorManageRequestMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(adminCounselorManageRequestConsumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, AdminCounselorManageResponseMessage> adminCounselorManageResponseConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "mh-admin-counselor-manage-response-group");
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+
+    JacksonJsonDeserializer<AdminCounselorManageResponseMessage> deserializer =
+        new JacksonJsonDeserializer<>(AdminCounselorManageResponseMessage.class);
+    deserializer.addTrustedPackages(
+        "com.sl.mentalhealth.kafka.message",
+        "com.sl.mentalhealth.vo",
+        "java.util"
+    );
+
+    return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+  }
+
+  @Bean(name = "adminCounselorManageResponseKafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, AdminCounselorManageResponseMessage>
+  adminCounselorManageResponseKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, AdminCounselorManageResponseMessage> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(adminCounselorManageResponseConsumerFactory());
+    return factory;
+  }
 }

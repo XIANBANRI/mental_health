@@ -1,262 +1,549 @@
 <template>
-  <el-card class="page-card">
-    <template #header>
-      <div class="card-header">
-        <span>心理老师管理</span>
-        <el-button type="primary" @click="openAddDialog">新增心理老师</el-button>
+  <div class="teacher-manage">
+    <el-card class="search-card" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <span>心理老师管理</span>
+        </div>
+      </template>
+
+      <el-form :model="queryForm" label-width="80px" class="search-form">
+        <el-row :gutter="16">
+          <el-col :xs="24" :sm="12" :md="8" :lg="8">
+            <el-form-item label="账号">
+              <el-input
+                  v-model="queryForm.account"
+                  placeholder="请输入老师账号"
+                  clearable
+                  @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="24" :sm="12" :md="8" :lg="8">
+            <el-form-item label="姓名">
+              <el-input
+                  v-model="queryForm.teacherName"
+                  placeholder="请输入老师姓名"
+                  clearable
+                  @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="24" :sm="12" :md="8" :lg="8">
+            <el-form-item label="办公室">
+              <el-input
+                  v-model="queryForm.officeLocation"
+                  placeholder="请输入办公地点"
+                  clearable
+                  @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="search-actions">
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </div>
+      </el-form>
+    </el-card>
+
+    <el-card class="table-card" shadow="never">
+      <template #header>
+        <div class="card-header toolbar">
+          <span>老师列表</span>
+          <el-button type="primary" @click="openAddDialog">新增心理老师</el-button>
+        </div>
+      </template>
+
+      <el-table
+          v-loading="loading"
+          :data="tableData"
+          border
+          stripe
+          style="width: 100%"
+          empty-text="暂无数据"
+      >
+        <el-table-column type="index" label="序号" width="70" align="center">
+          <template #default="scope">
+            {{ (pagination.pageNum - 1) * pagination.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="account" label="账号" min-width="140" />
+        <el-table-column prop="teacherName" label="姓名" min-width="120" />
+        <el-table-column prop="officeLocation" label="办公室" min-width="160" />
+        <el-table-column prop="phone" label="电话" min-width="140" />
+
+        <el-table-column label="操作" width="120" fixed="right" align="center">
+          <template #default="scope">
+            <el-button type="warning" link @click="openEditDialog(scope.row.account)">
+              修改
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-wrapper">
+        <el-pagination
+            background
+            layout="total, sizes, prev, pager, next, jumper"
+            :current-page="pagination.pageNum"
+            :page-size="pagination.pageSize"
+            :page-sizes="[5, 10, 20, 50]"
+            :total="pagination.total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
       </div>
-    </template>
-
-    <div class="toolbar">
-      <el-input
-          v-model="keyword"
-          placeholder="请输入老师账号或姓名搜索"
-          clearable
-          class="search-input"
-      />
-      <el-button type="primary" @click="handleSearch">查询</el-button>
-      <el-button @click="handleReset">重置</el-button>
-    </div>
-
-    <el-table :data="tableData" border style="width: 100%">
-      <el-table-column type="index" label="序号" width="70" align="center" />
-      <el-table-column prop="teacherAccount" label="老师账号" min-width="130" />
-      <el-table-column prop="teacherName" label="老师姓名" min-width="120" />
-      <el-table-column prop="gender" label="性别" width="80" align="center" />
-      <el-table-column prop="phone" label="联系电话" min-width="140" />
-      <el-table-column prop="specialty" label="擅长方向" min-width="180" show-overflow-tooltip />
-      <el-table-column label="状态" width="100" align="center">
-        <template #default="scope">
-          <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
-            {{ scope.row.status === 1 ? "在岗" : "停用" }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="220" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="openEditDialog(scope.row)">
-            编辑
-          </el-button>
-          <el-button
-              :type="scope.row.status === 1 ? 'warning' : 'success'"
-              size="small"
-              @click="toggleStatus(scope.row)"
-          >
-            {{ scope.row.status === 1 ? "停用" : "启用" }}
-          </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    </el-card>
 
     <el-dialog
-        v-model="dialogVisible"
-        :title="form.id ? '编辑心理老师' : '新增心理老师'"
-        width="560px"
+        v-model="addDialogVisible"
+        title="新增心理老师"
+        width="520px"
+        :close-on-click-modal="false"
+        destroy-on-close
+        lock-scroll
     >
-      <el-form :model="form" label-width="95px">
-        <el-form-item label="老师账号">
-          <el-input v-model="form.teacherAccount" placeholder="请输入老师账号" />
+      <el-form
+          ref="addFormRef"
+          :model="addForm"
+          :rules="addRules"
+          label-width="90px"
+      >
+        <el-form-item label="账号" prop="account">
+          <el-input v-model="addForm.account" placeholder="请输入老师账号" />
         </el-form-item>
-        <el-form-item label="老师姓名">
-          <el-input v-model="form.teacherName" placeholder="请输入老师姓名" />
-        </el-form-item>
-        <el-form-item label="性别">
-          <el-radio-group v-model="form.gender">
-            <el-radio label="男">男</el-radio>
-            <el-radio label="女">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" />
-        </el-form-item>
-        <el-form-item label="擅长方向">
-          <el-input v-model="form.specialty" placeholder="请输入擅长方向" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">在岗</el-radio>
-            <el-radio :label="0">停用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="简介">
+
+        <el-form-item label="密码" prop="password">
           <el-input
-              v-model="form.introduction"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入老师简介"
+              v-model="addForm.password"
+              type="password"
+              show-password
+              placeholder="请输入登录密码"
           />
+        </el-form-item>
+
+        <el-form-item label="姓名" prop="teacherName">
+          <el-input v-model="addForm.teacherName" placeholder="请输入老师姓名" />
+        </el-form-item>
+
+        <el-form-item label="办公室" prop="officeLocation">
+          <el-input v-model="addForm.officeLocation" placeholder="请输入办公地点" />
+        </el-form-item>
+
+        <el-form-item label="电话" prop="phone">
+          <el-input v-model="addForm.phone" placeholder="请输入联系电话" />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <span>
+          <el-button @click="addDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="submitLoading" @click="submitAdd">
+            确定
+          </el-button>
+        </span>
       </template>
     </el-dialog>
-  </el-card>
+
+    <el-dialog
+        v-model="editDialogVisible"
+        title="修改心理老师信息"
+        width="520px"
+        :close-on-click-modal="false"
+        destroy-on-close
+        lock-scroll
+    >
+      <el-form
+          ref="editFormRef"
+          :model="editForm"
+          :rules="editRules"
+          label-width="90px"
+      >
+        <el-form-item label="账号">
+          <el-input v-model="editForm.account" disabled />
+        </el-form-item>
+
+        <el-form-item label="新密码" prop="password">
+          <el-input
+              v-model="editForm.password"
+              type="password"
+              show-password
+              placeholder="不修改可留空"
+          />
+        </el-form-item>
+
+        <el-form-item label="姓名" prop="teacherName">
+          <el-input v-model="editForm.teacherName" placeholder="请输入老师姓名" />
+        </el-form-item>
+
+        <el-form-item label="办公室" prop="officeLocation">
+          <el-input v-model="editForm.officeLocation" placeholder="请输入办公地点" />
+        </el-form-item>
+
+        <el-form-item label="电话" prop="phone">
+          <el-input v-model="editForm.phone" placeholder="请输入联系电话" />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span>
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="submitLoading" @click="submitEdit">
+            保存
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
-<script setup>
-import { computed, reactive, ref } from "vue"
-import { ElMessage, ElMessageBox } from "element-plus"
+<script>
+import request from '@/utils/request'
+import { ElMessage } from 'element-plus'
 
-const keyword = ref("")
-const dialogVisible = ref(false)
+export default {
+  name: 'TeacherManage',
+  data() {
+    return {
+      loading: false,
+      submitLoading: false,
 
-const list = ref([
-  {
-    id: 1,
-    teacherAccount: "teacher001",
-    teacherName: "陈老师",
-    gender: "女",
-    phone: "13900000001",
-    specialty: "情绪疏导、压力管理",
-    status: 1,
-    introduction: "擅长大学生常见心理问题咨询"
-  },
-  {
-    id: 2,
-    teacherAccount: "teacher002",
-    teacherName: "周老师",
-    gender: "男",
-    phone: "13900000002",
-    specialty: "人际关系、学业焦虑",
-    status: 1,
-    introduction: "长期从事高校心理咨询工作"
-  },
-  {
-    id: 3,
-    teacherAccount: "teacher003",
-    teacherName: "吴老师",
-    gender: "女",
-    phone: "13900000003",
-    specialty: "睡眠问题、情绪调节",
-    status: 0,
-    introduction: "当前为停用状态"
-  }
-])
+      queryForm: {
+        account: '',
+        teacherName: '',
+        officeLocation: ''
+      },
 
-const form = reactive({
-  id: null,
-  teacherAccount: "",
-  teacherName: "",
-  gender: "女",
-  phone: "",
-  specialty: "",
-  status: 1,
-  introduction: ""
-})
+      pagination: {
+        pageNum: 1,
+        pageSize: 5,
+        total: 0
+      },
 
-const tableData = computed(() => {
-  if (!keyword.value) return list.value
-  return list.value.filter(item =>
-      item.teacherAccount.includes(keyword.value) ||
-      item.teacherName.includes(keyword.value)
-  )
-})
+      tableData: [],
 
-const resetForm = () => {
-  form.id = null
-  form.teacherAccount = ""
-  form.teacherName = ""
-  form.gender = "女"
-  form.phone = ""
-  form.specialty = ""
-  form.status = 1
-  form.introduction = ""
-}
+      addDialogVisible: false,
+      editDialogVisible: false,
 
-const handleSearch = () => {
-  ElMessage.success("查询完成")
-}
+      addForm: {
+        account: '',
+        password: '',
+        teacherName: '',
+        officeLocation: '',
+        phone: ''
+      },
 
-const handleReset = () => {
-  keyword.value = ""
-}
+      editForm: {
+        account: '',
+        password: '',
+        teacherName: '',
+        officeLocation: '',
+        phone: ''
+      },
 
-const openAddDialog = () => {
-  resetForm()
-  dialogVisible.value = true
-}
+      addRules: {
+        account: [
+          { required: true, message: '请输入老师账号', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ],
+        teacherName: [
+          { required: true, message: '请输入老师姓名', trigger: 'blur' }
+        ],
+        phone: [
+          { required: true, message: '请输入联系电话', trigger: 'blur' }
+        ]
+      },
 
-const openEditDialog = (row) => {
-  form.id = row.id
-  form.teacherAccount = row.teacherAccount
-  form.teacherName = row.teacherName
-  form.gender = row.gender
-  form.phone = row.phone
-  form.specialty = row.specialty
-  form.status = row.status
-  form.introduction = row.introduction
-  dialogVisible.value = true
-}
-
-const handleSubmit = () => {
-  if (!form.teacherAccount || !form.teacherName) {
-    ElMessage.warning("请填写完整的老师账号和姓名")
-    return
-  }
-
-  if (form.id) {
-    const index = list.value.findIndex(item => item.id === form.id)
-    if (index !== -1) {
-      list.value[index] = { ...form }
+      editRules: {
+        teacherName: [
+          { required: true, message: '请输入老师姓名', trigger: 'blur' }
+        ],
+        phone: [
+          { required: true, message: '请输入联系电话', trigger: 'blur' }
+        ]
+      }
     }
-    ElMessage.success("心理老师信息修改成功")
-  } else {
-    list.value.unshift({
-      ...form,
-      id: Date.now()
-    })
-    ElMessage.success("心理老师新增成功")
-  }
+  },
 
-  dialogVisible.value = false
-}
+  mounted() {
+    this.fetchTableData()
+  },
 
-const toggleStatus = (row) => {
-  row.status = row.status === 1 ? 0 : 1
-  ElMessage.success("状态修改成功")
-}
+  methods: {
+    parseResult(res) {
+      if (res === null || res === undefined) {
+        throw new Error('服务器返回为空')
+      }
 
-const handleDelete = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确认删除心理老师【${row.teacherName}】吗？`, "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    })
+      const hasCode = Object.prototype.hasOwnProperty.call(res, 'code')
+      const hasSuccess = Object.prototype.hasOwnProperty.call(res, 'success')
 
-    list.value = list.value.filter(item => item.id !== row.id)
-    ElMessage.success("删除成功")
-  } catch (e) {
-    return
+      if (hasCode) {
+        const ok = res.code === 200 || res.code === 0
+        if (!ok) {
+          throw new Error(res.message || res.msg || '请求失败')
+        }
+        return res.data !== undefined ? res.data : res
+      }
+
+      if (hasSuccess) {
+        if (!res.success) {
+          throw new Error(res.message || res.msg || '请求失败')
+        }
+        return res.data !== undefined ? res.data : res
+      }
+
+      return res
+    },
+
+    async fetchTableData() {
+      this.loading = true
+      try {
+        const res = await request({
+          url: '/admin/teacher/page',
+          method: 'post',
+          data: {
+            pageNum: this.pagination.pageNum,
+            pageSize: this.pagination.pageSize,
+            account: this.queryForm.account,
+            teacherName: this.queryForm.teacherName,
+            officeLocation: this.queryForm.officeLocation
+          }
+        })
+
+        const data = this.parseResult(res)
+
+        this.tableData = Array.isArray(data.list) ? data.list : []
+        this.pagination.total = data.total || 0
+        this.pagination.pageNum = data.pageNum || this.pagination.pageNum
+        this.pagination.pageSize = data.pageSize || this.pagination.pageSize
+      } catch (error) {
+        ElMessage.error(error.message || '查询失败')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleSearch() {
+      this.pagination.pageNum = 1
+      this.fetchTableData()
+    },
+
+    handleReset() {
+      this.queryForm = {
+        account: '',
+        teacherName: '',
+        officeLocation: ''
+      }
+      this.pagination.pageNum = 1
+      this.pagination.pageSize = 5
+      this.fetchTableData()
+    },
+
+    handleSizeChange(size) {
+      this.pagination.pageSize = size
+      this.pagination.pageNum = 1
+      this.fetchTableData()
+    },
+
+    handleCurrentChange(page) {
+      this.pagination.pageNum = page
+      this.fetchTableData()
+    },
+
+    openAddDialog() {
+      this.addDialogVisible = true
+      this.$nextTick(() => {
+        this.resetAddForm()
+        if (this.$refs.addFormRef) {
+          this.$refs.addFormRef.clearValidate()
+        }
+      })
+    },
+
+    resetAddForm() {
+      this.addForm = {
+        account: '',
+        password: '',
+        teacherName: '',
+        officeLocation: '',
+        phone: ''
+      }
+    },
+
+    submitAdd() {
+      if (!this.$refs.addFormRef) return
+
+      this.$refs.addFormRef.validate(async (valid) => {
+        if (!valid) return
+
+        this.submitLoading = true
+        try {
+          const res = await request({
+            url: '/admin/teacher/create',
+            method: 'post',
+            data: this.addForm
+          })
+
+          this.parseResult(res)
+          ElMessage.success('新增成功')
+          this.addDialogVisible = false
+          this.fetchTableData()
+        } catch (error) {
+          ElMessage.error(error.message || '新增失败')
+        } finally {
+          this.submitLoading = false
+        }
+      })
+    },
+
+    async openEditDialog(account) {
+      try {
+        const res = await request({
+          url: '/admin/teacher/detail',
+          method: 'get',
+          params: { account }
+        })
+
+        const data = this.parseResult(res)
+        this.editForm = {
+          account: data.account || '',
+          password: '',
+          teacherName: data.teacherName || '',
+          officeLocation: data.officeLocation || '',
+          phone: data.phone || ''
+        }
+
+        this.editDialogVisible = true
+
+        this.$nextTick(() => {
+          if (this.$refs.editFormRef) {
+            this.$refs.editFormRef.clearValidate()
+          }
+        })
+      } catch (error) {
+        ElMessage.error(error.message || '获取老师信息失败')
+      }
+    },
+
+    submitEdit() {
+      if (!this.$refs.editFormRef) return
+
+      this.$refs.editFormRef.validate(async (valid) => {
+        if (!valid) return
+
+        this.submitLoading = true
+        try {
+          const payload = { ...this.editForm }
+          if (!payload.password) delete payload.password
+
+          const res = await request({
+            url: '/admin/teacher/update',
+            method: 'post',
+            data: payload
+          })
+
+          this.parseResult(res)
+          ElMessage.success('修改成功')
+          this.editDialogVisible = false
+          this.fetchTableData()
+        } catch (error) {
+          ElMessage.error(error.message || '修改失败')
+        } finally {
+          this.submitLoading = false
+        }
+      })
+    }
   }
 }
 </script>
 
 <style scoped>
-.page-card {
-  border-radius: 12px;
+.teacher-manage {
+  padding: 16px;
+  background: #f5f7fa;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.search-card,
+.table-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-weight: 600;
 }
 
 .toolbar {
-  display: flex;
-  align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
 }
 
-.search-input {
-  width: 300px;
+.search-form {
+  margin-top: 4px;
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+:deep(.el-dialog) {
+  border-radius: 10px;
+}
+
+:deep(.el-dialog__header) {
+  padding: 16px 20px 8px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 8px 20px 12px;
+  max-height: calc(80vh - 120px);
+  overflow-y: auto;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 8px 20px 16px;
+}
+
+:deep(.el-card__header) {
+  padding: 10px 14px;
+}
+
+:deep(.el-card__body) {
+  padding: 12px 14px;
+}
+
+@media (max-width: 768px) {
+  .teacher-manage {
+    padding: 10px;
+  }
+
+  .search-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pagination-wrapper {
+    justify-content: center;
+  }
 }
 </style>

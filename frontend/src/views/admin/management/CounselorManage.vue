@@ -400,7 +400,7 @@ export default {
 
       pagination: {
         pageNum: 1,
-        pageSize: 5, // 这里改成 5
+        pageSize: 5,
         total: 0
       },
 
@@ -553,7 +553,7 @@ export default {
         grade: ''
       }
       this.pagination.pageNum = 1
-      this.pagination.pageSize = 5 // 重置也默认 5
+      this.pagination.pageSize = 5
       this.fetchTableData()
     },
 
@@ -745,7 +745,7 @@ export default {
       this.detailClassInputVisible = true
       this.$nextTick(() => {
         if (this.$refs.detailClassInputRef) {
-          this.detailClassInputRef.focus()
+          this.$refs.detailClassInputRef.focus()
         }
       })
     },
@@ -1037,18 +1037,6 @@ export default {
   .search-actions {
     justify-content: flex-start;
     flex-wrap: wrap;
-  }
-
-  .pagination-wrapper {
-    justify-content: center;
-  }
-
-  .class-input {
-    width: 120px;
-  }
-
-  .class-manage-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

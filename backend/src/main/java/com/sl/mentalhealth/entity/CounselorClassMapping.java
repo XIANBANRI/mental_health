@@ -1,29 +1,24 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@Entity
-@Table(name = "counselor_class_mapping")
+@TableName("counselor_class_mapping")
 public class CounselorClassMapping {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Column(name = "counselor_account")
+  @TableField("counselor_account")
   private String counselorAccount;
 
-  @Column(name = "class_name")
+  @TableField("class_name")
   private String className;
 
   public CounselorClassMapping() {
   }
-
 }

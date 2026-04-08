@@ -40,12 +40,15 @@ class AppointmentGatewayServiceTest {
 
   @Test
   void studentAvailable_success() {
-    List<AvailableAppointmentVO> expected = Collections.singletonList(org.mockito.Mockito.mock(AvailableAppointmentVO.class));
+    List<AvailableAppointmentVO> expected =
+        Collections.singletonList(org.mockito.Mockito.mock(AvailableAppointmentVO.class));
+
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
     response.setAvailableTeachers(expected);
 
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     List<AvailableAppointmentVO> result = service.studentAvailable("2026-04-05");
@@ -56,6 +59,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("STUDENT_AVAILABLE", sent.getOperation());
     assertEquals("2026-04-05", sent.getDate());
     verify(pendingAppointmentService).createFuture(sent.getRequestId());
@@ -73,7 +77,9 @@ class AppointmentGatewayServiceTest {
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
     response.setAppointmentId(99L);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     Long result = service.studentCreate(req);
@@ -84,6 +90,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("STUDENT_CREATE", sent.getOperation());
     assertEquals("s001", sent.getStudentId());
     assertEquals(10L, sent.getScheduleId());
@@ -94,11 +101,15 @@ class AppointmentGatewayServiceTest {
 
   @Test
   void studentMy_success() {
-    List<AppointmentVO> expected = Collections.singletonList(org.mockito.Mockito.mock(AppointmentVO.class));
+    List<AppointmentVO> expected =
+        Collections.singletonList(org.mockito.Mockito.mock(AppointmentVO.class));
+
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
     response.setAppointmentList(expected);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     List<AppointmentVO> result = service.studentMy("s001");
@@ -108,8 +119,10 @@ class AppointmentGatewayServiceTest {
     ArgumentCaptor<AppointmentRequestMessage> captor =
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
-    assertEquals("STUDENT_MY", captor.getValue().getOperation());
-    assertEquals("s001", captor.getValue().getStudentId());
+    AppointmentRequestMessage sent = captor.getValue();
+
+    assertEquals("STUDENT_MY", sent.getOperation());
+    assertEquals("s001", sent.getStudentId());
   }
 
   @Test
@@ -120,7 +133,9 @@ class AppointmentGatewayServiceTest {
 
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     service.studentCancel(req);
@@ -129,6 +144,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("STUDENT_CANCEL", sent.getOperation());
     assertEquals("s001", sent.getStudentId());
     assertEquals(100L, sent.getAppointmentId());
@@ -136,11 +152,15 @@ class AppointmentGatewayServiceTest {
 
   @Test
   void teacherList_success() {
-    List<AppointmentVO> expected = Collections.singletonList(org.mockito.Mockito.mock(AppointmentVO.class));
+    List<AppointmentVO> expected =
+        Collections.singletonList(org.mockito.Mockito.mock(AppointmentVO.class));
+
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
     response.setAppointmentList(expected);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     List<AppointmentVO> result = service.teacherList("t001", "PENDING", "2026-04-05");
@@ -151,6 +171,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("TEACHER_LIST", sent.getOperation());
     assertEquals("t001", sent.getTeacherAccount());
     assertEquals("PENDING", sent.getStatus());
@@ -159,14 +180,17 @@ class AppointmentGatewayServiceTest {
 
   @Test
   void teacherApprove_success() {
-    TeacherAppointmentAuditRequest req = org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
+    TeacherAppointmentAuditRequest req =
+        org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
     when(req.getAppointmentId()).thenReturn(1L);
     when(req.getTeacherAccount()).thenReturn("t001");
     when(req.getTeacherReply()).thenReturn("同意");
 
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     service.teacherApprove(req);
@@ -175,6 +199,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("TEACHER_APPROVE", sent.getOperation());
     assertEquals(1L, sent.getAppointmentId());
     assertEquals("t001", sent.getTeacherAccount());
@@ -183,14 +208,17 @@ class AppointmentGatewayServiceTest {
 
   @Test
   void teacherReject_success_setsRejectReason() {
-    TeacherAppointmentAuditRequest req = org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
+    TeacherAppointmentAuditRequest req =
+        org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
     when(req.getAppointmentId()).thenReturn(2L);
     when(req.getTeacherAccount()).thenReturn("t001");
     when(req.getTeacherReply()).thenReturn("时间冲突");
 
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     service.teacherReject(req);
@@ -199,20 +227,24 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("TEACHER_REJECT", sent.getOperation());
     assertEquals("时间冲突", sent.getRejectReason());
   }
 
   @Test
   void teacherComplete_success() {
-    TeacherAppointmentAuditRequest req = org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
+    TeacherAppointmentAuditRequest req =
+        org.mockito.Mockito.mock(TeacherAppointmentAuditRequest.class);
     when(req.getAppointmentId()).thenReturn(3L);
     when(req.getTeacherAccount()).thenReturn("t001");
     when(req.getTeacherReply()).thenReturn("已完成");
 
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(true);
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     service.teacherComplete(req);
@@ -221,6 +253,7 @@ class AppointmentGatewayServiceTest {
         ArgumentCaptor.forClass(AppointmentRequestMessage.class);
     verify(appointmentRequestProducer).send(captor.capture());
     AppointmentRequestMessage sent = captor.getValue();
+
     assertEquals("TEACHER_COMPLETE", sent.getOperation());
     assertEquals("已完成", sent.getTeacherReply());
   }
@@ -230,7 +263,9 @@ class AppointmentGatewayServiceTest {
     AppointmentResponseMessage response = new AppointmentResponseMessage();
     response.setSuccess(false);
     response.setMessage("处理失败");
-    CompletableFuture<AppointmentResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AppointmentResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAppointmentService.createFuture(anyString())).thenReturn(future);
 
     RuntimeException ex =

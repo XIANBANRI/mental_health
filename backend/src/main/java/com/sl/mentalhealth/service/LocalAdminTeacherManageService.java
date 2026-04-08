@@ -1,22 +1,17 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sl.mentalhealth.dto.AdminTeacherCreateRequest;
 import com.sl.mentalhealth.dto.AdminTeacherQueryRequest;
 import com.sl.mentalhealth.dto.AdminTeacherUpdateRequest;
 import com.sl.mentalhealth.entity.Teacher;
 import com.sl.mentalhealth.kafka.message.AdminTeacherManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AdminTeacherManageResponseMessage;
-import com.sl.mentalhealth.repository.TeacherRepository;
+import com.sl.mentalhealth.mapper.TeacherMapper;
 import com.sl.mentalhealth.vo.AdminTeacherPageVO;
 import com.sl.mentalhealth.vo.AdminTeacherVO;
-import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,10 +20,10 @@ import org.springframework.util.StringUtils;
 @Transactional
 public class LocalAdminTeacherManageService {
 
-  private final TeacherRepository teacherRepository;
+  private final TeacherMapper teacherMapper;
 
-  public LocalAdminTeacherManageService(TeacherRepository teacherRepository) {
-    this.teacherRepository = teacherRepository;
+  public LocalAdminTeacherManageService(TeacherMapper teacherMapper) {
+    this.teacherMapper = teacherMapper;
   }
 
   public AdminTeacherManageResponseMessage handle(AdminTeacherManageRequestMessage requestMessage) {
@@ -76,39 +71,23 @@ public class LocalAdminTeacherManageService {
     int pageSize = queryRequest.getPageSize() == null || queryRequest.getPageSize() < 1
         ? 10 : queryRequest.getPageSize();
 
-    Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Direction.ASC, "account"));
+    Page<Teacher> page = new Page<>(pageNum, pageSize);
 
-    Specification<Teacher> specification = (root, query, cb) -> {
-      List<Predicate> predicates = new ArrayList<>();
-
-      if (StringUtils.hasText(queryRequest.getAccount())) {
-        predicates.add(cb.like(root.get("account"), "%" + queryRequest.getAccount().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getTeacherName())) {
-        predicates.add(cb.like(root.get("teacherName"), "%" + queryRequest.getTeacherName().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getOfficeLocation())) {
-        predicates.add(cb.like(root.get("officeLocation"), "%" + queryRequest.getOfficeLocation().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getPhone())) {
-        predicates.add(cb.like(root.get("phone"), "%" + queryRequest.getPhone().trim() + "%"));
-      }
-
-      if (predicates.isEmpty()) {
-        return cb.conjunction();
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
-    };
-
-    Page<Teacher> teacherPage = teacherRepository.findAll(specification, pageable);
+    Page<Teacher> teacherPage = teacherMapper.selectPageByCondition(
+        page,
+        normalize(queryRequest.getAccount()),
+        normalize(queryRequest.getTeacherName()),
+        normalize(queryRequest.getOfficeLocation()),
+        normalize(queryRequest.getPhone())
+    );
 
     List<AdminTeacherVO> list = new ArrayList<>();
-    for (Teacher teacher : teacherPage.getContent()) {
+    for (Teacher teacher : teacherPage.getRecords()) {
       list.add(toVO(teacher));
     }
 
     AdminTeacherPageVO pageVO = new AdminTeacherPageVO();
-    pageVO.setTotal(teacherPage.getTotalElements());
+    pageVO.setTotal(teacherPage.getTotal());
     pageVO.setPageNum(pageNum);
     pageVO.setPageSize(pageSize);
     pageVO.setList(list);
@@ -117,8 +96,10 @@ public class LocalAdminTeacherManageService {
 
   private AdminTeacherVO detail(String account) {
     String teacherAccount = required(account, "老师账号不能为空");
-    Teacher teacher = teacherRepository.findById(teacherAccount)
-        .orElseThrow(() -> new RuntimeException("心理老师不存在"));
+    Teacher teacher = teacherMapper.selectById(teacherAccount);
+    if (teacher == null) {
+      throw new RuntimeException("心理老师不存在");
+    }
     return toVO(teacher);
   }
 
@@ -130,7 +111,7 @@ public class LocalAdminTeacherManageService {
     String account = required(request.getAccount(), "老师账号不能为空");
     String password = required(request.getPassword(), "老师密码不能为空");
 
-    if (teacherRepository.existsByAccount(account)) {
+    if (teacherMapper.selectById(account) != null) {
       throw new RuntimeException("老师账号已存在");
     }
 
@@ -142,8 +123,8 @@ public class LocalAdminTeacherManageService {
     teacher.setPhone(normalize(request.getPhone()));
     teacher.setAvatarUrl(null);
 
-    Teacher saved = teacherRepository.save(teacher);
-    return toVO(saved);
+    teacherMapper.insert(teacher);
+    return toVO(teacher);
   }
 
   private AdminTeacherVO update(AdminTeacherUpdateRequest request) {
@@ -153,8 +134,10 @@ public class LocalAdminTeacherManageService {
 
     String account = required(request.getAccount(), "老师账号不能为空");
 
-    Teacher teacher = teacherRepository.findById(account)
-        .orElseThrow(() -> new RuntimeException("心理老师不存在"));
+    Teacher teacher = teacherMapper.selectById(account);
+    if (teacher == null) {
+      throw new RuntimeException("心理老师不存在");
+    }
 
     String password = normalize(request.getPassword());
     if (password != null) {
@@ -177,8 +160,8 @@ public class LocalAdminTeacherManageService {
       teacher.setAvatarUrl(normalize(request.getAvatarUrl()));
     }
 
-    Teacher saved = teacherRepository.save(teacher);
-    return toVO(saved);
+    teacherMapper.updateById(teacher);
+    return toVO(teacher);
   }
 
   private AdminTeacherVO toVO(Teacher teacher) {

@@ -1,67 +1,57 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "assessment_scale")
+@Setter
+@TableName("assessment_scale")
 public class AssessmentScale {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Setter
-  @Column(name = "scale_code", nullable = false, unique = true, length = 50)
+  @TableField("scale_code")
   private String scaleCode;
 
-  @Setter
-  @Column(name = "scale_name", nullable = false, length = 100)
+  @TableField("scale_name")
   private String scaleName;
 
-  @Setter
-  @Column(name = "scale_type", nullable = false, length = 50)
+  @TableField("scale_type")
   private String scaleType;
 
-  @Setter
-  @Column(name = "description", length = 255)
+  @TableField("description")
   private String description;
 
-  @Setter
-  @Column(name = "question_count", nullable = false)
+  @TableField("question_count")
   private Integer questionCount;
 
-  @Setter
-  @Column(name = "score_min", nullable = false)
+  @TableField("score_min")
   private Integer scoreMin;
 
-  @Setter
-  @Column(name = "score_max", nullable = false)
-  private Integer scoreMax;
+  @TableField("score_max")
+  private Integer scoreMax = 0;
 
-  @Setter
-  @Column(name = "status", nullable = false)
+  @TableField("status")
   private Integer status = 1;
 
-  @Setter
-  @Column(name = "deleted_flag", nullable = false)
+  @TableField("deleted_flag")
   private Integer deletedFlag = 0;
 
-  @Setter
-  @Column(name = "current_version_id")
+  @TableField("current_version_id")
   private Long currentVersionId;
 
-  @Setter
-  @Column(name = "created_by", length = 50)
+  @TableField("created_by")
   private String createdBy;
 
-  @Column(name = "created_at", insertable = false, updatable = false)
+  @TableField("created_at")
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at", insertable = false, updatable = false)
+  @TableField("updated_at")
   private LocalDateTime updatedAt;
-
 }

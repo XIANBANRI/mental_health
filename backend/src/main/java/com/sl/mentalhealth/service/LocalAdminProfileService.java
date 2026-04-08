@@ -1,17 +1,17 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.entity.Admin;
-import com.sl.mentalhealth.repository.AdminRepository;
+import com.sl.mentalhealth.mapper.AdminMapper;
 import com.sl.mentalhealth.vo.AdminProfileResponseVO;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LocalAdminProfileService {
 
-  private final AdminRepository adminRepository;
+  private final AdminMapper adminMapper;
 
-  public LocalAdminProfileService(AdminRepository adminRepository) {
-    this.adminRepository = adminRepository;
+  public LocalAdminProfileService(AdminMapper adminMapper) {
+    this.adminMapper = adminMapper;
   }
 
   public AdminProfileResponseVO getAdminProfile(String account) {
@@ -19,8 +19,10 @@ public class LocalAdminProfileService {
       throw new IllegalArgumentException("管理员账号不能为空");
     }
 
-    Admin admin = adminRepository.findById(account.trim())
-        .orElseThrow(() -> new RuntimeException("管理员不存在"));
+    Admin admin = adminMapper.selectById(account.trim());
+    if (admin == null) {
+      throw new RuntimeException("管理员不存在");
+    }
 
     return buildVO(admin);
   }
@@ -33,11 +35,13 @@ public class LocalAdminProfileService {
       throw new IllegalArgumentException("头像地址不能为空");
     }
 
-    Admin admin = adminRepository.findById(account.trim())
-        .orElseThrow(() -> new RuntimeException("管理员不存在"));
+    Admin admin = adminMapper.selectById(account.trim());
+    if (admin == null) {
+      throw new RuntimeException("管理员不存在");
+    }
 
     admin.setAvatarUrl(avatarUrl.trim());
-    adminRepository.save(admin);
+    adminMapper.updateById(admin);
 
     return buildVO(admin);
   }

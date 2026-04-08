@@ -1,36 +1,33 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "assessment_version_question")
+@Setter
+@TableName("assessment_version_question")
 public class AssessmentVersionQuestion {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Setter
-  @Column(name = "version_id", nullable = false)
+  @TableField("version_id")
   private Long versionId;
 
-  @Setter
-  @Column(name = "question_no", nullable = false)
+  @TableField("question_no")
   private Integer questionNo;
 
-  @Setter
-  @Column(name = "question_text", nullable = false, length = 500)
+  @TableField("question_text")
   private String questionText;
 
-  @Setter
-  @Column(name = "required_flag", nullable = false)
+  @TableField("required_flag")
   private Integer requiredFlag = 1;
 
-  @Column(name = "created_at", insertable = false, updatable = false)
+  @TableField("created_at")
   private LocalDateTime createdAt;
-
 }

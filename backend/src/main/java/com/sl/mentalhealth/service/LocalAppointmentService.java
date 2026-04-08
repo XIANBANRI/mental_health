@@ -1,13 +1,14 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sl.mentalhealth.entity.Appointment;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.entity.Teacher;
 import com.sl.mentalhealth.entity.TeacherSchedule;
-import com.sl.mentalhealth.repository.AppointmentRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
-import com.sl.mentalhealth.repository.TeacherRepository;
-import com.sl.mentalhealth.repository.TeacherScheduleRepository;
+import com.sl.mentalhealth.mapper.AppointmentMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
+import com.sl.mentalhealth.mapper.TeacherMapper;
+import com.sl.mentalhealth.mapper.TeacherScheduleMapper;
 import com.sl.mentalhealth.vo.AppointmentVO;
 import com.sl.mentalhealth.vo.AvailableAppointmentVO;
 import java.time.DayOfWeek;
@@ -15,7 +16,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,42 +33,47 @@ public class LocalAppointmentService {
 
   private static final Integer STATUS_ENABLED = 1;
 
-  private static final List<String> OCCUPIED_STATUS = Arrays.asList("PENDING", "APPROVED", "COMPLETED");
-  private static final List<String> DUPLICATE_STATUS = Arrays.asList("PENDING", "APPROVED");
+  private static final List<String> OCCUPIED_STATUS = List.of("PENDING", "APPROVED", "COMPLETED");
+  private static final List<String> DUPLICATE_STATUS = List.of("PENDING", "APPROVED");
 
-  private final AppointmentRepository appointmentRepository;
-  private final TeacherScheduleRepository teacherScheduleRepository;
-  private final TeacherRepository teacherRepository;
-  private final StudentRepository studentRepository;
+  private final AppointmentMapper appointmentMapper;
+  private final TeacherScheduleMapper teacherScheduleMapper;
+  private final TeacherMapper teacherMapper;
+  private final StudentMapper studentMapper;
 
   public List<AvailableAppointmentVO> studentAvailable(String dateStr) {
     LocalDate date = (dateStr == null || dateStr.isBlank()) ? LocalDate.now() : LocalDate.parse(dateStr);
     int weekDay = convertWeekDay(date.getDayOfWeek());
 
     List<TeacherSchedule> schedules =
-        teacherScheduleRepository.findByWeekDayAndStatusOrderByStartTimeAsc(weekDay, STATUS_ENABLED);
+        teacherScheduleMapper.selectByWeekDayAndStatusOrderByStartTimeAsc(weekDay, STATUS_ENABLED);
 
-    if (schedules.isEmpty()) {
+    if (schedules == null || schedules.isEmpty()) {
       return Collections.emptyList();
     }
 
     Set<String> teacherAccounts = new HashSet<>();
     for (TeacherSchedule schedule : schedules) {
-      teacherAccounts.add(schedule.getTeacherAccount());
+      if (schedule.getTeacherAccount() != null && !schedule.getTeacherAccount().isBlank()) {
+        teacherAccounts.add(schedule.getTeacherAccount());
+      }
     }
 
     Map<String, Teacher> teacherMap = new HashMap<>();
-    for (Teacher teacher : teacherRepository.findAllById(teacherAccounts)) {
-      teacherMap.put(teacher.getAccount(), teacher);
+    if (!teacherAccounts.isEmpty()) {
+      for (Teacher teacher : teacherMapper.selectBatchIds(teacherAccounts)) {
+        teacherMap.put(teacher.getAccount(), teacher);
+      }
     }
 
     List<AvailableAppointmentVO> result = new ArrayList<>();
     for (TeacherSchedule schedule : schedules) {
       Teacher teacher = teacherMap.get(schedule.getTeacherAccount());
 
-      long used = appointmentRepository.countByScheduleIdAndAppointmentDateAndStatusIn(
-          schedule.getId(), date, OCCUPIED_STATUS
-      );
+      long used = countAppointments(new LambdaQueryWrapper<Appointment>()
+          .eq(Appointment::getScheduleId, schedule.getId())
+          .eq(Appointment::getAppointmentDate, date)
+          .in(Appointment::getStatus, OCCUPIED_STATUS));
 
       AvailableAppointmentVO vo = new AvailableAppointmentVO();
       vo.setScheduleId(schedule.getId());
@@ -107,7 +112,7 @@ public class LocalAppointmentService {
       throw new RuntimeException("预约日期不能为空");
     }
 
-    Student student = studentRepository.findById(studentId).orElse(null);
+    Student student = studentMapper.selectById(studentId);
     if (student == null) {
       throw new RuntimeException("学生不存在");
     }
@@ -117,8 +122,10 @@ public class LocalAppointmentService {
       throw new RuntimeException("不能预约过去日期");
     }
 
-    TeacherSchedule schedule = teacherScheduleRepository.findById(scheduleId)
-        .orElseThrow(() -> new RuntimeException("排班不存在"));
+    TeacherSchedule schedule = teacherScheduleMapper.selectById(scheduleId);
+    if (schedule == null) {
+      throw new RuntimeException("排班不存在");
+    }
 
     if (!Objects.equals(schedule.getStatus(), STATUS_ENABLED)) {
       throw new RuntimeException("该工作时间已停用，无法预约");
@@ -129,28 +136,29 @@ public class LocalAppointmentService {
       throw new RuntimeException("预约日期与老师排班星期不匹配");
     }
 
-    boolean duplicated = appointmentRepository.existsByStudentAccountAndScheduleIdAndAppointmentDateAndStatusIn(
-        studentId, scheduleId, appointmentDate, DUPLICATE_STATUS
-    );
+    boolean duplicated = countAppointments(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getStudentAccount, studentId)
+        .eq(Appointment::getScheduleId, scheduleId)
+        .eq(Appointment::getAppointmentDate, appointmentDate)
+        .in(Appointment::getStatus, DUPLICATE_STATUS)) > 0;
     if (duplicated) {
       throw new RuntimeException("你已预约过该时段");
     }
 
-    boolean sameTimeDuplicated =
-        appointmentRepository.existsByStudentAccountAndAppointmentDateAndStartTimeAndEndTimeAndStatusIn(
-            studentId,
-            appointmentDate,
-            schedule.getStartTime(),
-            schedule.getEndTime(),
-            DUPLICATE_STATUS
-        );
+    boolean sameTimeDuplicated = countAppointments(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getStudentAccount, studentId)
+        .eq(Appointment::getAppointmentDate, appointmentDate)
+        .eq(Appointment::getStartTime, schedule.getStartTime())
+        .eq(Appointment::getEndTime, schedule.getEndTime())
+        .in(Appointment::getStatus, DUPLICATE_STATUS)) > 0;
     if (sameTimeDuplicated) {
       throw new RuntimeException("同一天同一时间段只能预约一个老师");
     }
 
-    long used = appointmentRepository.countByScheduleIdAndAppointmentDateAndStatusIn(
-        scheduleId, appointmentDate, OCCUPIED_STATUS
-    );
+    long used = countAppointments(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getScheduleId, scheduleId)
+        .eq(Appointment::getAppointmentDate, appointmentDate)
+        .in(Appointment::getStatus, OCCUPIED_STATUS));
     if (used >= schedule.getMaxAppointments()) {
       throw new RuntimeException("该时段预约人数已满");
     }
@@ -169,20 +177,27 @@ public class LocalAppointmentService {
     appointment.setCreatedAt(LocalDateTime.now());
     appointment.setUpdatedAt(LocalDateTime.now());
 
-    appointmentRepository.save(appointment);
+    appointmentMapper.insert(appointment);
     return appointment.getId();
   }
 
   public List<AppointmentVO> studentMy(String studentId) {
-    List<Appointment> list =
-        appointmentRepository.findByStudentAccountOrderByAppointmentDateDescStartTimeDesc(studentId);
+    List<Appointment> list = appointmentMapper.selectList(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getStudentAccount, studentId)
+        .orderByDesc(Appointment::getAppointmentDate)
+        .orderByDesc(Appointment::getStartTime));
     return buildAppointmentVOList(list);
   }
 
   @Transactional(rollbackFor = Exception.class)
   public void studentCancel(Long appointmentId, String studentId) {
-    Appointment appointment = appointmentRepository.findByIdAndStudentAccount(appointmentId, studentId)
-        .orElseThrow(() -> new RuntimeException("预约记录不存在"));
+    Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getId, appointmentId)
+        .eq(Appointment::getStudentAccount, studentId));
+
+    if (appointment == null) {
+      throw new RuntimeException("预约记录不存在");
+    }
 
     if ("CANCELLED".equals(appointment.getStatus())) {
       throw new RuntimeException("该预约已取消");
@@ -197,7 +212,7 @@ public class LocalAppointmentService {
     appointment.setStatus("CANCELLED");
     appointment.setCancelledAt(LocalDateTime.now());
     appointment.setUpdatedAt(LocalDateTime.now());
-    appointmentRepository.save(appointment);
+    appointmentMapper.updateById(appointment);
   }
 
   public List<AppointmentVO> teacherList(String teacherAccount, String status, String dateStr) {
@@ -210,19 +225,33 @@ public class LocalAppointmentService {
       date = LocalDate.parse(dateStr);
     }
 
-    List<Appointment> list = appointmentRepository.findTeacherAppointments(
-        teacherAccount,
-        null,
-        status,
-        date
-    );
+    LambdaQueryWrapper<Appointment> wrapper = new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getTeacherAccount, teacherAccount)
+        .notIn(Appointment::getStatus, List.of("COMPLETED", "CANCELLED"));
+
+    if (status != null && !status.isBlank()) {
+      wrapper.eq(Appointment::getStatus, status);
+    }
+    if (date != null) {
+      wrapper.eq(Appointment::getAppointmentDate, date);
+    }
+
+    wrapper.orderByDesc(Appointment::getAppointmentDate)
+        .orderByDesc(Appointment::getStartTime);
+
+    List<Appointment> list = appointmentMapper.selectList(wrapper);
     return buildAppointmentVOList(list);
   }
 
   @Transactional(rollbackFor = Exception.class)
   public void teacherApprove(Long appointmentId, String teacherAccount, String teacherReply) {
-    Appointment appointment = appointmentRepository.findByIdAndTeacherAccount(appointmentId, teacherAccount)
-        .orElseThrow(() -> new RuntimeException("预约记录不存在"));
+    Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getId, appointmentId)
+        .eq(Appointment::getTeacherAccount, teacherAccount));
+
+    if (appointment == null) {
+      throw new RuntimeException("预约记录不存在");
+    }
 
     if (!"PENDING".equals(appointment.getStatus())) {
       throw new RuntimeException("只有待审核预约才能通过");
@@ -234,13 +263,18 @@ public class LocalAppointmentService {
     appointment.setApprovedAt(LocalDateTime.now());
     appointment.setUpdatedAt(LocalDateTime.now());
 
-    appointmentRepository.save(appointment);
+    appointmentMapper.updateById(appointment);
   }
 
   @Transactional(rollbackFor = Exception.class)
   public void teacherReject(Long appointmentId, String teacherAccount, String rejectReason) {
-    Appointment appointment = appointmentRepository.findByIdAndTeacherAccount(appointmentId, teacherAccount)
-        .orElseThrow(() -> new RuntimeException("预约记录不存在"));
+    Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getId, appointmentId)
+        .eq(Appointment::getTeacherAccount, teacherAccount));
+
+    if (appointment == null) {
+      throw new RuntimeException("预约记录不存在");
+    }
 
     if (!"PENDING".equals(appointment.getStatus())) {
       throw new RuntimeException("只有待审核预约才能拒绝");
@@ -254,13 +288,18 @@ public class LocalAppointmentService {
     appointment.setTeacherReply(null);
     appointment.setUpdatedAt(LocalDateTime.now());
 
-    appointmentRepository.save(appointment);
+    appointmentMapper.updateById(appointment);
   }
 
   @Transactional(rollbackFor = Exception.class)
   public void teacherComplete(Long appointmentId, String teacherAccount, String teacherReply) {
-    Appointment appointment = appointmentRepository.findByIdAndTeacherAccount(appointmentId, teacherAccount)
-        .orElseThrow(() -> new RuntimeException("预约记录不存在"));
+    Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getId, appointmentId)
+        .eq(Appointment::getTeacherAccount, teacherAccount));
+
+    if (appointment == null) {
+      throw new RuntimeException("预约记录不存在");
+    }
 
     if (!"APPROVED".equals(appointment.getStatus())) {
       throw new RuntimeException("只有已通过预约才能完成");
@@ -271,7 +310,7 @@ public class LocalAppointmentService {
     appointment.setCompletedAt(LocalDateTime.now());
     appointment.setUpdatedAt(LocalDateTime.now());
 
-    appointmentRepository.save(appointment);
+    appointmentMapper.updateById(appointment);
   }
 
   private List<AppointmentVO> buildAppointmentVOList(List<Appointment> appointments) {
@@ -283,18 +322,26 @@ public class LocalAppointmentService {
     Set<String> studentAccounts = new HashSet<>();
 
     for (Appointment item : appointments) {
-      teacherAccounts.add(item.getTeacherAccount());
-      studentAccounts.add(item.getStudentAccount());
+      if (item.getTeacherAccount() != null && !item.getTeacherAccount().isBlank()) {
+        teacherAccounts.add(item.getTeacherAccount());
+      }
+      if (item.getStudentAccount() != null && !item.getStudentAccount().isBlank()) {
+        studentAccounts.add(item.getStudentAccount());
+      }
     }
 
     Map<String, Teacher> teacherMap = new HashMap<>();
-    for (Teacher teacher : teacherRepository.findAllById(teacherAccounts)) {
-      teacherMap.put(teacher.getAccount(), teacher);
+    if (!teacherAccounts.isEmpty()) {
+      for (Teacher teacher : teacherMapper.selectBatchIds(teacherAccounts)) {
+        teacherMap.put(teacher.getAccount(), teacher);
+      }
     }
 
     Map<String, Student> studentMap = new HashMap<>();
-    for (Student student : studentRepository.findAllById(studentAccounts)) {
-      studentMap.put(student.getStudentId(), student);
+    if (!studentAccounts.isEmpty()) {
+      for (Student student : studentMapper.selectBatchIds(studentAccounts)) {
+        studentMap.put(student.getStudentId(), student);
+      }
     }
 
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -354,5 +401,10 @@ public class LocalAppointmentService {
 
   private String generateAppointmentNo() {
     return "APT" + System.currentTimeMillis();
+  }
+
+  private long countAppointments(LambdaQueryWrapper<Appointment> wrapper) {
+    Long count = appointmentMapper.selectCount(wrapper);
+    return count == null ? 0L : count;
   }
 }

@@ -1,12 +1,13 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.entity.StudentAssessmentRecord;
-import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentRecordRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentSemesterSummaryRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
+import com.sl.mentalhealth.mapper.CounselorClassMappingMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentRecordMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentSemesterSummaryMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
 import com.sl.mentalhealth.vo.CounselorWarningDetailVO;
 import com.sl.mentalhealth.vo.CounselorWarningPageVO;
 import com.sl.mentalhealth.vo.CounselorWarningRecordVO;
@@ -15,9 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,10 +25,10 @@ import org.springframework.util.StringUtils;
 @Transactional(readOnly = true)
 public class LocalCounselorWarningService {
 
-  private final CounselorClassMappingRepository counselorClassMappingRepository;
-  private final StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository;
-  private final StudentAssessmentRecordRepository studentAssessmentRecordRepository;
-  private final StudentRepository studentRepository;
+  private final CounselorClassMappingMapper counselorClassMappingMapper;
+  private final StudentAssessmentSemesterSummaryMapper studentAssessmentSemesterSummaryMapper;
+  private final StudentAssessmentRecordMapper studentAssessmentRecordMapper;
+  private final StudentMapper studentMapper;
 
   public List<String> listManagedClasses(String counselorAccount) {
     validateCounselorAccount(counselorAccount);
@@ -64,24 +62,26 @@ public class LocalCounselorWarningService {
 
     int safePageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
     int safePageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+    long offset = (long) (safePageNum - 1) * safePageSize;
 
-    PageRequest pageRequest = PageRequest.of(
-        safePageNum - 1,
-        safePageSize,
-        Sort.by(Sort.Direction.ASC, "studentId")
-    );
+    List<Student> students = studentAssessmentSemesterSummaryMapper
+        .selectDangerousStudentsBySemesterAndClassNames(
+            safeSemester,
+            targetClasses,
+            offset,
+            safePageSize
+        );
 
-    Page<Student> page = studentAssessmentSemesterSummaryRepository
-        .findDangerousStudentsBySemesterAndClassNames(safeSemester, targetClasses, pageRequest);
+    Long total = studentAssessmentSemesterSummaryMapper
+        .countDangerousStudentsBySemesterAndClassNames(safeSemester, targetClasses);
 
-    List<CounselorWarningStudentVO> list = page.getContent()
-        .stream()
+    List<CounselorWarningStudentVO> list = students.stream()
         .map(this::toWarningStudentVO)
         .collect(Collectors.toList());
 
     return CounselorWarningPageVO.builder()
         .list(list)
-        .total(page.getTotalElements())
+        .total(total == null ? 0L : total)
         .build();
   }
 
@@ -100,21 +100,25 @@ public class LocalCounselorWarningService {
       throw new IllegalArgumentException("当前辅导员未绑定任何班级");
     }
 
-    Student student = studentRepository.findById(studentId.trim())
-        .orElseThrow(() -> new IllegalArgumentException("学生不存在"));
+    Student student = studentMapper.selectById(studentId.trim());
+    if (student == null) {
+      throw new IllegalArgumentException("学生不存在");
+    }
 
     if (!managedClasses.contains(student.getClassName())) {
       throw new IllegalArgumentException("无权查看该学生预警详情");
     }
 
-    boolean dangerous = studentAssessmentSemesterSummaryRepository
-        .existsByStudentIdAndSemesterAndSemesterLevel(student.getStudentId(), safeSemester, "危险");
+    Integer dangerousCount = studentAssessmentSemesterSummaryMapper
+        .countByStudentIdAndSemesterAndSemesterLevel(student.getStudentId(), safeSemester, "危险");
+
+    boolean dangerous = dangerousCount != null && dangerousCount > 0;
 
     if (!dangerous) {
       throw new IllegalArgumentException("该学生在当前学期不属于危险预警名单");
     }
 
-    List<CounselorWarningRecordVO> records = studentAssessmentRecordRepository
+    List<CounselorWarningRecordVO> records = studentAssessmentRecordMapper
         .findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(student.getStudentId(), safeSemester)
         .stream()
         .map(this::toRecordVO)
@@ -131,7 +135,11 @@ public class LocalCounselorWarningService {
   }
 
   private List<String> getManagedClasses(String counselorAccount) {
-    return counselorClassMappingRepository.findByCounselorAccountOrderByClassNameAsc(counselorAccount)
+    return counselorClassMappingMapper.selectList(
+            Wrappers.<CounselorClassMapping>lambdaQuery()
+                .eq(CounselorClassMapping::getCounselorAccount, counselorAccount)
+                .orderByAsc(CounselorClassMapping::getClassName)
+        )
         .stream()
         .map(CounselorClassMapping::getClassName)
         .filter(StringUtils::hasText)

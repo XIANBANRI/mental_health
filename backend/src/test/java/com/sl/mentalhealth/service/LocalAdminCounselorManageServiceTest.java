@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sl.mentalhealth.dto.AdminCounselorClassesUpdateRequest;
 import com.sl.mentalhealth.dto.AdminCounselorCreateRequest;
 import com.sl.mentalhealth.dto.AdminCounselorQueryRequest;
@@ -13,26 +16,24 @@ import com.sl.mentalhealth.entity.Counselor;
 import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.kafka.message.AdminCounselorManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AdminCounselorManageResponseMessage;
-import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
-import com.sl.mentalhealth.repository.CounselorRepository;
+import com.sl.mentalhealth.mapper.CounselorClassMappingMapper;
+import com.sl.mentalhealth.mapper.CounselorMapper;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class LocalAdminCounselorManageServiceTest {
 
     @Mock
-    private CounselorRepository counselorRepository;
+    private CounselorMapper counselorMapper;
 
     @Mock
-    private CounselorClassMappingRepository counselorClassMappingRepository;
+    private CounselorClassMappingMapper counselorClassMappingMapper;
 
     @InjectMocks
     private LocalAdminCounselorManageService service;
@@ -46,8 +47,12 @@ class LocalAdminCounselorManageServiceTest {
         counselor.setGrade("2023");
         counselor.setPhone("13800000000");
 
-        when(counselorRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(counselor), PageRequest.of(0, 10), 1));
+        Page<Counselor> counselorPage = new Page<>(1, 10);
+        counselorPage.setRecords(List.of(counselor));
+        counselorPage.setTotal(1L);
+
+        when(counselorMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class)))
+            .thenReturn(counselorPage);
 
         AdminCounselorQueryRequest queryRequest = new AdminCounselorQueryRequest();
         queryRequest.setPageNum(1);
@@ -80,9 +85,8 @@ class LocalAdminCounselorManageServiceTest {
         mapping.setCounselorAccount("c001");
         mapping.setClassName("软件1班");
 
-        when(counselorRepository.findById("c001")).thenReturn(Optional.of(counselor));
-        when(counselorClassMappingRepository.findByCounselorAccountOrderByClassNameAsc("c001"))
-                .thenReturn(List.of(mapping));
+        when(counselorMapper.selectById("c001")).thenReturn(counselor);
+        when(counselorClassMappingMapper.selectList(any())).thenReturn(List.of(mapping));
 
         AdminCounselorManageRequestMessage requestMessage = new AdminCounselorManageRequestMessage();
         requestMessage.setRequestId("r2");
@@ -111,12 +115,15 @@ class LocalAdminCounselorManageServiceTest {
         mapping.setCounselorAccount("c001");
         mapping.setClassName("软件1班");
 
-        when(counselorRepository.existsByAccount("c001")).thenReturn(false);
-        when(counselorRepository.save(any(Counselor.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(counselorRepository.findById("c001")).thenReturn(Optional.of(counselor));
-        when(counselorClassMappingRepository.findFirstByClassName("软件1班")).thenReturn(Optional.empty());
-        when(counselorClassMappingRepository.findByCounselorAccountOrderByClassNameAsc("c001"))
-                .thenReturn(List.of(mapping));
+        when(counselorMapper.selectById("c001"))
+            .thenReturn(null)
+            .thenReturn(counselor);
+        when(counselorClassMappingMapper.selectList(any()))
+            .thenReturn(List.of())
+            .thenReturn(List.of(mapping));
+        when(counselorMapper.insert(any(Counselor.class))).thenReturn(1);
+        when(counselorClassMappingMapper.delete(any())).thenReturn(0);
+        when(counselorClassMappingMapper.insert(any(CounselorClassMapping.class))).thenReturn(1);
 
         AdminCounselorCreateRequest createRequest = new AdminCounselorCreateRequest();
         createRequest.setAccount("c001");
@@ -138,6 +145,11 @@ class LocalAdminCounselorManageServiceTest {
         assertEquals("新增成功", result.getMessage());
         assertEquals("c001", result.getDetail().getAccount());
         assertEquals("软件1班", result.getDetail().getClassList().get(0));
+
+        ArgumentCaptor<Counselor> counselorCaptor = ArgumentCaptor.forClass(Counselor.class);
+        verify(counselorMapper).insert(counselorCaptor.capture());
+        assertEquals("c001", counselorCaptor.getValue().getAccount());
+        assertEquals("王老师", counselorCaptor.getValue().getName());
     }
 
     @Test
@@ -149,9 +161,8 @@ class LocalAdminCounselorManageServiceTest {
         existing.setCounselorAccount("other001");
         existing.setClassName("软件1班");
 
-        when(counselorRepository.findById("c001")).thenReturn(Optional.of(counselor));
-        when(counselorClassMappingRepository.findFirstByClassName("软件1班"))
-                .thenReturn(Optional.of(existing));
+        when(counselorMapper.selectById("c001")).thenReturn(counselor);
+        when(counselorClassMappingMapper.selectList(any())).thenReturn(List.of(existing));
 
         AdminCounselorClassesUpdateRequest updateRequest = new AdminCounselorClassesUpdateRequest();
         updateRequest.setAccount("c001");

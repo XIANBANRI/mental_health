@@ -56,9 +56,11 @@ class AdminTeacherManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminTeacherManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminTeacherManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminTeacherManageRequestMessage.ACTION_QUERY_PAGE, sent.getAction());
     assertSame(request, sent.getQueryRequest());
     assertEquals(32, sent.getRequestId().length());
+
     verify(pendingService).create(sent.getRequestId());
     verify(pendingService).await(sent.getRequestId(), future);
   }
@@ -82,6 +84,7 @@ class AdminTeacherManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminTeacherManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminTeacherManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminTeacherManageRequestMessage.ACTION_DETAIL, sent.getAction());
     assertEquals("t001", sent.getAccount());
   }
@@ -106,6 +109,7 @@ class AdminTeacherManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminTeacherManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminTeacherManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminTeacherManageRequestMessage.ACTION_CREATE, sent.getAction());
     assertSame(request, sent.getCreateRequest());
   }
@@ -130,6 +134,7 @@ class AdminTeacherManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminTeacherManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminTeacherManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminTeacherManageRequestMessage.ACTION_UPDATE, sent.getAction());
     assertSame(request, sent.getUpdateRequest());
   }

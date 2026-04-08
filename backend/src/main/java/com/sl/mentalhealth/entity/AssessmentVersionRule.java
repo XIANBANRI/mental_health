@@ -1,44 +1,39 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "assessment_version_rule")
+@Setter
+@TableName("assessment_version_rule")
 public class AssessmentVersionRule {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Setter
-  @Column(name = "version_id", nullable = false)
+  @TableField("version_id")
   private Long versionId;
 
-  @Setter
-  @Column(name = "min_score", nullable = false)
+  @TableField("min_score")
   private Integer minScore;
 
-  @Setter
-  @Column(name = "max_score", nullable = false)
+  @TableField("max_score")
   private Integer maxScore;
 
-  @Setter
-  @Column(name = "result_level", nullable = false, length = 50)
+  @TableField("result_level")
   private String resultLevel;
 
-  @Setter
-  @Column(name = "result_summary", nullable = false, length = 255)
+  @TableField("result_summary")
   private String resultSummary;
 
-  @Setter
-  @Column(name = "suggestion", length = 500)
+  @TableField("suggestion")
   private String suggestion;
 
-  @Column(name = "created_at", insertable = false, updatable = false)
+  @TableField("created_at")
   private LocalDateTime createdAt;
-
 }

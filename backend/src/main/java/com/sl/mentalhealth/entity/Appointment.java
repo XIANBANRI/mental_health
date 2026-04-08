@@ -1,81 +1,69 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import lombok.Data;
 
 @Data
-@Entity
-@Table(name = "appointment")
+@TableName("appointment")
 public class Appointment {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Column(name = "appointment_no")
+  @TableField("appointment_no")
   private String appointmentNo;
 
-  @Column(name = "student_account")
+  @TableField("student_account")
   private String studentAccount;
 
-  @Column(name = "teacher_account")
+  @TableField("teacher_account")
   private String teacherAccount;
 
-  @Column(name = "schedule_id", nullable = false)
+  @TableField("schedule_id")
   private Long scheduleId;
 
-  @Column(name = "appointment_date", nullable = false)
+  @TableField("appointment_date")
   private LocalDate appointmentDate;
 
-  @Column(name = "start_time", nullable = false)
+  @TableField("start_time")
   private LocalTime startTime;
 
-  @Column(name = "end_time", nullable = false)
+  @TableField("end_time")
   private LocalTime endTime;
 
-  @Column(name = "purpose", length = 255)
+  @TableField("purpose")
   private String purpose;
 
-  @Column(name = "remark", length = 500)
+  @TableField("remark")
   private String remark;
 
-  @Column(name = "teacher_reply", length = 500)
+  @TableField("teacher_reply")
   private String teacherReply;
 
-  @Column(name = "reject_reason", length = 500)
+  @TableField("reject_reason")
   private String rejectReason;
 
-  @Column(name = "status", nullable = false, length = 20)
+  @TableField("status")
   private String status;
 
-  @Column(name = "created_at")
+  @TableField("created_at")
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
+  @TableField("updated_at")
   private LocalDateTime updatedAt;
 
-  @Column(name = "approved_at")
+  @TableField("approved_at")
   private LocalDateTime approvedAt;
 
-  @Column(name = "cancelled_at")
+  @TableField("cancelled_at")
   private LocalDateTime cancelledAt;
 
-  @Column(name = "completed_at")
+  @TableField("completed_at")
   private LocalDateTime completedAt;
-
-  @PrePersist
-  public void prePersist() {
-    if (status == null || status.trim().isEmpty()) {
-      status = "PENDING";
-    }
-  }
 }

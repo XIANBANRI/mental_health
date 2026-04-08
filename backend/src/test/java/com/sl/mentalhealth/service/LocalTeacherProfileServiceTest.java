@@ -2,15 +2,13 @@ package com.sl.mentalhealth.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sl.mentalhealth.entity.Teacher;
-import com.sl.mentalhealth.repository.TeacherRepository;
+import com.sl.mentalhealth.mapper.TeacherMapper;
 import com.sl.mentalhealth.vo.TeacherProfileResponseVO;
 import java.lang.reflect.Field;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LocalTeacherProfileServiceTest {
 
     @Mock
-    private TeacherRepository teacherRepository;
+    private TeacherMapper teacherMapper;
 
     @InjectMocks
     private LocalTeacherProfileService service;
@@ -36,11 +34,12 @@ class LocalTeacherProfileServiceTest {
         teacher.setOfficeLocation("A101");
         teacher.setAvatarUrl("/avatar/teacher/a.png");
 
-        when(teacherRepository.findByAccount("t001")).thenReturn(Optional.of(teacher));
+        when(teacherMapper.selectById("t001")).thenReturn(teacher);
 
         TeacherProfileResponseVO result = service.getTeacherProfile("  t001  ");
 
-        verify(teacherRepository).findByAccount("t001");
+        verify(teacherMapper).selectById("t001");
+        assertEquals("t001", readField(result, "teacherAccount"));
         assertEquals("李老师", readField(result, "teacherName"));
         assertEquals("13800000000", readField(result, "phone"));
         assertEquals("A101", readField(result, "officeLocation"));
@@ -49,8 +48,20 @@ class LocalTeacherProfileServiceTest {
 
     @Test
     void getTeacherProfile_blankAccount_throwsException() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> service.getTeacherProfile(" "));
+        RuntimeException ex =
+            assertThrows(RuntimeException.class, () -> service.getTeacherProfile(" "));
+
         assertEquals("老师账号不能为空", ex.getMessage());
+    }
+
+    @Test
+    void getTeacherProfile_notFound_throwsException() {
+        when(teacherMapper.selectById("t001")).thenReturn(null);
+
+        RuntimeException ex =
+            assertThrows(RuntimeException.class, () -> service.getTeacherProfile("t001"));
+
+        assertEquals("未查询到老师信息", ex.getMessage());
     }
 
     @Test
@@ -62,21 +73,23 @@ class LocalTeacherProfileServiceTest {
         teacher.setOfficeLocation("A101");
         teacher.setAvatarUrl("/old.png");
 
-        when(teacherRepository.findByAccount("t001")).thenReturn(Optional.of(teacher));
-        when(teacherRepository.save(any(Teacher.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(teacherMapper.selectById("t001")).thenReturn(teacher);
+        when(teacherMapper.updateById(teacher)).thenReturn(1);
 
         TeacherProfileResponseVO result = service.updateAvatar(" t001 ", " /new.png ");
 
         assertEquals("/new.png", readField(result, "avatarUrl"));
 
         ArgumentCaptor<Teacher> captor = ArgumentCaptor.forClass(Teacher.class);
-        verify(teacherRepository).save(captor.capture());
+        verify(teacherMapper).updateById(captor.capture());
         assertEquals("/new.png", captor.getValue().getAvatarUrl());
     }
 
     @Test
     void updateAvatar_blankAvatar_throwsException() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> service.updateAvatar("t001", " "));
+        RuntimeException ex =
+            assertThrows(RuntimeException.class, () -> service.updateAvatar("t001", " "));
+
         assertEquals("头像地址不能为空", ex.getMessage());
     }
 

@@ -4,12 +4,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@Disabled("当前先进行纯单元测试，暂不加载完整Spring上下文")
+@Disabled("当前只做单元测试，暂不进行SpringBoot上下文测试")
 @SpringBootTest
-class MentalHealrhApplicationTests {
+class MentalHealthApplicationTests {
 
   @Test
   void contextLoads() {
   }
-
 }

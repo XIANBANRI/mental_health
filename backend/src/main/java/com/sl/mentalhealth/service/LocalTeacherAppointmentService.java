@@ -1,15 +1,17 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sl.mentalhealth.dto.TeacherAppointmentQueryRequest;
 import com.sl.mentalhealth.dto.TeacherAppointmentUpdateStatusRequest;
 import com.sl.mentalhealth.dto.TeacherAssessmentRecordQueryRequest;
 import com.sl.mentalhealth.entity.Appointment;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.entity.StudentAssessmentRecord;
-import com.sl.mentalhealth.repository.AppointmentRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentRecordRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
-import com.sl.mentalhealth.repository.TeacherRepository;
+import com.sl.mentalhealth.entity.Teacher;
+import com.sl.mentalhealth.mapper.AppointmentMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentRecordMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
+import com.sl.mentalhealth.mapper.TeacherMapper;
 import com.sl.mentalhealth.vo.TeacherAppointmentVO;
 import com.sl.mentalhealth.vo.TeacherAssessmentRecordVO;
 import java.time.LocalDate;
@@ -29,10 +31,10 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class LocalTeacherAppointmentService {
 
-  private final AppointmentRepository appointmentRepository;
-  private final StudentAssessmentRecordRepository studentAssessmentRecordRepository;
-  private final TeacherRepository teacherRepository;
-  private final StudentRepository studentRepository;
+  private final AppointmentMapper appointmentMapper;
+  private final StudentAssessmentRecordMapper studentAssessmentRecordMapper;
+  private final TeacherMapper teacherMapper;
+  private final StudentMapper studentMapper;
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -48,19 +50,32 @@ public class LocalTeacherAppointmentService {
 
     LocalDate appointmentDate = parseDate(request.getAppointmentDate());
 
-    List<Appointment> list = appointmentRepository.findTeacherAppointments(
-        request.getTeacherAccount(),
-        safe(request.getStudentId()),
-        status,
-        appointmentDate
-    );
+    LambdaQueryWrapper<Appointment> wrapper = new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getTeacherAccount, request.getTeacherAccount());
+
+    if (StringUtils.hasText(safe(request.getStudentId()))) {
+      wrapper.like(Appointment::getStudentAccount, safe(request.getStudentId()));
+    }
+    if (appointmentDate != null) {
+      wrapper.eq(Appointment::getAppointmentDate, appointmentDate);
+    }
+    if (StringUtils.hasText(status)) {
+      wrapper.eq(Appointment::getStatus, status);
+    } else {
+      wrapper.notIn(Appointment::getStatus, List.of("COMPLETED", "CANCELLED", "REJECTED"));
+    }
+
+    wrapper.orderByDesc(Appointment::getAppointmentDate)
+        .orderByDesc(Appointment::getStartTime);
+
+    List<Appointment> list = appointmentMapper.selectList(wrapper);
 
     return list.stream()
         .filter(item -> {
           String itemStatus = safe(item.getStatus());
           return !"COMPLETED".equals(itemStatus)
-              && !"CANCELLED".equals(itemStatus)
-              && !"REJECTED".equals(itemStatus);
+                 && !"CANCELLED".equals(itemStatus)
+                 && !"REJECTED".equals(itemStatus);
         })
         .map(this::toAppointmentVO)
         .toList();
@@ -70,14 +85,28 @@ public class LocalTeacherAppointmentService {
     validateTeacher(request.getTeacherAccount());
 
     LocalDate appointmentDate = parseDate(request.getAppointmentDate());
+    String studentId = safe(request.getStudentId());
+    String status = safe(request.getStatus());
 
-    List<Appointment> list = appointmentRepository.findTeacherAppointmentRecords(
-        request.getTeacherAccount(),
-        safe(request.getStudentId()),
-        safe(request.getStatus()),
-        appointmentDate
-    );
+    LambdaQueryWrapper<Appointment> wrapper = new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getTeacherAccount, request.getTeacherAccount());
 
+    if (StringUtils.hasText(studentId)) {
+      wrapper.like(Appointment::getStudentAccount, studentId);
+    }
+    if (appointmentDate != null) {
+      wrapper.eq(Appointment::getAppointmentDate, appointmentDate);
+    }
+    if (StringUtils.hasText(status)) {
+      wrapper.eq(Appointment::getStatus, status);
+    } else {
+      wrapper.ne(Appointment::getStatus, "PENDING");
+    }
+
+    wrapper.orderByDesc(Appointment::getAppointmentDate)
+        .orderByDesc(Appointment::getStartTime);
+
+    List<Appointment> list = appointmentMapper.selectList(wrapper);
     return list.stream().map(this::toAppointmentVO).toList();
   }
 
@@ -93,11 +122,13 @@ public class LocalTeacherAppointmentService {
       throw new RuntimeException("状态不能为空");
     }
 
-    Appointment appointment = appointmentRepository.findByIdAndTeacherAccount(
-            request.getId(),
-            request.getTeacherAccount()
-        )
-        .orElseThrow(() -> new RuntimeException("未找到对应预约记录"));
+    Appointment appointment = appointmentMapper.selectOne(new LambdaQueryWrapper<Appointment>()
+        .eq(Appointment::getId, request.getId())
+        .eq(Appointment::getTeacherAccount, request.getTeacherAccount()));
+
+    if (appointment == null) {
+      throw new RuntimeException("未找到对应预约记录");
+    }
 
     String currentStatus = safe(appointment.getStatus());
     String newOfflineRecord = safe(request.getOfflineRecord());
@@ -106,13 +137,14 @@ public class LocalTeacherAppointmentService {
 
     switch (targetStatus) {
       case "APPROVED" -> handleApproved(appointment, currentStatus, newOfflineRecord, now);
-      case "REJECTED" -> handleRejected(appointment, currentStatus, newRejectReason);
+      case "REJECTED" -> handleRejected(appointment, currentStatus, newRejectReason, now);
       case "COMPLETED" -> handleCompleted(appointment, currentStatus, newOfflineRecord, now);
       default -> throw new RuntimeException("不支持的状态操作");
     }
 
-    Appointment saved = appointmentRepository.save(appointment);
-    return toAppointmentVO(saved);
+    appointment.setUpdatedAt(now);
+    appointmentMapper.updateById(appointment);
+    return toAppointmentVO(appointment);
   }
 
   private void handleApproved(
@@ -139,7 +171,12 @@ public class LocalTeacherAppointmentService {
     appointment.setTeacherReply(newOfflineRecord);
   }
 
-  private void handleRejected(Appointment appointment, String currentStatus, String rejectReason) {
+  private void handleRejected(
+      Appointment appointment,
+      String currentStatus,
+      String rejectReason,
+      LocalDateTime now
+  ) {
     if (!"PENDING".equals(currentStatus)) {
       throw new RuntimeException("只有待处理预约才能拒绝");
     }
@@ -183,11 +220,13 @@ public class LocalTeacherAppointmentService {
       throw new RuntimeException("学生学号不能为空");
     }
 
-    Student student = studentRepository.findByStudentId(studentId)
-        .orElseThrow(() -> new RuntimeException("未找到对应学生信息"));
+    Student student = studentMapper.selectById(studentId);
+    if (student == null) {
+      throw new RuntimeException("未找到对应学生信息");
+    }
 
     List<StudentAssessmentRecord> records =
-        studentAssessmentRecordRepository.findByStudentIdOrderBySubmittedAtDescIdDesc(studentId);
+        studentAssessmentRecordMapper.findByStudentIdOrderBySubmittedAtDescIdDesc(studentId);
 
     Map<String, List<StudentAssessmentRecord>> semesterGroup = records.stream()
         .collect(Collectors.groupingBy(
@@ -315,9 +354,10 @@ public class LocalTeacherAppointmentService {
     String studentName = "";
 
     if (StringUtils.hasText(studentId)) {
-      studentName = studentRepository.findByStudentId(studentId)
-          .map(Student::getName)
-          .orElse("");
+      Student student = studentMapper.selectById(studentId);
+      if (student != null) {
+        studentName = student.getName();
+      }
     }
 
     boolean recordCompleted = "COMPLETED".equals(safe(appointment.getStatus()));
@@ -349,8 +389,10 @@ public class LocalTeacherAppointmentService {
       throw new RuntimeException("老师账号不能为空");
     }
 
-    teacherRepository.findByAccount(teacherAccount)
-        .orElseThrow(() -> new RuntimeException("老师账号不存在"));
+    Teacher teacher = teacherMapper.selectById(teacherAccount);
+    if (teacher == null) {
+      throw new RuntimeException("老师账号不存在");
+    }
   }
 
   private LocalDate parseDate(String value) {

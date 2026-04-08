@@ -1,78 +1,30 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
-@Entity
-@Table(name = "teacher")
+@Data
+@TableName("teacher")
 public class Teacher {
 
-  @Id
-  @Column(name = "account")
+  @TableId(value = "account", type = IdType.INPUT)
   private String account;
 
-  @Column(name = "password")
+  @TableField("password")
   private String password;
 
-  @Column(name = "teacher_name")
+  @TableField("teacher_name")
   private String teacherName;
 
-  @Column(name = "office_location")
+  @TableField("office_location")
   private String officeLocation;
 
-  @Column(name = "phone")
+  @TableField("phone")
   private String phone;
 
-  @Column(name = "avatar_url")
+  @TableField("avatar_url")
   private String avatarUrl;
-
-  public String getAccount() {
-    return account;
-  }
-
-  public void setAccount(String account) {
-    this.account = account;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getTeacherName() {
-    return teacherName;
-  }
-
-  public void setTeacherName(String teacherName) {
-    this.teacherName = teacherName;
-  }
-
-  public String getOfficeLocation() {
-    return officeLocation;
-  }
-
-  public void setOfficeLocation(String officeLocation) {
-    this.officeLocation = officeLocation;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public void setPhone(String phone) {
-    this.phone = phone;
-  }
-
-  public String getAvatarUrl() {
-    return avatarUrl;
-  }
-
-  public void setAvatarUrl(String avatarUrl) {
-    this.avatarUrl = avatarUrl;
-  }
 }

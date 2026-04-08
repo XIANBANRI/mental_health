@@ -17,5 +17,6 @@ public class CounselorWarningDetailVO {
   private String className;
   private String phone;
   private String semester;
+  private String college;
   private List<CounselorWarningRecordVO> records;
 }

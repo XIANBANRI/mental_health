@@ -29,8 +29,15 @@
       <el-col :span="24">
         <el-card shadow="never" class="chart-card">
           <template #header>
-            <div class="card-header">
-              <span>各班级危险人数统计</span>
+            <div class="card-header-wrap">
+              <span class="card-header">各班级危险人数统计</span>
+              <el-button
+                  type="success"
+                  size="small"
+                  @click="exportBarChart"
+              >
+                导出图片
+              </el-button>
             </div>
           </template>
           <div v-loading="loading" ref="barChartRef" class="chart-box"></div>
@@ -42,8 +49,15 @@
       <el-col :span="24">
         <el-card shadow="never" class="chart-card">
           <template #header>
-            <div class="card-header">
-              <span>8个学期危险总人数趋势</span>
+            <div class="card-header-wrap">
+              <span class="card-header">8个学期危险总人数趋势</span>
+              <el-button
+                  type="success"
+                  size="small"
+                  @click="exportLineChart"
+              >
+                导出图片
+              </el-button>
             </div>
           </template>
           <div v-loading="loading" ref="lineChartRef" class="chart-box"></div>
@@ -102,9 +116,11 @@ export default {
         )
       }
 
-      return localStorage.getItem('counselorAccount') ||
+      return (
+          localStorage.getItem('counselorAccount') ||
           sessionStorage.getItem('counselorAccount') ||
           ''
+      )
     },
 
     async loadReport() {
@@ -169,13 +185,22 @@ export default {
       const dangerCounts = this.barChart.map(item => item.dangerCount)
 
       const option = {
+        title: {
+          text: `${this.selectedSemester}各班级危险人数统计`,
+          left: 'center',
+          top: 0,
+          textStyle: {
+            fontSize: 16,
+            fontWeight: 'bold'
+          }
+        },
         tooltip: {
           trigger: 'axis'
         },
         grid: {
           left: '5%',
           right: '5%',
-          top: 30,
+          top: 50,
           bottom: 60,
           containLabel: true
         },
@@ -221,13 +246,22 @@ export default {
       const dangerCounts = this.lineChart.map(item => item.dangerCount)
 
       const option = {
+        title: {
+          text: '8个学期危险总人数趋势',
+          left: 'center',
+          top: 0,
+          textStyle: {
+            fontSize: 16,
+            fontWeight: 'bold'
+          }
+        },
         tooltip: {
           trigger: 'axis'
         },
         grid: {
           left: '5%',
           right: '5%',
-          top: 30,
+          top: 50,
           bottom: 40,
           containLabel: true
         },
@@ -254,6 +288,46 @@ export default {
       }
 
       this.lineInstance.setOption(option, true)
+    },
+
+    exportBarChart() {
+      if (!this.barInstance) {
+        this.$message.warning('柱状图尚未生成')
+        return
+      }
+
+      const url = this.barInstance.getDataURL({
+        type: 'png',
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      })
+
+      this.downloadImage(url, `趋势报告-各班级危险人数统计-${this.selectedSemester}.png`)
+    },
+
+    exportLineChart() {
+      if (!this.lineInstance) {
+        this.$message.warning('折线图尚未生成')
+        return
+      }
+
+      const url = this.lineInstance.getDataURL({
+        type: 'png',
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      })
+
+      this.downloadImage(url, '趋势报告-8个学期危险总人数趋势.png')
+    },
+
+    downloadImage(dataUrl, fileName) {
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      this.$message.success('导出成功')
     },
 
     handleResize() {
@@ -294,6 +368,12 @@ export default {
   gap: 10px;
 }
 
+.filter-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .filter-label {
   font-size: 14px;
   color: #606266;
@@ -305,6 +385,13 @@ export default {
 
 .chart-card {
   border-radius: 8px;
+}
+
+.card-header-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .card-header {

@@ -14,5 +14,7 @@ public class CounselorWarningStudentVO {
   private String studentId;
   private String name;
   private String className;
+  private String college;
   private String phone;
+
 }

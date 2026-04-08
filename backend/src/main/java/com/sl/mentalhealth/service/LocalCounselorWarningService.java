@@ -42,38 +42,27 @@ public class LocalCounselorWarningService {
       Integer pageSize) {
     validateCounselorAccount(counselorAccount);
 
-    String safeSemester = StringUtils.hasText(semester) ? semester.trim() : "第1学期";
-    List<String> managedClasses = getManagedClasses(counselorAccount);
-    if (managedClasses.isEmpty()) {
+    String safeSemester = normalizeSemester(semester);
+    List<String> targetClasses = resolveTargetClasses(counselorAccount, className);
+    if (targetClasses.isEmpty()) {
       return CounselorWarningPageVO.builder()
           .list(Collections.emptyList())
           .total(0L)
           .build();
     }
 
-    List<String> targetClasses = managedClasses;
-    if (StringUtils.hasText(className)) {
-      String selectedClass = className.trim();
-      if (!managedClasses.contains(selectedClass)) {
-        throw new IllegalArgumentException("无权查看该班级预警信息");
-      }
-      targetClasses = Collections.singletonList(selectedClass);
-    }
-
     int safePageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
     int safePageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
     long offset = (long) (safePageNum - 1) * safePageSize;
 
-    List<Student> students = studentAssessmentSemesterSummaryMapper
-        .selectDangerousStudentsBySemesterAndClassNames(
-            safeSemester,
-            targetClasses,
-            offset,
-            safePageSize
-        );
+    List<Student> students = selectDangerousStudents(
+        safeSemester,
+        targetClasses,
+        offset,
+        safePageSize
+    );
 
-    Long total = studentAssessmentSemesterSummaryMapper
-        .countDangerousStudentsBySemesterAndClassNames(safeSemester, targetClasses);
+    Long total = countDangerousStudents(safeSemester, targetClasses);
 
     List<CounselorWarningStudentVO> list = students.stream()
         .map(this::toWarningStudentVO)
@@ -85,6 +74,36 @@ public class LocalCounselorWarningService {
         .build();
   }
 
+  public List<CounselorWarningStudentVO> exportDangerousStudents(String counselorAccount,
+      String semester,
+      String className) {
+    validateCounselorAccount(counselorAccount);
+
+    String safeSemester = normalizeSemester(semester);
+    List<String> targetClasses = resolveTargetClasses(counselorAccount, className);
+    if (targetClasses.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Long total = countDangerousStudents(safeSemester, targetClasses);
+    if (total == null || total <= 0) {
+      return Collections.emptyList();
+    }
+
+    int fetchSize = total > Integer.MAX_VALUE ? Integer.MAX_VALUE : total.intValue();
+
+    List<Student> students = selectDangerousStudents(
+        safeSemester,
+        targetClasses,
+        0L,
+        fetchSize
+    );
+
+    return students.stream()
+        .map(this::toWarningStudentVO)
+        .collect(Collectors.toList());
+  }
+
   public CounselorWarningDetailVO getDangerousStudentDetail(String counselorAccount,
       String studentId,
       String semester) {
@@ -94,7 +113,7 @@ public class LocalCounselorWarningService {
       throw new IllegalArgumentException("学生学号不能为空");
     }
 
-    String safeSemester = StringUtils.hasText(semester) ? semester.trim() : "第1学期";
+    String safeSemester = normalizeSemester(semester);
     List<String> managedClasses = getManagedClasses(counselorAccount);
     if (managedClasses.isEmpty()) {
       throw new IllegalArgumentException("当前辅导员未绑定任何班级");
@@ -110,7 +129,11 @@ public class LocalCounselorWarningService {
     }
 
     Integer dangerousCount = studentAssessmentSemesterSummaryMapper
-        .countByStudentIdAndSemesterAndSemesterLevel(student.getStudentId(), safeSemester, "危险");
+        .countByStudentIdAndSemesterAndSemesterLevel(
+            student.getStudentId(),
+            safeSemester,
+            "危险"
+        );
 
     boolean dangerous = dangerousCount != null && dangerousCount > 0;
 
@@ -119,7 +142,10 @@ public class LocalCounselorWarningService {
     }
 
     List<CounselorWarningRecordVO> records = studentAssessmentRecordMapper
-        .findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(student.getStudentId(), safeSemester)
+        .findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(
+            student.getStudentId(),
+            safeSemester
+        )
         .stream()
         .map(this::toRecordVO)
         .collect(Collectors.toList());
@@ -128,10 +154,52 @@ public class LocalCounselorWarningService {
         .studentId(student.getStudentId())
         .name(student.getName())
         .className(student.getClassName())
+        .college(student.getCollege())
         .phone(student.getPhone())
         .semester(safeSemester)
         .records(records)
         .build();
+  }
+
+  private String normalizeSemester(String semester) {
+    return StringUtils.hasText(semester) ? semester.trim() : "第1学期";
+  }
+
+  private List<String> resolveTargetClasses(String counselorAccount, String className) {
+    List<String> managedClasses = getManagedClasses(counselorAccount);
+    if (managedClasses.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (!StringUtils.hasText(className)) {
+      return managedClasses;
+    }
+
+    String selectedClass = className.trim();
+    if (!managedClasses.contains(selectedClass)) {
+      throw new IllegalArgumentException("无权查看该班级预警信息");
+    }
+
+    return Collections.singletonList(selectedClass);
+  }
+
+  private List<Student> selectDangerousStudents(String semester,
+      List<String> targetClasses,
+      long offset,
+      int pageSize) {
+    return studentAssessmentSemesterSummaryMapper
+        .selectDangerousStudentsBySemesterAndClassNames(
+            semester,
+            targetClasses,
+            offset,
+            pageSize
+        );
+  }
+
+  private Long countDangerousStudents(String semester, List<String> targetClasses) {
+    Long total = studentAssessmentSemesterSummaryMapper
+        .countDangerousStudentsBySemesterAndClassNames(semester, targetClasses);
+    return total == null ? 0L : total;
   }
 
   private List<String> getManagedClasses(String counselorAccount) {
@@ -152,6 +220,7 @@ public class LocalCounselorWarningService {
         .studentId(student.getStudentId())
         .name(student.getName())
         .className(student.getClassName())
+        .college(student.getCollege())
         .phone(student.getPhone())
         .build();
   }

@@ -9,7 +9,12 @@ const request = axios.create({
 })
 
 request.interceptors.response.use(
-    response => response.data,
+    response => {
+      if (response.config?.responseType === "blob") {
+        return response
+      }
+      return response.data
+    },
     error => Promise.reject(error)
 )
 

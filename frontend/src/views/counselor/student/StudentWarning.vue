@@ -35,6 +35,13 @@
 
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
+          <el-button
+              type="success"
+              :loading="exportLoading"
+              @click="handleExport"
+          >
+            导出Excel
+          </el-button>
         </div>
       </div>
     </template>
@@ -49,6 +56,7 @@
       <el-table-column prop="studentId" label="学号" min-width="140" />
       <el-table-column prop="name" label="姓名" min-width="100" />
       <el-table-column prop="className" label="班级" min-width="180" />
+      <el-table-column prop="college" label="学院" min-width="180" />
       <el-table-column prop="phone" label="联系电话" min-width="140" />
 
       <el-table-column label="预警状态" width="100">
@@ -106,10 +114,13 @@
             <el-descriptions-item label="班级">
               {{ detailData.className || "-" }}
             </el-descriptions-item>
+            <el-descriptions-item label="学院">
+              {{ detailData.college || "-" }}
+            </el-descriptions-item>
             <el-descriptions-item label="联系电话">
               {{ detailData.phone || "-" }}
             </el-descriptions-item>
-            <el-descriptions-item label="当前学期" :span="2">
+            <el-descriptions-item label="当前学期">
               {{ detailData.semester || "-" }}
             </el-descriptions-item>
           </el-descriptions>
@@ -200,6 +211,7 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const tableLoading = ref(false)
+const exportLoading = ref(false)
 
 const detailDialogVisible = ref(false)
 const detailLoading = ref(false)
@@ -251,6 +263,58 @@ function getCounselorAccount() {
   }
 
   return ""
+}
+
+function buildDefaultFileName() {
+  const className = selectedClass.value ? selectedClass.value : "全部班级"
+  return `学生预警名单-${selectedSemester.value}-${className}.xlsx`
+}
+
+function parseFileNameFromDisposition(disposition) {
+  if (!disposition) return ""
+
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1])
+    } catch {
+      return utf8Match[1]
+    }
+  }
+
+  const normalMatch = disposition.match(/filename="?([^"]+)"?/i)
+  if (normalMatch?.[1]) {
+    return normalMatch[1]
+  }
+
+  return ""
+}
+
+async function parseBlobErrorMessage(blob) {
+  try {
+    const text = await blob.text()
+    if (!text) return "导出失败"
+
+    try {
+      const json = JSON.parse(text)
+      return json.message || json.msg || "导出失败"
+    } catch {
+      return text || "导出失败"
+    }
+  } catch {
+    return "导出失败"
+  }
+}
+
+function downloadBlob(blob, fileName) {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
 }
 
 async function loadClassOptions() {
@@ -313,6 +377,55 @@ async function loadWarningList() {
     ElMessage.error(error?.message || "查询预警名单失败")
   } finally {
     tableLoading.value = false
+  }
+}
+
+async function handleExport() {
+  const counselorAccount = getCounselorAccount()
+  if (!counselorAccount) {
+    ElMessage.error("未获取到辅导员账号，请重新登录")
+    return
+  }
+
+  exportLoading.value = true
+  try {
+    const response = await request.get("/counselor/warning/export", {
+      params: {
+        counselorAccount,
+        semester: selectedSemester.value,
+        className: selectedClass.value
+      },
+      responseType: "blob"
+    })
+
+    const blob = response?.data
+    const headers = response?.headers || {}
+
+    if (!(blob instanceof Blob)) {
+      throw new Error("导出失败，未获取到文件")
+    }
+
+    if (blob.type && blob.type.includes("application/json")) {
+      const message = await parseBlobErrorMessage(blob)
+      throw new Error(message)
+    }
+
+    const disposition =
+        headers["content-disposition"] || headers["Content-Disposition"] || ""
+    const fileName =
+        parseFileNameFromDisposition(disposition) || buildDefaultFileName()
+
+    downloadBlob(blob, fileName)
+    ElMessage.success("导出成功")
+  } catch (error) {
+    if (error?.response?.data instanceof Blob) {
+      const message = await parseBlobErrorMessage(error.response.data)
+      ElMessage.error(message)
+    } else {
+      ElMessage.error(error?.message || "导出失败")
+    }
+  } finally {
+    exportLoading.value = false
   }
 }
 

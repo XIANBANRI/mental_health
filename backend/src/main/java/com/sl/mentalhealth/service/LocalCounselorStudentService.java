@@ -1,11 +1,13 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.entity.StudentAssessmentSemesterSummary;
-import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentSemesterSummaryRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
+import com.sl.mentalhealth.mapper.CounselorClassMappingMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentSemesterSummaryMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
 import com.sl.mentalhealth.vo.CounselorStudentAssessmentSummaryVO;
 import com.sl.mentalhealth.vo.CounselorStudentDetailVO;
 import com.sl.mentalhealth.vo.CounselorStudentPageVO;
@@ -14,9 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,9 +25,9 @@ import org.springframework.util.StringUtils;
 @Transactional(readOnly = true)
 public class LocalCounselorStudentService {
 
-  private final CounselorClassMappingRepository counselorClassMappingRepository;
-  private final StudentRepository studentRepository;
-  private final StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository;
+  private final CounselorClassMappingMapper counselorClassMappingMapper;
+  private final StudentMapper studentMapper;
+  private final StudentAssessmentSemesterSummaryMapper studentAssessmentSemesterSummaryMapper;
 
   public List<String> listManagedClasses(String counselorAccount) {
     validateCounselorAccount(counselorAccount);
@@ -59,26 +58,21 @@ public class LocalCounselorStudentService {
     int safePageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
     int safePageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
 
-    PageRequest pageRequest = PageRequest.of(
-        safePageNum - 1,
-        safePageSize,
-        Sort.by(Sort.Direction.ASC, "studentId")
-    );
-
-    Page<Student> studentPage = studentRepository.searchByClassNamesAndKeyword(
+    Page<Student> page = new Page<>(safePageNum, safePageSize);
+    Page<Student> studentPage = studentMapper.selectPageByClassNamesAndKeyword(
+        page,
         targetClasses,
-        StringUtils.hasText(keyword) ? keyword.trim() : null,
-        pageRequest
+        StringUtils.hasText(keyword) ? keyword.trim() : null
     );
 
-    List<CounselorStudentVO> list = studentPage.getContent()
+    List<CounselorStudentVO> list = studentPage.getRecords()
         .stream()
         .map(this::toStudentVO)
         .collect(Collectors.toList());
 
     return CounselorStudentPageVO.builder()
         .list(list)
-        .total(studentPage.getTotalElements())
+        .total(studentPage.getTotal())
         .build();
   }
 
@@ -94,12 +88,14 @@ public class LocalCounselorStudentService {
       throw new IllegalArgumentException("当前辅导员未绑定任何班级");
     }
 
-    Student student = studentRepository.findAccessibleStudent(studentId.trim(), managedClasses)
-        .orElseThrow(() -> new IllegalArgumentException("无权查看该学生信息，或学生不存在"));
+    Student student = studentMapper.selectAccessibleStudent(studentId.trim(), managedClasses);
+    if (student == null) {
+      throw new IllegalArgumentException("无权查看该学生信息，或学生不存在");
+    }
 
     List<CounselorStudentAssessmentSummaryVO> summaries =
-        studentAssessmentSemesterSummaryRepository
-            .findByStudentIdOrderByLastTestedAtDescIdDesc(student.getStudentId())
+        studentAssessmentSemesterSummaryMapper
+            .selectByStudentIdOrderByLastTestedAtDescIdDesc(student.getStudentId())
             .stream()
             .map(this::toAssessmentSummaryVO)
             .collect(Collectors.toList());
@@ -116,7 +112,11 @@ public class LocalCounselorStudentService {
   }
 
   private List<String> getManagedClasses(String counselorAccount) {
-    return counselorClassMappingRepository.findByCounselorAccountOrderByClassNameAsc(counselorAccount)
+    return counselorClassMappingMapper.selectList(
+            Wrappers.<CounselorClassMapping>lambdaQuery()
+                .eq(CounselorClassMapping::getCounselorAccount, counselorAccount)
+                .orderByAsc(CounselorClassMapping::getClassName)
+        )
         .stream()
         .map(CounselorClassMapping::getClassName)
         .filter(StringUtils::hasText)

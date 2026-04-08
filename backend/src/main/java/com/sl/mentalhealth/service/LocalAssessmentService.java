@@ -1,5 +1,7 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.sl.mentalhealth.dto.AssessmentSubmitAnswer;
 import com.sl.mentalhealth.entity.AssessmentScale;
 import com.sl.mentalhealth.entity.AssessmentScaleVersion;
@@ -11,14 +13,14 @@ import com.sl.mentalhealth.entity.StudentAssessmentRecord;
 import com.sl.mentalhealth.entity.StudentAssessmentSemesterSummary;
 import com.sl.mentalhealth.kafka.message.AssessmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentResponseMessage;
-import com.sl.mentalhealth.repository.AssessmentScaleRepository;
-import com.sl.mentalhealth.repository.AssessmentScaleVersionRepository;
-import com.sl.mentalhealth.repository.AssessmentVersionOptionRepository;
-import com.sl.mentalhealth.repository.AssessmentVersionQuestionRepository;
-import com.sl.mentalhealth.repository.AssessmentVersionRuleRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentAnswerRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentRecordRepository;
-import com.sl.mentalhealth.repository.StudentAssessmentSemesterSummaryRepository;
+import com.sl.mentalhealth.mapper.AssessmentScaleMapper;
+import com.sl.mentalhealth.mapper.AssessmentScaleVersionMapper;
+import com.sl.mentalhealth.mapper.AssessmentVersionOptionMapper;
+import com.sl.mentalhealth.mapper.AssessmentVersionQuestionMapper;
+import com.sl.mentalhealth.mapper.AssessmentVersionRuleMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentAnswerMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentRecordMapper;
+import com.sl.mentalhealth.mapper.StudentAssessmentSemesterSummaryMapper;
 import com.sl.mentalhealth.vo.AssessmentOptionVO;
 import com.sl.mentalhealth.vo.AssessmentQuestionVO;
 import com.sl.mentalhealth.vo.AssessmentRecordDetailVO;
@@ -26,9 +28,6 @@ import com.sl.mentalhealth.vo.AssessmentRecordVO;
 import com.sl.mentalhealth.vo.AssessmentScaleDetailVO;
 import com.sl.mentalhealth.vo.AssessmentScaleVO;
 import com.sl.mentalhealth.vo.AssessmentSubmitResultVO;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -39,8 +38,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LocalAssessmentService {
@@ -55,34 +54,34 @@ public class LocalAssessmentService {
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-  private final AssessmentScaleRepository scaleRepository;
-  private final AssessmentScaleVersionRepository scaleVersionRepository;
-  private final AssessmentVersionQuestionRepository versionQuestionRepository;
-  private final AssessmentVersionOptionRepository versionOptionRepository;
-  private final AssessmentVersionRuleRepository versionRuleRepository;
-  private final StudentAssessmentRecordRepository studentAssessmentRecordRepository;
-  private final StudentAssessmentAnswerRepository studentAssessmentAnswerRepository;
-  private final StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository;
+  private final AssessmentScaleMapper scaleMapper;
+  private final AssessmentScaleVersionMapper scaleVersionMapper;
+  private final AssessmentVersionQuestionMapper versionQuestionMapper;
+  private final AssessmentVersionOptionMapper versionOptionMapper;
+  private final AssessmentVersionRuleMapper versionRuleMapper;
+  private final StudentAssessmentRecordMapper studentAssessmentRecordMapper;
+  private final StudentAssessmentAnswerMapper studentAssessmentAnswerMapper;
+  private final StudentAssessmentSemesterSummaryMapper studentAssessmentSemesterSummaryMapper;
 
-  public LocalAssessmentService(AssessmentScaleRepository scaleRepository,
-      AssessmentScaleVersionRepository scaleVersionRepository,
-      AssessmentVersionQuestionRepository versionQuestionRepository,
-      AssessmentVersionOptionRepository versionOptionRepository,
-      AssessmentVersionRuleRepository versionRuleRepository,
-      StudentAssessmentRecordRepository studentAssessmentRecordRepository,
-      StudentAssessmentAnswerRepository studentAssessmentAnswerRepository,
-      StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository) {
-    this.scaleRepository = scaleRepository;
-    this.scaleVersionRepository = scaleVersionRepository;
-    this.versionQuestionRepository = versionQuestionRepository;
-    this.versionOptionRepository = versionOptionRepository;
-    this.versionRuleRepository = versionRuleRepository;
-    this.studentAssessmentRecordRepository = studentAssessmentRecordRepository;
-    this.studentAssessmentAnswerRepository = studentAssessmentAnswerRepository;
-    this.studentAssessmentSemesterSummaryRepository = studentAssessmentSemesterSummaryRepository;
+  public LocalAssessmentService(
+      AssessmentScaleMapper scaleMapper,
+      AssessmentScaleVersionMapper scaleVersionMapper,
+      AssessmentVersionQuestionMapper versionQuestionMapper,
+      AssessmentVersionOptionMapper versionOptionMapper,
+      AssessmentVersionRuleMapper versionRuleMapper,
+      StudentAssessmentRecordMapper studentAssessmentRecordMapper,
+      StudentAssessmentAnswerMapper studentAssessmentAnswerMapper,
+      StudentAssessmentSemesterSummaryMapper studentAssessmentSemesterSummaryMapper) {
+    this.scaleMapper = scaleMapper;
+    this.scaleVersionMapper = scaleVersionMapper;
+    this.versionQuestionMapper = versionQuestionMapper;
+    this.versionOptionMapper = versionOptionMapper;
+    this.versionRuleMapper = versionRuleMapper;
+    this.studentAssessmentRecordMapper = studentAssessmentRecordMapper;
+    this.studentAssessmentAnswerMapper = studentAssessmentAnswerMapper;
+    this.studentAssessmentSemesterSummaryMapper = studentAssessmentSemesterSummaryMapper;
   }
 
-  @Transactional
   public AssessmentResponseMessage handle(AssessmentRequestMessage request) {
     return switch (request.getAction()) {
       case ACTION_LIST_SCALES -> listScales(request.getRequestId());
@@ -94,7 +93,11 @@ public class LocalAssessmentService {
   }
 
   private AssessmentResponseMessage listScales(String requestId) {
-    List<AssessmentScaleVO> list = scaleRepository.findByStatusOrderByIdAsc(1).stream()
+    List<AssessmentScaleVO> list = scaleMapper.selectList(
+            new LambdaQueryWrapper<AssessmentScale>()
+                .eq(AssessmentScale::getStatus, 1)
+                .orderByAsc(AssessmentScale::getId)
+        ).stream()
         .filter(scale -> !Objects.equals(scale.getDeletedFlag(), 1))
         .filter(scale -> scale.getCurrentVersionId() != null)
         .map(this::buildScaleVO)
@@ -108,9 +111,8 @@ public class LocalAssessmentService {
   private AssessmentScaleVO buildScaleVO(AssessmentScale scale) {
     Integer versionNo = null;
     if (scale.getCurrentVersionId() != null) {
-      versionNo = scaleVersionRepository.findById(scale.getCurrentVersionId())
-          .map(AssessmentScaleVersion::getVersionNo)
-          .orElse(null);
+      AssessmentScaleVersion version = scaleVersionMapper.selectById(scale.getCurrentVersionId());
+      versionNo = version == null ? null : version.getVersionNo();
     }
     return new AssessmentScaleVO(
         scale.getId(),
@@ -129,26 +131,27 @@ public class LocalAssessmentService {
       return fail(requestId, "量表ID不能为空");
     }
 
-    Optional<AssessmentScale> optionalScale = scaleRepository.findById(scaleId);
-    if (optionalScale.isEmpty() || Objects.equals(optionalScale.get().getDeletedFlag(), 1)
-        || !Objects.equals(optionalScale.get().getStatus(), 1)) {
+    AssessmentScale scale = scaleMapper.selectById(scaleId);
+    if (scale == null || Objects.equals(scale.getDeletedFlag(), 1)
+        || !Objects.equals(scale.getStatus(), 1)) {
       return fail(requestId, "量表不存在或已停用");
     }
 
-    AssessmentScale scale = optionalScale.get();
     Long versionId = scale.getCurrentVersionId();
     if (versionId == null) {
       return fail(requestId, "当前量表没有可用版本");
     }
 
-    Optional<AssessmentScaleVersion> optionalVersion = scaleVersionRepository.findById(versionId);
-    if (optionalVersion.isEmpty()) {
+    AssessmentScaleVersion version = scaleVersionMapper.selectById(versionId);
+    if (version == null) {
       return fail(requestId, "量表当前版本不存在");
     }
 
-    AssessmentScaleVersion version = optionalVersion.get();
-    List<AssessmentVersionQuestion> questions =
-        versionQuestionRepository.findByVersionIdOrderByQuestionNoAsc(versionId);
+    List<AssessmentVersionQuestion> questions = versionQuestionMapper.selectList(
+        new LambdaQueryWrapper<AssessmentVersionQuestion>()
+            .eq(AssessmentVersionQuestion::getVersionId, versionId)
+            .orderByAsc(AssessmentVersionQuestion::getQuestionNo)
+    );
     if (questions.isEmpty()) {
       return fail(requestId, "量表题目不存在");
     }
@@ -156,7 +159,12 @@ public class LocalAssessmentService {
     List<Long> questionIds = questions.stream().map(AssessmentVersionQuestion::getId).toList();
     List<AssessmentVersionOption> options = questionIds.isEmpty()
         ? Collections.emptyList()
-        : versionOptionRepository.findByVersionQuestionIdInOrderByVersionQuestionIdAscOptionNoAsc(questionIds);
+        : versionOptionMapper.selectList(
+            new LambdaQueryWrapper<AssessmentVersionOption>()
+                .in(AssessmentVersionOption::getVersionQuestionId, questionIds)
+                .orderByAsc(AssessmentVersionOption::getVersionQuestionId)
+                .orderByAsc(AssessmentVersionOption::getOptionNo)
+        );
 
     Map<Long, List<AssessmentOptionVO>> optionMap = options.stream()
         .collect(Collectors.groupingBy(
@@ -222,22 +230,20 @@ public class LocalAssessmentService {
       semester = DEFAULT_SEMESTER;
     }
 
-    Optional<AssessmentScale> optionalScale = scaleRepository.findById(scaleId);
-    if (optionalScale.isEmpty() || Objects.equals(optionalScale.get().getDeletedFlag(), 1)
-        || !Objects.equals(optionalScale.get().getStatus(), 1)) {
+    AssessmentScale scale = scaleMapper.selectById(scaleId);
+    if (scale == null || Objects.equals(scale.getDeletedFlag(), 1)
+        || !Objects.equals(scale.getStatus(), 1)) {
       return fail(requestId, "量表不存在或已停用");
     }
-    AssessmentScale scale = optionalScale.get();
 
     if (!Objects.equals(scale.getCurrentVersionId(), versionId)) {
       return fail(requestId, "提交的量表版本不是当前版本，请刷新后重试");
     }
 
-    Optional<AssessmentScaleVersion> optionalVersion = scaleVersionRepository.findById(versionId);
-    if (optionalVersion.isEmpty()) {
+    AssessmentScaleVersion version = scaleVersionMapper.selectById(versionId);
+    if (version == null) {
       return fail(requestId, "量表版本不存在");
     }
-    AssessmentScaleVersion version = optionalVersion.get();
     if (!Objects.equals(version.getScaleId(), scaleId)) {
       return fail(requestId, "量表与版本不匹配");
     }
@@ -245,8 +251,11 @@ public class LocalAssessmentService {
       return fail(requestId, "量表版本未启用");
     }
 
-    List<AssessmentVersionQuestion> questions =
-        versionQuestionRepository.findByVersionIdOrderByQuestionNoAsc(versionId);
+    List<AssessmentVersionQuestion> questions = versionQuestionMapper.selectList(
+        new LambdaQueryWrapper<AssessmentVersionQuestion>()
+            .eq(AssessmentVersionQuestion::getVersionId, versionId)
+            .orderByAsc(AssessmentVersionQuestion::getQuestionNo)
+    );
     if (questions.isEmpty()) {
       return fail(requestId, "量表题目不存在");
     }
@@ -270,8 +279,15 @@ public class LocalAssessmentService {
     }
 
     List<Long> questionIds = questions.stream().map(AssessmentVersionQuestion::getId).toList();
-    List<AssessmentVersionOption> optionList = versionOptionRepository
-        .findByVersionQuestionIdInOrderByVersionQuestionIdAscOptionNoAsc(questionIds);
+    List<AssessmentVersionOption> optionList = questionIds.isEmpty()
+        ? Collections.emptyList()
+        : versionOptionMapper.selectList(
+            new LambdaQueryWrapper<AssessmentVersionOption>()
+                .in(AssessmentVersionOption::getVersionQuestionId, questionIds)
+                .orderByAsc(AssessmentVersionOption::getVersionQuestionId)
+                .orderByAsc(AssessmentVersionOption::getOptionNo)
+        );
+
     Map<Long, AssessmentVersionOption> optionMap = optionList.stream()
         .collect(Collectors.toMap(AssessmentVersionOption::getId, option -> option));
 
@@ -310,15 +326,20 @@ public class LocalAssessmentService {
       answerEntities.add(answerEntity);
     }
 
-    Optional<AssessmentVersionRule> optionalRule = versionRuleRepository
-        .findFirstByVersionIdAndMinScoreLessThanEqualAndMaxScoreGreaterThanEqual(
-            versionId, totalScore, totalScore);
+    AssessmentVersionRule rule = versionRuleMapper.selectOne(
+        new LambdaQueryWrapper<AssessmentVersionRule>()
+            .eq(AssessmentVersionRule::getVersionId, versionId)
+            .le(AssessmentVersionRule::getMinScore, totalScore)
+            .ge(AssessmentVersionRule::getMaxScore, totalScore)
+            .orderByAsc(AssessmentVersionRule::getMinScore)
+            .last("limit 1")
+    );
 
-    String resultLevel = optionalRule.map(AssessmentVersionRule::getResultLevel).orElse("未分级");
-    String resultSummary = optionalRule.map(AssessmentVersionRule::getResultSummary).orElse("暂无结果说明");
-    String suggestion = optionalRule.map(AssessmentVersionRule::getSuggestion).orElse("");
+    String resultLevel = rule == null ? "未分级" : rule.getResultLevel();
+    String resultSummary = rule == null ? "暂无结果说明" : rule.getResultSummary();
+    String suggestion = rule == null ? "" : rule.getSuggestion();
 
-    StudentAssessmentRecord record = studentAssessmentRecordRepository
+    StudentAssessmentRecord record = studentAssessmentRecordMapper
         .findFirstByStudentIdAndSemesterAndScaleId(studentId, semester, scale.getId())
         .orElseGet(StudentAssessmentRecord::new);
 
@@ -342,16 +363,19 @@ public class LocalAssessmentService {
     record.setSubmittedAt(now);
     record.setUpdatedAt(now);
 
-    record = studentAssessmentRecordRepository.save(record);
+    record = studentAssessmentRecordMapper.saveRecord(record);
 
     if (!isNewRecord) {
-      studentAssessmentAnswerRepository.deleteByRecordId(record.getId());
+      studentAssessmentAnswerMapper.delete(
+          Wrappers.<StudentAssessmentAnswer>lambdaQuery()
+              .eq(StudentAssessmentAnswer::getRecordId, record.getId())
+      );
     }
 
     for (StudentAssessmentAnswer answerEntity : answerEntities) {
       answerEntity.setRecordId(record.getId());
+      studentAssessmentAnswerMapper.insert(answerEntity);
     }
-    studentAssessmentAnswerRepository.saveAll(answerEntities);
 
     refreshSemesterSummary(studentId, semester, now);
 
@@ -362,12 +386,16 @@ public class LocalAssessmentService {
   }
 
   private void refreshSemesterSummary(String studentId, String semester, LocalDateTime now) {
-    List<StudentAssessmentRecord> records = studentAssessmentRecordRepository
+    List<StudentAssessmentRecord> records = studentAssessmentRecordMapper
         .findByStudentIdAndSemesterOrderBySubmittedAtAscIdAsc(studentId, semester);
 
-    StudentAssessmentSemesterSummary summary = studentAssessmentSemesterSummaryRepository
-        .findByStudentIdAndSemester(studentId, semester)
-        .orElseGet(StudentAssessmentSemesterSummary::new);
+    StudentAssessmentSemesterSummary summary =
+        studentAssessmentSemesterSummaryMapper.selectByStudentIdAndSemester(studentId, semester);
+
+    boolean isNewSummary = summary == null;
+    if (isNewSummary) {
+      summary = new StudentAssessmentSemesterSummary();
+    }
 
     summary.setStudentId(studentId);
     summary.setSemester(semester);
@@ -388,14 +416,21 @@ public class LocalAssessmentService {
     }
     summary.setUpdatedAt(now);
 
-    studentAssessmentSemesterSummaryRepository.save(summary);
+    if (isNewSummary) {
+      studentAssessmentSemesterSummaryMapper.insertSummary(summary);
+    } else {
+      studentAssessmentSemesterSummaryMapper.updateSummaryById(summary);
+    }
   }
 
   private int getPublishedScaleCount() {
-    return (int) scaleRepository.findByStatusOrderByIdAsc(1).stream()
-        .filter(scale -> !Objects.equals(scale.getDeletedFlag(), 1))
-        .filter(scale -> scale.getCurrentVersionId() != null)
-        .count();
+    Long count = scaleMapper.selectCount(
+        new LambdaQueryWrapper<AssessmentScale>()
+            .eq(AssessmentScale::getStatus, 1)
+            .eq(AssessmentScale::getDeletedFlag, 0)
+            .isNotNull(AssessmentScale::getCurrentVersionId)
+    );
+    return count == null ? 0 : count.intValue();
   }
 
   private String buildScoreSummary(List<StudentAssessmentRecord> records) {
@@ -452,13 +487,13 @@ public class LocalAssessmentService {
       return fail(requestId, "学号不能为空");
     }
 
-    List<StudentAssessmentSemesterSummary> summaries = studentAssessmentSemesterSummaryRepository
-        .findByStudentIdOrderByLastTestedAtDescIdDesc(finalStudentId);
+    List<StudentAssessmentSemesterSummary> summaries =
+        studentAssessmentSemesterSummaryMapper.selectByStudentIdOrderByLastTestedAtDescIdDesc(finalStudentId);
 
     List<AssessmentRecordVO> records = summaries.stream()
         .map(summary -> buildSemesterRecordVO(
             summary,
-            studentAssessmentRecordRepository.findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(
+            studentAssessmentRecordMapper.findByStudentIdAndSemesterOrderBySubmittedAtDescIdDesc(
                 finalStudentId, summary.getSemester())
         ))
         .collect(Collectors.toList());
@@ -468,8 +503,10 @@ public class LocalAssessmentService {
     return response;
   }
 
-  private AssessmentRecordVO buildSemesterRecordVO(StudentAssessmentSemesterSummary summary,
-      List<StudentAssessmentRecord> detailRecords) {
+  private AssessmentRecordVO buildSemesterRecordVO(
+      StudentAssessmentSemesterSummary summary,
+      List<StudentAssessmentRecord> detailRecords
+  ) {
     AssessmentRecordVO vo = new AssessmentRecordVO();
     vo.setSummaryId(summary.getId());
     vo.setSemester(summary.getSemester());

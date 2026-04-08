@@ -1,7 +1,7 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.entity.Teacher;
-import com.sl.mentalhealth.repository.TeacherRepository;
+import com.sl.mentalhealth.mapper.TeacherMapper;
 import com.sl.mentalhealth.vo.TeacherProfileResponseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,15 +11,17 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class LocalTeacherProfileService {
 
-  private final TeacherRepository teacherRepository;
+  private final TeacherMapper teacherMapper;
 
   public TeacherProfileResponseVO getTeacherProfile(String teacherAccount) {
     if (!StringUtils.hasText(teacherAccount)) {
       throw new RuntimeException("老师账号不能为空");
     }
 
-    Teacher teacher = teacherRepository.findByAccount(teacherAccount.trim())
-        .orElseThrow(() -> new RuntimeException("未查询到老师信息"));
+    Teacher teacher = teacherMapper.selectById(teacherAccount.trim());
+    if (teacher == null) {
+      throw new RuntimeException("未查询到老师信息");
+    }
 
     return new TeacherProfileResponseVO(
         teacher.getAccount(),
@@ -38,11 +40,13 @@ public class LocalTeacherProfileService {
       throw new RuntimeException("头像地址不能为空");
     }
 
-    Teacher teacher = teacherRepository.findByAccount(teacherAccount.trim())
-        .orElseThrow(() -> new RuntimeException("未查询到老师信息"));
+    Teacher teacher = teacherMapper.selectById(teacherAccount.trim());
+    if (teacher == null) {
+      throw new RuntimeException("未查询到老师信息");
+    }
 
     teacher.setAvatarUrl(avatarUrl.trim());
-    teacherRepository.save(teacher);
+    teacherMapper.updateById(teacher);
 
     return new TeacherProfileResponseVO(
         teacher.getAccount(),

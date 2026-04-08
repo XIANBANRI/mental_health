@@ -1,29 +1,30 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.sl.mentalhealth.entity.Counselor;
 import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.kafka.message.StudentProfileRequestMessage;
 import com.sl.mentalhealth.kafka.message.StudentProfileResponseMessage;
-import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
-import com.sl.mentalhealth.repository.CounselorRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
-import java.util.Optional;
+import com.sl.mentalhealth.mapper.CounselorClassMappingMapper;
+import com.sl.mentalhealth.mapper.CounselorMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LocalStudentProfileService {
 
-  private final StudentRepository studentRepository;
-  private final CounselorRepository counselorRepository;
-  private final CounselorClassMappingRepository counselorClassMappingRepository;
+  private final StudentMapper studentMapper;
+  private final CounselorMapper counselorMapper;
+  private final CounselorClassMappingMapper counselorClassMappingMapper;
 
-  public LocalStudentProfileService(StudentRepository studentRepository,
-      CounselorRepository counselorRepository,
-      CounselorClassMappingRepository counselorClassMappingRepository) {
-    this.studentRepository = studentRepository;
-    this.counselorRepository = counselorRepository;
-    this.counselorClassMappingRepository = counselorClassMappingRepository;
+  public LocalStudentProfileService(StudentMapper studentMapper,
+      CounselorMapper counselorMapper,
+      CounselorClassMappingMapper counselorClassMappingMapper) {
+    this.studentMapper = studentMapper;
+    this.counselorMapper = counselorMapper;
+    this.counselorClassMappingMapper = counselorClassMappingMapper;
   }
 
   public StudentProfileResponseMessage handle(StudentProfileRequestMessage request) {
@@ -44,16 +45,15 @@ public class LocalStudentProfileService {
       );
     }
 
-    Optional<Student> optional = studentRepository.findById(studentId.trim());
+    Student student = studentMapper.selectById(studentId.trim());
 
-    if (optional.isEmpty()) {
+    if (student == null) {
       return new StudentProfileResponseMessage(
           requestId, false, "学生不存在",
           studentId, null, null, null, null, null, null, null, null
       );
     }
 
-    Student student = optional.get();
     CounselorContact counselorContact = resolveCounselorContact(student);
 
     return buildSuccess(requestId, "查询成功", student, counselorContact);
@@ -78,18 +78,17 @@ public class LocalStudentProfileService {
       );
     }
 
-    Optional<Student> optional = studentRepository.findById(studentId.trim());
+    Student student = studentMapper.selectById(studentId.trim());
 
-    if (optional.isEmpty()) {
+    if (student == null) {
       return new StudentProfileResponseMessage(
           requestId, false, "学生不存在",
           studentId, null, null, null, null, null, null, null, null
       );
     }
 
-    Student student = optional.get();
     student.setAvatarUrl(avatarUrl.trim());
-    studentRepository.save(student);
+    studentMapper.updateById(student);
 
     CounselorContact counselorContact = resolveCounselorContact(student);
     return buildSuccess(requestId, "头像上传成功", student, counselorContact);
@@ -118,18 +117,18 @@ public class LocalStudentProfileService {
     String counselorPhone = null;
 
     if (student.getClassName() != null && !student.getClassName().trim().isEmpty()) {
-      Optional<CounselorClassMapping> mappingOptional =
-          counselorClassMappingRepository.findFirstByClassName(student.getClassName());
+      List<CounselorClassMapping> mappings = counselorClassMappingMapper.selectList(
+          Wrappers.<CounselorClassMapping>lambdaQuery()
+              .eq(CounselorClassMapping::getClassName, student.getClassName().trim())
+              .last("LIMIT 1")
+      );
 
-      if (mappingOptional.isPresent()) {
-        CounselorClassMapping mapping = mappingOptional.get();
+      if (!mappings.isEmpty()) {
+        CounselorClassMapping mapping = mappings.get(0);
 
-        Optional<Counselor> counselorOptional =
-            counselorRepository.findById(mapping.getCounselorAccount());
+        Counselor counselor = counselorMapper.selectById(mapping.getCounselorAccount());
 
-        if (counselorOptional.isPresent()) {
-          Counselor counselor = counselorOptional.get();
-
+        if (counselor != null) {
           if (student.getGrade() != null && student.getGrade().equals(counselor.getGrade())) {
             counselorName = counselor.getName();
             counselorPhone = counselor.getPhone();

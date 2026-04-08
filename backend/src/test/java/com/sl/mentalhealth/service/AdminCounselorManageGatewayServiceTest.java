@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,9 +58,11 @@ class AdminCounselorManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminCounselorManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminCounselorManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminCounselorManageRequestMessage.ACTION_QUERY_PAGE, sent.getAction());
     assertSame(request, sent.getQueryRequest());
     assertEquals(32, sent.getRequestId().length());
+
     verify(pendingService).create(sent.getRequestId());
     verify(pendingService).await(sent.getRequestId(), future);
   }
@@ -85,6 +86,7 @@ class AdminCounselorManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminCounselorManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminCounselorManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminCounselorManageRequestMessage.ACTION_DETAIL, sent.getAction());
     assertEquals("c001", sent.getAccount());
   }
@@ -109,6 +111,7 @@ class AdminCounselorManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminCounselorManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminCounselorManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminCounselorManageRequestMessage.ACTION_CREATE, sent.getAction());
     assertSame(request, sent.getCreateRequest());
   }
@@ -133,13 +136,15 @@ class AdminCounselorManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminCounselorManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminCounselorManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminCounselorManageRequestMessage.ACTION_UPDATE, sent.getAction());
     assertSame(request, sent.getUpdateRequest());
   }
 
   @Test
   void updateClasses_success() {
-    AdminCounselorClassesUpdateRequest request = org.mockito.Mockito.mock(AdminCounselorClassesUpdateRequest.class);
+    AdminCounselorClassesUpdateRequest request =
+        org.mockito.Mockito.mock(AdminCounselorClassesUpdateRequest.class);
     CompletableFuture<AdminCounselorManageResponseMessage> future = new CompletableFuture<>();
     AdminCounselorManageResponseMessage response = new AdminCounselorManageResponseMessage();
     AdminCounselorDetailVO detail = org.mockito.Mockito.mock(AdminCounselorDetailVO.class);
@@ -157,6 +162,7 @@ class AdminCounselorManageGatewayServiceTest {
         ArgumentCaptor.forClass(AdminCounselorManageRequestMessage.class);
     verify(requestProducer).send(captor.capture());
     AdminCounselorManageRequestMessage sent = captor.getValue();
+
     assertEquals(AdminCounselorManageRequestMessage.ACTION_UPDATE_CLASSES, sent.getAction());
     assertSame(request, sent.getClassesUpdateRequest());
   }
@@ -172,7 +178,9 @@ class AdminCounselorManageGatewayServiceTest {
     when(pendingService.await(anyString(), eq(future))).thenReturn(response);
 
     RuntimeException ex =
-        assertThrows(RuntimeException.class, () -> service.queryPage(org.mockito.Mockito.mock(AdminCounselorQueryRequest.class)));
+        assertThrows(
+            RuntimeException.class,
+            () -> service.queryPage(org.mockito.Mockito.mock(AdminCounselorQueryRequest.class)));
 
     assertEquals("查询失败", ex.getMessage());
     verify(requestProducer).send(any(AdminCounselorManageRequestMessage.class));

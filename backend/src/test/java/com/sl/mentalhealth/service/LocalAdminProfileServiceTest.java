@@ -2,14 +2,12 @@ package com.sl.mentalhealth.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sl.mentalhealth.entity.Admin;
-import com.sl.mentalhealth.repository.AdminRepository;
+import com.sl.mentalhealth.mapper.AdminMapper;
 import com.sl.mentalhealth.vo.AdminProfileResponseVO;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LocalAdminProfileServiceTest {
 
     @Mock
-    private AdminRepository adminRepository;
+    private AdminMapper adminMapper;
 
     @InjectMocks
     private LocalAdminProfileService service;
@@ -32,7 +30,7 @@ class LocalAdminProfileServiceTest {
         admin.setName("系统管理员");
         admin.setAvatarUrl("/files/avatar/admin/a.png");
 
-        when(adminRepository.findById("admin001")).thenReturn(Optional.of(admin));
+        when(adminMapper.selectById("admin001")).thenReturn(admin);
 
         AdminProfileResponseVO result = service.getAdminProfile("admin001");
 
@@ -43,8 +41,8 @@ class LocalAdminProfileServiceTest {
 
     @Test
     void getAdminProfile_blankAccount_throwsIllegalArgumentException() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.getAdminProfile("  "));
+        IllegalArgumentException ex =
+            assertThrows(IllegalArgumentException.class, () -> service.getAdminProfile("  "));
 
         assertEquals("管理员账号不能为空", ex.getMessage());
     }
@@ -55,22 +53,35 @@ class LocalAdminProfileServiceTest {
         admin.setAccount("admin001");
         admin.setName("系统管理员");
 
-        when(adminRepository.findById("admin001")).thenReturn(Optional.of(admin));
-        when(adminRepository.save(any(Admin.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(adminMapper.selectById("admin001")).thenReturn(admin);
+        when(adminMapper.updateById(admin)).thenReturn(1);
 
-        AdminProfileResponseVO result = service.updateAvatar("admin001", " /files/avatar/admin/new.png ");
+        AdminProfileResponseVO result =
+            service.updateAvatar("admin001", " /files/avatar/admin/new.png ");
 
         assertEquals("/files/avatar/admin/new.png", result.getAvatarUrl());
-        verify(adminRepository).save(admin);
+        verify(adminMapper).updateById(admin);
     }
 
     @Test
     void updateAvatar_adminNotFound_throwsRuntimeException() {
-        when(adminRepository.findById("admin001")).thenReturn(Optional.empty());
+        when(adminMapper.selectById("admin001")).thenReturn(null);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        RuntimeException ex =
+            assertThrows(
+                RuntimeException.class,
                 () -> service.updateAvatar("admin001", "/files/avatar/admin/new.png"));
 
         assertEquals("管理员不存在", ex.getMessage());
+    }
+
+    @Test
+    void updateAvatar_blankAvatar_throwsIllegalArgumentException() {
+        IllegalArgumentException ex =
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> service.updateAvatar("admin001", " "));
+
+        assertEquals("头像地址不能为空", ex.getMessage());
     }
 }

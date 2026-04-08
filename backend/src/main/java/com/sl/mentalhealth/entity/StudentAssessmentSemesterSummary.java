@@ -1,43 +1,39 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-    name = "student_assessment_semester_summary",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_student_semester", columnNames = {"student_id", "semester"})
-    }
-)
+@TableName("student_assessment_semester_summary")
 public class StudentAssessmentSemesterSummary {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableId(value = "id", type = IdType.AUTO)
   private Long id;
 
-  @Column(name = "student_id", nullable = false, length = 50)
+  @TableField("student_id")
   private String studentId;
 
-  @Column(name = "semester", nullable = false, length = 20)
+  @TableField("semester")
   private String semester;
 
-  @Column(name = "tested_count", nullable = false)
+  @TableField("tested_count")
   private Integer testedCount;
 
-  @Column(name = "score_summary", length = 2000)
+  @TableField("score_summary")
   private String scoreSummary;
 
-  @Column(name = "semester_level", length = 20)
+  @TableField("semester_level")
   private String semesterLevel;
 
-  @Column(name = "last_tested_at")
+  @TableField("last_tested_at")
   private LocalDateTime lastTestedAt;
 
-  @Column(name = "created_at")
+  @TableField("created_at")
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
+  @TableField("updated_at")
   private LocalDateTime updatedAt;
 
   public Long getId() {

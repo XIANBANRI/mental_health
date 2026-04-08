@@ -1,39 +1,36 @@
 package com.sl.mentalhealth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@Entity
-@Table(name = "counselor")
+@TableName("counselor")
 public class Counselor {
 
-  @Id
-  @Column(name = "account")
+  @TableId(value = "account", type = IdType.INPUT)
   private String account;
 
-  @Column(name = "name")
+  @TableField("name")
   private String name;
 
-  @Column(name = "password")
+  @TableField("password")
   private String password;
 
-  @Column(name = "college")
+  @TableField("college")
   private String college;
 
-  @Column(name = "grade")
+  @TableField("grade")
   private String grade;
 
-  @Column(name = "phone")
+  @TableField("phone")
   private String phone;
 
-  @Column(name = "avatar_url")
+  @TableField("avatar_url")
   private String avatarUrl;
 
   public Counselor() {
   }
-
 }

@@ -378,6 +378,26 @@ export default {
       }
     },
 
+    async checkTeacherAccountExists(account) {
+      const target = (account || '').trim()
+      if (!target) return false
+
+      const res = await request({
+        url: '/admin/teacher/page',
+        method: 'post',
+        data: {
+          pageNum: 1,
+          pageSize: 10,
+          account: target
+        }
+      })
+
+      const data = this.parseResult(res)
+      const list = Array.isArray(data.list) ? data.list : []
+
+      return list.some(item => (item.account || '').trim() === target)
+    },
+
     submitAdd() {
       if (!this.$refs.addFormRef) return
 
@@ -386,10 +406,24 @@ export default {
 
         this.submitLoading = true
         try {
+          const payload = {
+            account: (this.addForm.account || '').trim(),
+            password: this.addForm.password,
+            teacherName: (this.addForm.teacherName || '').trim(),
+            officeLocation: (this.addForm.officeLocation || '').trim(),
+            phone: (this.addForm.phone || '').trim()
+          }
+
+          const exists = await this.checkTeacherAccountExists(payload.account)
+          if (exists) {
+            ElMessage.error('已经存在该账号')
+            return
+          }
+
           const res = await request({
             url: '/admin/teacher/create',
             method: 'post',
-            data: this.addForm
+            data: payload
           })
 
           this.parseResult(res)
@@ -397,7 +431,12 @@ export default {
           this.addDialogVisible = false
           this.fetchTableData()
         } catch (error) {
-          ElMessage.error(error.message || '新增失败')
+          const msg = error.message || ''
+          if (msg.includes('老师账号已存在') || msg.includes('已经存在')) {
+            ElMessage.error('已经存在该账号')
+          } else {
+            ElMessage.error(msg || '新增失败')
+          }
         } finally {
           this.submitLoading = false
         }
@@ -441,7 +480,14 @@ export default {
 
         this.submitLoading = true
         try {
-          const payload = { ...this.editForm }
+          const payload = {
+            account: (this.editForm.account || '').trim(),
+            password: this.editForm.password,
+            teacherName: (this.editForm.teacherName || '').trim(),
+            officeLocation: (this.editForm.officeLocation || '').trim(),
+            phone: (this.editForm.phone || '').trim()
+          }
+
           if (!payload.password) delete payload.password
 
           const res = await request({
@@ -518,32 +564,5 @@ export default {
   padding: 8px 20px 12px;
   max-height: calc(80vh - 120px);
   overflow-y: auto;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 8px 20px 16px;
-}
-
-:deep(.el-card__header) {
-  padding: 10px 14px;
-}
-
-:deep(.el-card__body) {
-  padding: 12px 14px;
-}
-
-@media (max-width: 768px) {
-  .teacher-manage {
-    padding: 10px;
-  }
-
-  .search-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .pagination-wrapper {
-    justify-content: center;
-  }
 }
 </style>

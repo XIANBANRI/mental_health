@@ -4,32 +4,30 @@ import com.sl.mentalhealth.entity.Admin;
 import com.sl.mentalhealth.entity.Counselor;
 import com.sl.mentalhealth.entity.Student;
 import com.sl.mentalhealth.entity.Teacher;
-import com.sl.mentalhealth.repository.AdminRepository;
-import com.sl.mentalhealth.repository.CounselorRepository;
-import com.sl.mentalhealth.repository.StudentRepository;
-import com.sl.mentalhealth.repository.TeacherRepository;
+import com.sl.mentalhealth.mapper.AdminMapper;
+import com.sl.mentalhealth.mapper.CounselorMapper;
+import com.sl.mentalhealth.mapper.StudentMapper;
+import com.sl.mentalhealth.mapper.TeacherMapper;
 import com.sl.mentalhealth.vo.LoginResponseVO;
-import org.springframework.stereotype.Service;
-
 import java.util.Objects;
-import java.util.Optional;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LocalAuthService {
 
-  private final StudentRepository studentRepository;
-  private final TeacherRepository teacherRepository;
-  private final CounselorRepository counselorRepository;
-  private final AdminRepository adminRepository;
+  private final StudentMapper studentMapper;
+  private final TeacherMapper teacherMapper;
+  private final CounselorMapper counselorMapper;
+  private final AdminMapper adminMapper;
 
-  public LocalAuthService(StudentRepository studentRepository,
-      TeacherRepository teacherRepository,
-      CounselorRepository counselorRepository,
-      AdminRepository adminRepository) {
-    this.studentRepository = studentRepository;
-    this.teacherRepository = teacherRepository;
-    this.counselorRepository = counselorRepository;
-    this.adminRepository = adminRepository;
+  public LocalAuthService(StudentMapper studentMapper,
+      TeacherMapper teacherMapper,
+      CounselorMapper counselorMapper,
+      AdminMapper adminMapper) {
+    this.studentMapper = studentMapper;
+    this.teacherMapper = teacherMapper;
+    this.counselorMapper = counselorMapper;
+    this.adminMapper = adminMapper;
   }
 
   public LoginResponseVO login(String role, String username, String password) {
@@ -39,29 +37,19 @@ public class LocalAuthService {
       throw new RuntimeException("请填写完整信息");
     }
 
-    switch (role) {
-      case "student":
-        return loginStudent(username, password);
-
-      case "teacher":
-        return loginTeacher(username, password);
-
-      case "counselor":
-        return loginCounselor(username, password);
-
-      case "admin":
-        return loginAdmin(username, password);
-
-      default:
-        throw new RuntimeException("身份类型错误");
-    }
+    return switch (role) {
+      case "student" -> loginStudent(username, password);
+      case "teacher" -> loginTeacher(username, password);
+      case "counselor" -> loginCounselor(username, password);
+      case "admin" -> loginAdmin(username, password);
+      default -> throw new RuntimeException("身份类型错误");
+    };
   }
 
   private LoginResponseVO loginStudent(String username, String password) {
-    Optional<Student> studentOptional = studentRepository.findById(username);
+    Student student = studentMapper.selectById(username);
 
-    if (studentOptional.isPresent()
-        && Objects.equals(studentOptional.get().getPassword(), password)) {
+    if (student != null && Objects.equals(student.getPassword(), password)) {
       return new LoginResponseVO("student", username, "/student");
     }
 
@@ -69,10 +57,9 @@ public class LocalAuthService {
   }
 
   private LoginResponseVO loginTeacher(String username, String password) {
-    Optional<Teacher> teacherOptional = teacherRepository.findById(username);
+    Teacher teacher = teacherMapper.selectById(username);
 
-    if (teacherOptional.isPresent()
-        && Objects.equals(teacherOptional.get().getPassword(), password)) {
+    if (teacher != null && Objects.equals(teacher.getPassword(), password)) {
       return new LoginResponseVO("teacher", username, "/teacher");
     }
 
@@ -80,10 +67,10 @@ public class LocalAuthService {
   }
 
   private LoginResponseVO loginCounselor(String username, String password) {
-    Optional<Counselor> counselorOptional = counselorRepository.findById(username);
+    Counselor counselor = counselorMapper.selectById(username);
 
-    if (counselorOptional.isPresent()
-        && Objects.equals(counselorOptional.get().getPassword(), password)) {
+    if (counselor != null
+        && Objects.equals(counselor.getPassword(), password)) {
       return new LoginResponseVO("counselor", username, "/counselor");
     }
 
@@ -91,10 +78,9 @@ public class LocalAuthService {
   }
 
   private LoginResponseVO loginAdmin(String username, String password) {
-    Optional<Admin> adminOptional = adminRepository.findById(username);
+    Admin admin = adminMapper.selectById(username);
 
-    if (adminOptional.isPresent()
-        && Objects.equals(adminOptional.get().getPassword(), password)) {
+    if (admin != null && Objects.equals(admin.getPassword(), password)) {
       return new LoginResponseVO("admin", username, "/admin");
     }
 

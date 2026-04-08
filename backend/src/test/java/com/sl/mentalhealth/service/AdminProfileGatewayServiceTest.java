@@ -45,8 +45,9 @@ class AdminProfileGatewayServiceTest {
     AdminProfileResponseMessage response = new AdminProfileResponseMessage();
     response.setSuccess(true);
     response.setData(data);
-    CompletableFuture<AdminProfileResponseMessage> future = CompletableFuture.completedFuture(response);
 
+    CompletableFuture<AdminProfileResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAdminProfileService.create(anyString())).thenReturn(future);
 
     AdminProfileResponseVO result = service.getAdminProfile("  admin001  ");
@@ -57,8 +58,10 @@ class AdminProfileGatewayServiceTest {
         ArgumentCaptor.forClass(AdminProfileRequestMessage.class);
     verify(adminProfileRequestProducer).send(captor.capture());
     AdminProfileRequestMessage sent = captor.getValue();
+
     assertEquals(AdminProfileRequestMessage.ACTION_QUERY_PROFILE, sent.getAction());
     assertEquals("admin001", sent.getAccount());
+
     verify(pendingAdminProfileService).create(sent.getRequestId());
     verify(pendingAdminProfileService).remove(sent.getRequestId());
   }
@@ -78,7 +81,9 @@ class AdminProfileGatewayServiceTest {
     AdminProfileResponseMessage response = new AdminProfileResponseMessage();
     response.setSuccess(false);
     response.setMessage("查询失败");
-    CompletableFuture<AdminProfileResponseMessage> future = CompletableFuture.completedFuture(response);
+
+    CompletableFuture<AdminProfileResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAdminProfileService.create(anyString())).thenReturn(future);
 
     RuntimeException ex =
@@ -94,11 +99,13 @@ class AdminProfileGatewayServiceTest {
     AdminProfileResponseMessage response = new AdminProfileResponseMessage();
     response.setSuccess(true);
     response.setData(data);
-    CompletableFuture<AdminProfileResponseMessage> future = CompletableFuture.completedFuture(response);
 
+    CompletableFuture<AdminProfileResponseMessage> future =
+        CompletableFuture.completedFuture(response);
     when(pendingAdminProfileService.create(anyString())).thenReturn(future);
 
-    AdminProfileResponseVO result = service.updateAvatar(" admin001 ", " /avatar/admin/a.png ");
+    AdminProfileResponseVO result =
+        service.updateAvatar(" admin001 ", " /avatar/admin/a.png ");
 
     assertSame(data, result);
 
@@ -106,16 +113,20 @@ class AdminProfileGatewayServiceTest {
         ArgumentCaptor.forClass(AdminProfileRequestMessage.class);
     verify(adminProfileRequestProducer).send(captor.capture());
     AdminProfileRequestMessage sent = captor.getValue();
+
     assertEquals(AdminProfileRequestMessage.ACTION_UPDATE_AVATAR, sent.getAction());
     assertEquals("admin001", sent.getAccount());
     assertEquals("/avatar/admin/a.png", sent.getAvatarUrl());
+
     verify(pendingAdminProfileService).remove(sent.getRequestId());
   }
 
   @Test
   void updateAvatar_blankAvatar_throwsIllegalArgumentException() {
     IllegalArgumentException ex =
-        assertThrows(IllegalArgumentException.class, () -> service.updateAvatar("admin001", "   "));
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> service.updateAvatar("admin001", "   "));
 
     assertEquals("头像地址不能为空", ex.getMessage());
     verify(pendingAdminProfileService, never()).create(anyString());

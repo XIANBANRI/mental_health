@@ -1,5 +1,8 @@
 package com.sl.mentalhealth.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sl.mentalhealth.dto.AdminCounselorClassesUpdateRequest;
 import com.sl.mentalhealth.dto.AdminCounselorCreateRequest;
 import com.sl.mentalhealth.dto.AdminCounselorQueryRequest;
@@ -8,22 +11,15 @@ import com.sl.mentalhealth.entity.Counselor;
 import com.sl.mentalhealth.entity.CounselorClassMapping;
 import com.sl.mentalhealth.kafka.message.AdminCounselorManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AdminCounselorManageResponseMessage;
-import com.sl.mentalhealth.repository.CounselorClassMappingRepository;
-import com.sl.mentalhealth.repository.CounselorRepository;
+import com.sl.mentalhealth.mapper.CounselorClassMappingMapper;
+import com.sl.mentalhealth.mapper.CounselorMapper;
 import com.sl.mentalhealth.vo.AdminCounselorDetailVO;
 import com.sl.mentalhealth.vo.AdminCounselorPageVO;
 import com.sl.mentalhealth.vo.AdminCounselorVO;
-import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -32,14 +28,14 @@ import org.springframework.util.StringUtils;
 @Transactional
 public class LocalAdminCounselorManageService {
 
-  private final CounselorRepository counselorRepository;
-  private final CounselorClassMappingRepository counselorClassMappingRepository;
+  private final CounselorMapper counselorMapper;
+  private final CounselorClassMappingMapper counselorClassMappingMapper;
 
   public LocalAdminCounselorManageService(
-      CounselorRepository counselorRepository,
-      CounselorClassMappingRepository counselorClassMappingRepository) {
-    this.counselorRepository = counselorRepository;
-    this.counselorClassMappingRepository = counselorClassMappingRepository;
+      CounselorMapper counselorMapper,
+      CounselorClassMappingMapper counselorClassMappingMapper) {
+    this.counselorMapper = counselorMapper;
+    this.counselorClassMappingMapper = counselorClassMappingMapper;
   }
 
   public AdminCounselorManageResponseMessage handle(
@@ -94,42 +90,36 @@ public class LocalAdminCounselorManageService {
     int pageSize = queryRequest.getPageSize() == null || queryRequest.getPageSize() < 1
         ? 10 : queryRequest.getPageSize();
 
-    Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Direction.ASC, "account"));
+    LambdaQueryWrapper<Counselor> queryWrapper = Wrappers.lambdaQuery();
 
-    Specification<Counselor> specification = (root, query, cb) -> {
-      List<Predicate> predicates = new ArrayList<>();
+    if (StringUtils.hasText(queryRequest.getAccount())) {
+      queryWrapper.like(Counselor::getAccount, queryRequest.getAccount().trim());
+    }
+    if (StringUtils.hasText(queryRequest.getName())) {
+      queryWrapper.like(Counselor::getName, queryRequest.getName().trim());
+    }
+    if (StringUtils.hasText(queryRequest.getCollege())) {
+      queryWrapper.like(Counselor::getCollege, queryRequest.getCollege().trim());
+    }
+    if (StringUtils.hasText(queryRequest.getGrade())) {
+      queryWrapper.like(Counselor::getGrade, queryRequest.getGrade().trim());
+    }
+    if (StringUtils.hasText(queryRequest.getPhone())) {
+      queryWrapper.like(Counselor::getPhone, queryRequest.getPhone().trim());
+    }
 
-      if (StringUtils.hasText(queryRequest.getAccount())) {
-        predicates.add(cb.like(root.get("account"), "%" + queryRequest.getAccount().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getName())) {
-        predicates.add(cb.like(root.get("name"), "%" + queryRequest.getName().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getCollege())) {
-        predicates.add(cb.like(root.get("college"), "%" + queryRequest.getCollege().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getGrade())) {
-        predicates.add(cb.like(root.get("grade"), "%" + queryRequest.getGrade().trim() + "%"));
-      }
-      if (StringUtils.hasText(queryRequest.getPhone())) {
-        predicates.add(cb.like(root.get("phone"), "%" + queryRequest.getPhone().trim() + "%"));
-      }
+    queryWrapper.orderByAsc(Counselor::getAccount);
 
-      if (predicates.isEmpty()) {
-        return cb.conjunction();
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
-    };
-
-    Page<Counselor> counselorPage = counselorRepository.findAll(specification, pageable);
+    Page<Counselor> page = new Page<>(pageNum, pageSize);
+    Page<Counselor> counselorPage = counselorMapper.selectPage(page, queryWrapper);
 
     List<AdminCounselorVO> list = new ArrayList<>();
-    for (Counselor counselor : counselorPage.getContent()) {
+    for (Counselor counselor : counselorPage.getRecords()) {
       list.add(toVO(counselor));
     }
 
     AdminCounselorPageVO pageVO = new AdminCounselorPageVO();
-    pageVO.setTotal(counselorPage.getTotalElements());
+    pageVO.setTotal(counselorPage.getTotal());
     pageVO.setPageNum(pageNum);
     pageVO.setPageSize(pageSize);
     pageVO.setList(list);
@@ -138,8 +128,10 @@ public class LocalAdminCounselorManageService {
 
   private AdminCounselorDetailVO detail(String account) {
     String counselorAccount = required(account, "辅导员账号不能为空");
-    Counselor counselor = counselorRepository.findById(counselorAccount)
-        .orElseThrow(() -> new RuntimeException("辅导员不存在"));
+    Counselor counselor = counselorMapper.selectById(counselorAccount);
+    if (counselor == null) {
+      throw new RuntimeException("辅导员不存在");
+    }
     return toDetailVO(counselor);
   }
 
@@ -155,7 +147,7 @@ public class LocalAdminCounselorManageService {
     String grade = required(request.getGrade(), "年级不能为空");
     String phone = required(request.getPhone(), "电话不能为空");
 
-    if (counselorRepository.existsByAccount(account)) {
+    if (counselorMapper.selectById(account) != null) {
       throw new RuntimeException("辅导员账号已存在");
     }
 
@@ -168,7 +160,7 @@ public class LocalAdminCounselorManageService {
     counselor.setPhone(phone);
     counselor.setAvatarUrl(null);
 
-    counselorRepository.save(counselor);
+    counselorMapper.insert(counselor);
 
     replaceClasses(account, request.getClassList());
     return detail(account);
@@ -181,8 +173,10 @@ public class LocalAdminCounselorManageService {
 
     String account = required(request.getAccount(), "辅导员账号不能为空");
 
-    Counselor counselor = counselorRepository.findById(account)
-        .orElseThrow(() -> new RuntimeException("辅导员不存在"));
+    Counselor counselor = counselorMapper.selectById(account);
+    if (counselor == null) {
+      throw new RuntimeException("辅导员不存在");
+    }
 
     if (request.getName() != null) {
       counselor.setName(normalize(request.getName()));
@@ -202,7 +196,7 @@ public class LocalAdminCounselorManageService {
       counselor.setPassword(password);
     }
 
-    counselorRepository.save(counselor);
+    counselorMapper.updateById(counselor);
     return detail(account);
   }
 
@@ -213,8 +207,10 @@ public class LocalAdminCounselorManageService {
 
     String account = required(request.getAccount(), "辅导员账号不能为空");
 
-    counselorRepository.findById(account)
-        .orElseThrow(() -> new RuntimeException("辅导员不存在"));
+    Counselor counselor = counselorMapper.selectById(account);
+    if (counselor == null) {
+      throw new RuntimeException("辅导员不存在");
+    }
 
     replaceClasses(account, request.getClassList());
     return detail(account);
@@ -224,28 +220,41 @@ public class LocalAdminCounselorManageService {
     List<String> normalizedClassList = normalizeClassList(classList);
 
     for (String className : normalizedClassList) {
-      Optional<CounselorClassMapping> existing =
-          counselorClassMappingRepository.findFirstByClassName(className);
-      if (existing.isPresent()
-          && !counselorAccount.equals(existing.get().getCounselorAccount())) {
+      CounselorClassMapping existing = findFirstByClassName(className);
+      if (existing != null
+          && !counselorAccount.equals(existing.getCounselorAccount())) {
         throw new RuntimeException("班级【" + className + "】已分配给其他辅导员");
       }
     }
 
-    counselorClassMappingRepository.deleteByCounselorAccount(counselorAccount);
-    counselorClassMappingRepository.flush();
+    counselorClassMappingMapper.delete(
+        Wrappers.<CounselorClassMapping>lambdaQuery()
+            .eq(CounselorClassMapping::getCounselorAccount, counselorAccount)
+    );
 
-    List<CounselorClassMapping> mappings = new ArrayList<>();
     for (String className : normalizedClassList) {
       CounselorClassMapping mapping = new CounselorClassMapping();
       mapping.setCounselorAccount(counselorAccount);
       mapping.setClassName(className);
-      mappings.add(mapping);
+      counselorClassMappingMapper.insert(mapping);
     }
+  }
 
-    if (!mappings.isEmpty()) {
-      counselorClassMappingRepository.saveAll(mappings);
-    }
+  private CounselorClassMapping findFirstByClassName(String className) {
+    List<CounselorClassMapping> list = counselorClassMappingMapper.selectList(
+        Wrappers.<CounselorClassMapping>lambdaQuery()
+            .eq(CounselorClassMapping::getClassName, className)
+            .last("LIMIT 1")
+    );
+    return list.isEmpty() ? null : list.get(0);
+  }
+
+  private List<CounselorClassMapping> listByCounselorAccount(String counselorAccount) {
+    return counselorClassMappingMapper.selectList(
+        Wrappers.<CounselorClassMapping>lambdaQuery()
+            .eq(CounselorClassMapping::getCounselorAccount, counselorAccount)
+            .orderByAsc(CounselorClassMapping::getClassName)
+    );
   }
 
   private List<String> normalizeClassList(List<String> classList) {
@@ -282,9 +291,7 @@ public class LocalAdminCounselorManageService {
     vo.setPhone(counselor.getPhone());
     vo.setAvatarUrl(counselor.getAvatarUrl());
 
-    List<CounselorClassMapping> mappings =
-        counselorClassMappingRepository.findByCounselorAccountOrderByClassNameAsc(
-            counselor.getAccount());
+    List<CounselorClassMapping> mappings = listByCounselorAccount(counselor.getAccount());
 
     List<String> classList = new ArrayList<>();
     for (CounselorClassMapping mapping : mappings) {

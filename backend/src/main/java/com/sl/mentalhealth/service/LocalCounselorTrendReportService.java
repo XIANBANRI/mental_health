@@ -1,9 +1,9 @@
 package com.sl.mentalhealth.service;
 
 import com.sl.mentalhealth.dto.CounselorTrendReportQueryRequest;
-import com.sl.mentalhealth.repository.StudentAssessmentSemesterSummaryRepository;
-import com.sl.mentalhealth.repository.projection.ClassDangerCountProjection;
-import com.sl.mentalhealth.repository.projection.SemesterDangerCountProjection;
+import com.sl.mentalhealth.mapper.StudentAssessmentSemesterSummaryMapper;
+import com.sl.mentalhealth.mapper.result.ClassDangerCountResult;
+import com.sl.mentalhealth.mapper.result.SemesterDangerCountResult;
 import com.sl.mentalhealth.vo.CounselorTrendBarVO;
 import com.sl.mentalhealth.vo.CounselorTrendLineVO;
 import com.sl.mentalhealth.vo.CounselorTrendReportVO;
@@ -18,20 +18,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LocalCounselorTrendReportService {
 
-  private final StudentAssessmentSemesterSummaryRepository studentAssessmentSemesterSummaryRepository;
+  private final StudentAssessmentSemesterSummaryMapper studentAssessmentSemesterSummaryMapper;
 
   public CounselorTrendReportVO queryTrendReport(CounselorTrendReportQueryRequest request) {
     String counselorAccount = request.getCounselorAccount();
     String selectedSemester = StringUtils.hasText(request.getSemester()) ? request.getSemester() : "第1学期";
 
-    List<ClassDangerCountProjection> classRaw =
-        studentAssessmentSemesterSummaryRepository.findDangerCountByClass(counselorAccount, selectedSemester);
+    List<ClassDangerCountResult> classRaw =
+        studentAssessmentSemesterSummaryMapper.selectDangerCountByClass(counselorAccount, selectedSemester);
 
-    List<SemesterDangerCountProjection> semesterRaw =
-        studentAssessmentSemesterSummaryRepository.findDangerCountBySemester(counselorAccount);
+    List<SemesterDangerCountResult> semesterRaw =
+        studentAssessmentSemesterSummaryMapper.selectDangerCountBySemester(counselorAccount);
 
     List<CounselorTrendBarVO> barChart = new ArrayList<>();
-    for (ClassDangerCountProjection item : classRaw) {
+    for (ClassDangerCountResult item : classRaw) {
       barChart.add(new CounselorTrendBarVO(
           item.getClassName(),
           item.getDangerCount() == null ? 0L : item.getDangerCount()
@@ -39,7 +39,7 @@ public class LocalCounselorTrendReportService {
     }
 
     List<CounselorTrendLineVO> lineChart = new ArrayList<>();
-    for (SemesterDangerCountProjection item : semesterRaw) {
+    for (SemesterDangerCountResult item : semesterRaw) {
       lineChart.add(new CounselorTrendLineVO(
           item.getSemester(),
           item.getDangerCount() == null ? 0L : item.getDangerCount()

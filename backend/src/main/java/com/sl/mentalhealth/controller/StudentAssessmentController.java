@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.controller;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitRequest;
+import com.sl.mentalhealth.dto.StudentAssessmentSubmitRequest;
 import com.sl.mentalhealth.service.AssessmentGatewayService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +49,7 @@ public class StudentAssessmentController {
   }
 
   @PostMapping("/submit")
-  public ResponseEntity<Map<String, Object>> submit(@RequestBody AssessmentSubmitRequest request) {
+  public ResponseEntity<Map<String, Object>> submit(@RequestBody StudentAssessmentSubmitRequest request) {
     Map<String, Object> result = new HashMap<>();
     try {
       result.put("success", true);

@@ -8,31 +8,6 @@ spring:
     password: 18827354387lp!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 0
-      password:
-      timeout: 3s
-
-  cache:
-    type: redis
-    cache-names:
-      - studentProfile
-      - teacherProfile
-      - counselorProfile
-      - adminProfile
-      - assessmentScale
-      - assessmentScaleDetail
-      - assessmentScaleFull
-      - teacherSchedule
-      - availableAppointment
-    redis:
-      time-to-live: 30m
-      cache-null-values: false
-      use-key-prefix: true
-
   kafka:
     bootstrap-servers: localhost:9092
 

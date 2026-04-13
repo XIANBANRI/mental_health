@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.service;
 
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import com.sl.mentalhealth.kafka.AssessmentScaleManageRequestProducer;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageResponseMessage;
@@ -41,7 +41,7 @@ public class AssessmentScaleManageGatewayService {
     return sendAndAwait(message);
   }
 
-  public AssessmentScaleManageResponseMessage update(AssessmentScaleUpdateRequest request) {
+  public AssessmentScaleManageResponseMessage update(AdminAssessmentScaleUpdateRequest request) {
     AssessmentScaleManageRequestMessage message = new AssessmentScaleManageRequestMessage();
     message.setRequestId(UUID.randomUUID().toString());
     message.setAction("UPDATE");

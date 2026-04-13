@@ -3,7 +3,7 @@ package com.sl.mentalhealth.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -38,10 +38,10 @@ class AssessmentScaleExcelParserServiceTest {
 
     MockMultipartFile file = toMultipartFile(workbook, "question.xlsx");
 
-    List<AssessmentScaleUpdateRequest.QuestionDTO> result = service.parseQuestionExcel(file);
+    List<AdminAssessmentScaleUpdateRequest.QuestionDTO> result = service.parseQuestionExcel(file);
 
     assertEquals(1, result.size());
-    AssessmentScaleUpdateRequest.QuestionDTO question = result.get(0);
+    AdminAssessmentScaleUpdateRequest.QuestionDTO question = result.get(0);
     assertEquals(1, question.getQuestionNo());
     assertEquals("我最近情绪稳定", question.getQuestionText());
     assertEquals(3, question.getOptions().size());
@@ -114,7 +114,7 @@ class AssessmentScaleExcelParserServiceTest {
 
     MockMultipartFile file = toMultipartFile(workbook, "rule.xlsx");
 
-    List<AssessmentScaleUpdateRequest.RuleDTO> result = service.parseRuleExcel(file);
+    List<AdminAssessmentScaleUpdateRequest.RuleDTO> result = service.parseRuleExcel(file);
 
     assertEquals(2, result.size());
     assertEquals(0, result.get(0).getMinScore());
@@ -124,13 +124,13 @@ class AssessmentScaleExcelParserServiceTest {
 
   @Test
   void validateRuleList_overlap_throwsException() {
-    AssessmentScaleUpdateRequest.RuleDTO r1 = new AssessmentScaleUpdateRequest.RuleDTO();
+    AdminAssessmentScaleUpdateRequest.RuleDTO r1 = new AdminAssessmentScaleUpdateRequest.RuleDTO();
     r1.setMinScore(0);
     r1.setMaxScore(9);
     r1.setResultLevel("正常");
     r1.setResultSummary("正常");
 
-    AssessmentScaleUpdateRequest.RuleDTO r2 = new AssessmentScaleUpdateRequest.RuleDTO();
+    AdminAssessmentScaleUpdateRequest.RuleDTO r2 = new AdminAssessmentScaleUpdateRequest.RuleDTO();
     r2.setMinScore(9);
     r2.setMaxScore(19);
     r2.setResultLevel("轻度");

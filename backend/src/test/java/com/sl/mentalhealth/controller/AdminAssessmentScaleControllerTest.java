@@ -1,7 +1,7 @@
 package com.sl.mentalhealth.controller;
 
 import com.sl.mentalhealth.common.Result;
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageResponseMessage;
 import com.sl.mentalhealth.service.AssessmentScaleExcelParserService;
@@ -182,7 +182,7 @@ class AdminAssessmentScaleControllerTest {
 
   @Test
   void update_success() {
-    AssessmentScaleUpdateRequest request = mock(AssessmentScaleUpdateRequest.class);
+    AdminAssessmentScaleUpdateRequest request = mock(AdminAssessmentScaleUpdateRequest.class);
     List rules = Collections.emptyList();
     Map<String, Object> data = Collections.emptyMap();
 
@@ -207,7 +207,7 @@ class AdminAssessmentScaleControllerTest {
 
   @Test
   void update_whenValidateFails_shouldReturnError() {
-    AssessmentScaleUpdateRequest request = mock(AssessmentScaleUpdateRequest.class);
+    AdminAssessmentScaleUpdateRequest request = mock(AdminAssessmentScaleUpdateRequest.class);
     List rules = Collections.emptyList();
 
     when(request.getRules()).thenReturn(rules);

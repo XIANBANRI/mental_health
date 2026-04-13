@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import com.sl.mentalhealth.kafka.AssessmentScaleManageRequestProducer;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageResponseMessage;
@@ -93,7 +93,8 @@ class AssessmentScaleManageGatewayServiceTest {
 
   @Test
   void update_success() {
-    AssessmentScaleUpdateRequest request = org.mockito.Mockito.mock(AssessmentScaleUpdateRequest.class);
+    AdminAssessmentScaleUpdateRequest request = org.mockito.Mockito.mock(
+        AdminAssessmentScaleUpdateRequest.class);
     when(request.getScaleId()).thenReturn(5L);
     when(request.getScaleName()).thenReturn("SDS");
     when(request.getScaleType()).thenReturn("抑郁");

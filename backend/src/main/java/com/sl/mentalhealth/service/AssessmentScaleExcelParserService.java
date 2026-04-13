@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.service;
 
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,8 +22,8 @@ public class AssessmentScaleExcelParserService {
 
   private static final Pattern SCORE_HEADER_PATTERN = Pattern.compile("^(-?\\d+)\\s*分$");
 
-  public List<AssessmentScaleUpdateRequest.QuestionDTO> parseQuestionExcel(MultipartFile file) throws Exception {
-    List<AssessmentScaleUpdateRequest.QuestionDTO> result = new ArrayList<>();
+  public List<AdminAssessmentScaleUpdateRequest.QuestionDTO> parseQuestionExcel(MultipartFile file) throws Exception {
+    List<AdminAssessmentScaleUpdateRequest.QuestionDTO> result = new ArrayList<>();
 
     try (InputStream inputStream = file.getInputStream();
         Workbook workbook = WorkbookFactory.create(inputStream)) {
@@ -57,11 +57,11 @@ public class AssessmentScaleExcelParserService {
           throw new IllegalArgumentException("题目模板第" + (i + 1) + "行第2列“项目名称”不能为空");
         }
 
-        AssessmentScaleUpdateRequest.QuestionDTO questionDTO = new AssessmentScaleUpdateRequest.QuestionDTO();
+        AdminAssessmentScaleUpdateRequest.QuestionDTO questionDTO = new AdminAssessmentScaleUpdateRequest.QuestionDTO();
         questionDTO.setQuestionNo(questionNo);
         questionDTO.setQuestionText(questionText);
 
-        List<AssessmentScaleUpdateRequest.OptionDTO> options = new ArrayList<>();
+        List<AdminAssessmentScaleUpdateRequest.OptionDTO> options = new ArrayList<>();
         int optionNo = 1;
 
         for (ScoreColumnMeta scoreColumn : scoreColumns) {
@@ -70,7 +70,7 @@ public class AssessmentScaleExcelParserService {
             continue;
           }
 
-          AssessmentScaleUpdateRequest.OptionDTO optionDTO = new AssessmentScaleUpdateRequest.OptionDTO();
+          AdminAssessmentScaleUpdateRequest.OptionDTO optionDTO = new AdminAssessmentScaleUpdateRequest.OptionDTO();
           optionDTO.setOptionNo(optionNo);
           optionDTO.setOptionText(optionText);
           optionDTO.setOptionScore(scoreColumn.getScore());
@@ -94,8 +94,8 @@ public class AssessmentScaleExcelParserService {
     return result;
   }
 
-  public List<AssessmentScaleUpdateRequest.RuleDTO> parseRuleExcel(MultipartFile file) throws Exception {
-    List<AssessmentScaleUpdateRequest.RuleDTO> result = new ArrayList<>();
+  public List<AdminAssessmentScaleUpdateRequest.RuleDTO> parseRuleExcel(MultipartFile file) throws Exception {
+    List<AdminAssessmentScaleUpdateRequest.RuleDTO> result = new ArrayList<>();
     List<Integer> sourceRows = new ArrayList<>();
 
     try (InputStream inputStream = file.getInputStream();
@@ -134,7 +134,7 @@ public class AssessmentScaleExcelParserService {
           throw new IllegalArgumentException("评分判定表第" + (i + 1) + "行第4列“结果说明”不能为空");
         }
 
-        AssessmentScaleUpdateRequest.RuleDTO ruleDTO = new AssessmentScaleUpdateRequest.RuleDTO();
+        AdminAssessmentScaleUpdateRequest.RuleDTO ruleDTO = new AdminAssessmentScaleUpdateRequest.RuleDTO();
         ruleDTO.setMinScore(minScore);
         ruleDTO.setMaxScore(maxScore);
         ruleDTO.setResultLevel(resultLevel);
@@ -150,17 +150,17 @@ public class AssessmentScaleExcelParserService {
     return result;
   }
 
-  public void validateRuleList(List<AssessmentScaleUpdateRequest.RuleDTO> rules) {
+  public void validateRuleList(List<AdminAssessmentScaleUpdateRequest.RuleDTO> rules) {
     validateRuleList(rules, null);
   }
 
-  private void validateRuleList(List<AssessmentScaleUpdateRequest.RuleDTO> rules, List<Integer> sourceRows) {
+  private void validateRuleList(List<AdminAssessmentScaleUpdateRequest.RuleDTO> rules, List<Integer> sourceRows) {
     if (rules == null || rules.isEmpty()) {
       throw new IllegalArgumentException("规则不能为空");
     }
 
     for (int i = 0; i < rules.size(); i++) {
-      AssessmentScaleUpdateRequest.RuleDTO current = rules.get(i);
+      AdminAssessmentScaleUpdateRequest.RuleDTO current = rules.get(i);
       String currentLabel = buildRulePositionLabel(i, sourceRows);
 
       if (current.getMinScore() == null) {
@@ -181,7 +181,7 @@ public class AssessmentScaleExcelParserService {
       }
 
       if (i > 0) {
-        AssessmentScaleUpdateRequest.RuleDTO previous = rules.get(i - 1);
+        AdminAssessmentScaleUpdateRequest.RuleDTO previous = rules.get(i - 1);
         if (current.getMinScore() <= previous.getMaxScore()) {
           throw new IllegalArgumentException(
               currentLabel + "不符合要求：当前最低分数必须大于上一条规则的最高分数（上一条最高分数为 "

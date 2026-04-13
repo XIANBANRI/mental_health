@@ -1,7 +1,7 @@
 package com.sl.mentalhealth.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import com.sl.mentalhealth.entity.AssessmentScale;
 import com.sl.mentalhealth.entity.AssessmentScaleVersion;
 import com.sl.mentalhealth.entity.AssessmentVersionOption;
@@ -63,11 +63,11 @@ public class LocalAssessmentScaleManageService {
     }
 
     int scoreMin = request.getRules().stream()
-        .mapToInt(AssessmentScaleUpdateRequest.RuleDTO::getMinScore)
+        .mapToInt(AdminAssessmentScaleUpdateRequest.RuleDTO::getMinScore)
         .min()
         .orElse(0);
     int scoreMax = request.getRules().stream()
-        .mapToInt(AssessmentScaleUpdateRequest.RuleDTO::getMaxScore)
+        .mapToInt(AdminAssessmentScaleUpdateRequest.RuleDTO::getMaxScore)
         .max()
         .orElse(0);
 
@@ -233,11 +233,11 @@ public class LocalAssessmentScaleManageService {
     saveQuestionsAndRules(newVersion.getId(), request.getQuestions(), request.getRules());
 
     int scoreMin = request.getRules().stream()
-        .mapToInt(AssessmentScaleUpdateRequest.RuleDTO::getMinScore)
+        .mapToInt(AdminAssessmentScaleUpdateRequest.RuleDTO::getMinScore)
         .min()
         .orElse(0);
     int scoreMax = request.getRules().stream()
-        .mapToInt(AssessmentScaleUpdateRequest.RuleDTO::getMaxScore)
+        .mapToInt(AdminAssessmentScaleUpdateRequest.RuleDTO::getMaxScore)
         .max()
         .orElse(0);
 
@@ -326,10 +326,10 @@ public class LocalAssessmentScaleManageService {
 
   private void saveQuestionsAndRules(
       Long versionId,
-      List<AssessmentScaleUpdateRequest.QuestionDTO> questionDTOList,
-      List<AssessmentScaleUpdateRequest.RuleDTO> ruleDTOList) {
+      List<AdminAssessmentScaleUpdateRequest.QuestionDTO> questionDTOList,
+      List<AdminAssessmentScaleUpdateRequest.RuleDTO> ruleDTOList) {
 
-    for (AssessmentScaleUpdateRequest.QuestionDTO questionDTO : questionDTOList) {
+    for (AdminAssessmentScaleUpdateRequest.QuestionDTO questionDTO : questionDTOList) {
       AssessmentVersionQuestion question = new AssessmentVersionQuestion();
       question.setVersionId(versionId);
       question.setQuestionNo(questionDTO.getQuestionNo());
@@ -338,7 +338,7 @@ public class LocalAssessmentScaleManageService {
       assessmentVersionQuestionMapper.insert(question);
 
       if (questionDTO.getOptions() != null) {
-        for (AssessmentScaleUpdateRequest.OptionDTO optionDTO : questionDTO.getOptions()) {
+        for (AdminAssessmentScaleUpdateRequest.OptionDTO optionDTO : questionDTO.getOptions()) {
           AssessmentVersionOption option = new AssessmentVersionOption();
           option.setVersionQuestionId(question.getId());
           option.setOptionNo(optionDTO.getOptionNo());
@@ -349,7 +349,7 @@ public class LocalAssessmentScaleManageService {
       }
     }
 
-    for (AssessmentScaleUpdateRequest.RuleDTO ruleDTO : ruleDTOList) {
+    for (AdminAssessmentScaleUpdateRequest.RuleDTO ruleDTO : ruleDTOList) {
       AssessmentVersionRule rule = new AssessmentVersionRule();
       rule.setVersionId(versionId);
       rule.setMinScore(ruleDTO.getMinScore());

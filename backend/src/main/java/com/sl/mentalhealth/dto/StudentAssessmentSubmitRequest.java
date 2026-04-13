@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class AssessmentSubmitRequest {
+public class StudentAssessmentSubmitRequest {
 
   private String studentId;
   private String semester;

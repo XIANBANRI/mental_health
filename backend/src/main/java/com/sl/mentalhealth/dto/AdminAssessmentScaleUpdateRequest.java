@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class AssessmentScaleUpdateRequest {
+public class AdminAssessmentScaleUpdateRequest {
 
   private Long scaleId;
   private String scaleName;

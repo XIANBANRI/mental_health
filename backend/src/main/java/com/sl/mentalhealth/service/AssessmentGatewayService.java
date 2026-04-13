@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.service;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitRequest;
+import com.sl.mentalhealth.dto.StudentAssessmentSubmitRequest;
 import com.sl.mentalhealth.kafka.AssessmentRequestProducer;
 import com.sl.mentalhealth.kafka.message.AssessmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentResponseMessage;
@@ -39,7 +39,7 @@ public class AssessmentGatewayService {
     return response.getDetail();
   }
 
-  public AssessmentSubmitResultVO submit(AssessmentSubmitRequest submitRequest) {
+  public AssessmentSubmitResultVO submit(StudentAssessmentSubmitRequest submitRequest) {
     AssessmentRequestMessage request = buildRequest(LocalAssessmentService.ACTION_SUBMIT);
     request.setStudentId(submitRequest.getStudentId());
     request.setSemester(submitRequest.getSemester());

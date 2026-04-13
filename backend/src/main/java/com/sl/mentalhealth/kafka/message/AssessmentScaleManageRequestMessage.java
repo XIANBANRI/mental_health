@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.kafka.message;
 
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import java.util.List;
 
 public class AssessmentScaleManageRequestMessage {
@@ -19,8 +19,8 @@ public class AssessmentScaleManageRequestMessage {
   private String questionFileName;
   private String ruleFileName;
 
-  private List<AssessmentScaleUpdateRequest.QuestionDTO> questions;
-  private List<AssessmentScaleUpdateRequest.RuleDTO> rules;
+  private List<AdminAssessmentScaleUpdateRequest.QuestionDTO> questions;
+  private List<AdminAssessmentScaleUpdateRequest.RuleDTO> rules;
 
   public String getRequestId() {
     return requestId;
@@ -110,19 +110,19 @@ public class AssessmentScaleManageRequestMessage {
     this.ruleFileName = ruleFileName;
   }
 
-  public List<AssessmentScaleUpdateRequest.QuestionDTO> getQuestions() {
+  public List<AdminAssessmentScaleUpdateRequest.QuestionDTO> getQuestions() {
     return questions;
   }
 
-  public void setQuestions(List<AssessmentScaleUpdateRequest.QuestionDTO> questions) {
+  public void setQuestions(List<AdminAssessmentScaleUpdateRequest.QuestionDTO> questions) {
     this.questions = questions;
   }
 
-  public List<AssessmentScaleUpdateRequest.RuleDTO> getRules() {
+  public List<AdminAssessmentScaleUpdateRequest.RuleDTO> getRules() {
     return rules;
   }
 
-  public void setRules(List<AssessmentScaleUpdateRequest.RuleDTO> rules) {
+  public void setRules(List<AdminAssessmentScaleUpdateRequest.RuleDTO> rules) {
     this.rules = rules;
   }
 }

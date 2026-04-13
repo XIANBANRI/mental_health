@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitRequest;
+import com.sl.mentalhealth.dto.StudentAssessmentSubmitRequest;
 import com.sl.mentalhealth.kafka.AssessmentRequestProducer;
 import com.sl.mentalhealth.kafka.message.AssessmentRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentResponseMessage;
@@ -83,7 +83,8 @@ class AssessmentGatewayServiceTest {
 
   @Test
   void submit_success() {
-    AssessmentSubmitRequest request = org.mockito.Mockito.mock(AssessmentSubmitRequest.class);
+    StudentAssessmentSubmitRequest request = org.mockito.Mockito.mock(
+        StudentAssessmentSubmitRequest.class);
     when(request.getStudentId()).thenReturn("s001");
     when(request.getSemester()).thenReturn("2025-2026-2");
     when(request.getScaleId()).thenReturn(1L);

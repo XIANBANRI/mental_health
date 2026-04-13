@@ -1,6 +1,6 @@
 package com.sl.mentalhealth.controller;
 
-import com.sl.mentalhealth.dto.AssessmentSubmitRequest;
+import com.sl.mentalhealth.dto.StudentAssessmentSubmitRequest;
 import com.sl.mentalhealth.service.AssessmentGatewayService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,7 +79,7 @@ class StudentAssessmentControllerTest {
 
   @Test
   void submit_success() {
-    AssessmentSubmitRequest request = mock(AssessmentSubmitRequest.class);
+    StudentAssessmentSubmitRequest request = mock(StudentAssessmentSubmitRequest.class);
 
     ResponseEntity<Map<String, Object>> response = controller.submit(request);
 
@@ -94,7 +94,7 @@ class StudentAssessmentControllerTest {
 
   @Test
   void submit_whenException_shouldReturnBadRequest() {
-    AssessmentSubmitRequest request = mock(AssessmentSubmitRequest.class);
+    StudentAssessmentSubmitRequest request = mock(StudentAssessmentSubmitRequest.class);
     when(assessmentGatewayService.submit(request)).thenThrow(new RuntimeException("提交失败"));
 
     ResponseEntity<Map<String, Object>> response = controller.submit(request);

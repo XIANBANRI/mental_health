@@ -1,7 +1,7 @@
 package com.sl.mentalhealth.controller;
 
 import com.sl.mentalhealth.common.Result;
-import com.sl.mentalhealth.dto.AssessmentScaleUpdateRequest;
+import com.sl.mentalhealth.dto.AdminAssessmentScaleUpdateRequest;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageRequestMessage;
 import com.sl.mentalhealth.kafka.message.AssessmentScaleManageResponseMessage;
 import com.sl.mentalhealth.service.AssessmentScaleExcelParserService;
@@ -12,7 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/admin/assessment-scale")
-public class AdminAssessmentScaleController {
+public class
+
+
+AdminAssessmentScaleController {
 
   private final AssessmentScaleManageGatewayService assessmentScaleManageGatewayService;
   private final AssessmentScaleExcelParserService assessmentScaleExcelParserService;
@@ -75,7 +78,7 @@ public class AdminAssessmentScaleController {
   }
 
   @PostMapping("/update")
-  public Result<?> update(@RequestBody AssessmentScaleUpdateRequest request) {
+  public Result<?> update(@RequestBody AdminAssessmentScaleUpdateRequest request) {
     try {
       assessmentScaleExcelParserService.validateRuleList(request.getRules());
 
